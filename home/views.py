@@ -7,6 +7,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.template import Context, loader
 from qisite import settings
 from django.db import models
+from models import *
 
 def getFieldNameList():
     result = []
@@ -19,26 +20,31 @@ def test(request):
     result = u''
     for app in settings.INSTALLED_APPS:
         modelsFilePath = app + ".models"
-        try:
+        if modelsFilePath.split('.')[0] != 'django':
             modelsFile = __import__(modelsFilePath, fromlist=["models"])
             modelNames = dir(modelsFile)
             for modelName in modelNames:
-                try:
-                    model = modelsFile.__getattribute__(modelName)
-                    if issubclass(model, models.Model) and model.__module__ == modelsFilePath:
-                        result += u'%s.%s<br>' % (modelsFilePath, modelName)
-                        attrNames = dir(model)
-                        fieldNameList = getFieldNameList()
-                        for attrName in attrNames :
-                            attr = model.__getattribute__(attrName)
-                            if type(attr).__name__ in fieldNameList:
-                                result += u'&nbsp;&nbsp;%s<br>' % attrName
-                except TypeError, e:
-                    print e
-                    pass
-        except ImportError, e:
-            pass
+                model = modelsFile.__getattribute__(modelName)
+                if type(model).__module__== 'django.db.models.base':
+                    result += u'%s.%s<br>' % (modelsFilePath, modelName)
+                    fieldNames = model._meta.get_all_field_names()
+                    fieldNameList = getFieldNameList()
+                    for fieldName in fieldNames :
+                        field = model._meta.get_field_by_name(fieldName)[0]
+                        fieldType = field.__class__.__name__
+                        #field = Catalog._meta.get_field_by_name('papers')[0]
+                        #field.rel.to
+                        result += u'&nbsp;&nbsp;%s,%s<br>' % (fieldName,fieldType)
+
     return HttpResponse(result)
+
+
+
+
+def test1(request):
+    Catalog().__getattribute__('name')
+    return HttpResponse('hello')
+
 
 
 def index(request):
