@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<script src="/static/bootstrap/js/jquery.min.js"></script>
+<script>
+    $.ajax({
+        statusCode: {
+            404: function () {
+                alert("page not found");
+            }
+        }
+    });
+
+</script>
+</body>
+</html>

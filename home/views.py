@@ -35,10 +35,13 @@ def test(request):
                         #field = Catalog._meta.get_field_by_name('papers')[0]
                         #field.rel.to
                         result += u'&nbsp;&nbsp;%s,%s<br>' % (fieldName,fieldType)
-
     return HttpResponse(result)
 
 
+def ajaxtest(request):
+    template = loader.get_template('home/ajaxtest.html')
+    context = Context({})
+    return HttpResponse(template.render(context))
 
 
 def test1(request):
