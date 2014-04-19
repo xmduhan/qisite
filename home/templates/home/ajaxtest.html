@@ -6,14 +6,25 @@
 <body>
 <script src="/static/bootstrap/js/jquery.min.js"></script>
 <script>
+    // Using the core $.ajax() method
     $.ajax({
-        statusCode: {
-            404: function () {
-                alert("page not found");
-            }
+        url: "/restful/users",
+        data: { id: 123 },
+        type: "GET",
+        dataType: "json",
+        success: function (json) {
+            console.log(json.results[0].username);
+            console.log("The request is sccess!");
+        },
+        error: function (xhr, status, errorThrown) {
+            console.log("Error: " + errorThrown);
+            console.log("Status: " + status);
+            console.dir(xhr);
+        },
+        complete: function (xhr, status) {
+            console.log("The request is complete!");
         }
     });
-
 </script>
 </body>
 </html>
