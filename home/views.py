@@ -37,6 +37,15 @@ def test(request):
                         result += u'&nbsp;&nbsp;%s,%s<br>' % (fieldName,fieldType)
     return HttpResponse(result)
 
+def test01(request):
+    template = loader.get_template('home/test01.html')
+    context = Context({})
+    return HttpResponse(template.render(context))
+
+def test02(request):
+    template = loader.get_template('home/test02.html')
+    context = Context({})
+    return HttpResponse(template.render(context))
 
 def ajaxtest(request):
     template = loader.get_template('home/ajaxtest.html')
