@@ -47,6 +47,8 @@ class Paper(StateObject):
 
     name = models.CharField("问卷名称", max_length=500)
     description = models.CharField("问卷说明", max_length=1000)
+    description1 = models.CharField("问卷说明", max_length=1000)
+    description2 = models.CharField("问卷说明", max_length=1000)
 
     class Meta:
         verbose_name = "问卷"
