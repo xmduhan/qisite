@@ -40,7 +40,7 @@ INSTALLED_APPS = (
     'south',
     'rest_framework',
     'home',
-    'bootstrap',
+    'www',
     'restful',
 )
 

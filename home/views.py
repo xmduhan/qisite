@@ -47,6 +47,11 @@ def test02(request):
     context = Context({})
     return HttpResponse(template.render(context))
 
+def layout(request):
+    template = loader.get_template('home/layout.html')
+    context = Context({})
+    return HttpResponse(template.render(context))
+
 def ajaxtest(request):
     template = loader.get_template('home/ajaxtest.html')
     context = Context({})
