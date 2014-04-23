@@ -47,6 +47,16 @@ def test02(request):
     context = Context({})
     return HttpResponse(template.render(context))
 
+def test03(request):
+    template = loader.get_template('home/test03.html')
+    context = Context({})
+    return HttpResponse(template.render(context))
+
+def test04(request):
+    template = loader.get_template('home/test04.html')
+    context = Context({})
+    return HttpResponse(template.render(context))
+
 def layout(request):
     template = loader.get_template('home/layout.html')
     context = Context({})

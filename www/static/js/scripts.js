@@ -329,7 +329,7 @@ $(document).ready(function() {
 	restoreData();
 	var contenthandle = CKEDITOR.replace( 'contenteditor' ,{
 		language: 'zh-cn',
-		contentsCss: ['css/bootstrap-combined.min.css'],
+		contentsCss: ['/static/bootstrap/css/bootstrap.min.css'],
 		allowedContent: true
 	});
 	$("body").css("min-height", $(window).height() - 90);
