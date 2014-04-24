@@ -39,9 +39,10 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'south',
     'rest_framework',
-    'home',
     'www',
+    'home',
     'restful',
+    'account',
 )
 
 
