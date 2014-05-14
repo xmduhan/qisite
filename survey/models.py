@@ -3,7 +3,6 @@ from django.db import models
 import account.models
 # Create your models here.
 
-
 class Paper(models.Model):
     title = models.CharField('问卷标题', max_length=500)
     description = models.CharField('问卷说明', max_length=500)
