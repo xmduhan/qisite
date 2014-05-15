@@ -30,9 +30,11 @@ class Paper(TimeModel):
 class PaperCatalog(TimeModel):
     name = models.CharField("目录名称", max_length=100)
     code = models.CharField("目录编码", max_length=50, unique=True)
-    parent = models.ForeignKey('self', blank=True, null=True, verbose_name="上级目录")
+    parent = models.ForeignKey('self', verbose_name="上级目录", blank=True, null=True)
     ord = models.IntegerField("排序号")
     paper_set = models.ManyToManyField(Paper, verbose_name='包含问卷', blank=True, null=True)
+    createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='paperCatalogCreated')
+    modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='paperCatalogModified')
 
 
 class Question(TimeModel):
@@ -57,7 +59,10 @@ class QuestionCatalog(TimeModel):
     code = models.CharField("目录编码", max_length=50, unique=True)
     parent = models.ForeignKey('self', blank=True, null=True, verbose_name="上级目录")
     ord = models.IntegerField("排序号")
-    paper_set = models.ManyToManyField(Question, verbose_name='包含问题')
+    question_set = models.ManyToManyField(Question, verbose_name='包含问题')
+    createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='questionCatalogCreated')
+    modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='questionCatalogModified')
+
 
 
 class Stem(TimeModel):
@@ -69,7 +74,8 @@ class Stem(TimeModel):
 
 
 class Resource(TimeModel):
-    resourceType = models.CharField('文字', max_length=50)
+    RESOURCE_TYPE = (('Picture', '图片'), ('Audio', '音频'), ('Video', '视频'))
+    resourceType = models.CharField('文字', max_length=50, choices=RESOURCE_TYPE)
     resourceUrl = models.CharField('文字', max_length=1000)
     width = models.FloatField("资源宽度")
     height = models.FloatField("资源高度")
@@ -115,7 +121,7 @@ class TargetCust(TimeModel):
     name = models.CharField('姓名', max_length=50)
     phone = models.CharField('手机号码', max_length=50)
     email = models.CharField('电子邮件', max_length=100)
-    #自定信息 defineinfo_set 对象集 (ok) (已在DefineInfo中设置对应的外键)
+    defineinfo_set = models.ManyToManyField('DefineInfo', verbose_name='附件信息')
     #sample = models.ForeignKey('Sample', verbose_name='样本') 在样本中已设定了一对一关系 (ok)
     token = models.CharField('访问令牌', max_length=50)
     survey = models.ForeignKey(Survey, verbose_name="所属调查")
@@ -157,7 +163,8 @@ class CustListItem(TimeModel):
     name = models.CharField('名称', max_length=50)
     phone = models.CharField('手机号', max_length=50)
     email = models.CharField('电子邮件', max_length=100)
-    #自定信息	defineInfo	对象集 (ok) (已在DefineInfo中设置对应的外键)
+    custList = models.ForeignKey(CustList,verbose_name='所属清单')
+    defineinfo_set = models.ManyToManyField('DefineInfo', verbose_name='附件信息')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='custListItemCreated')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='custListItemModified')
 
@@ -166,7 +173,5 @@ class DefineInfo(TimeModel):
     name = models.CharField('信息名称', max_length=100)
     value = models.CharField('信息值', max_length=200)
     ord = models.IntegerField('排序号')
-    targetCust = models.ForeignKey(TargetCust, verbose_name="所属目标清单")
-    custListItem = models.ForeignKey(CustListItem, verbose_name="所属预定清单")
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='defineInfoCreated')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='defineInfoModified')
