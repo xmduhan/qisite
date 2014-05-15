@@ -139,8 +139,8 @@ class Sample(TimeModel):
 class SampleItem(TimeModel):
     question = models.ForeignKey('Question', verbose_name='问题')
     branch_set = models.ManyToManyField(Branch, verbose_name='已选')
-    content = models.CharField('内容', max_length=500, blank=True)
-    score = models.FloatField('得分')
+    content = models.CharField('内容', max_length=500, blank=True, null=True)
+    score = models.FloatField('得分', default=0)
     sample = models.ForeignKey(Sample, verbose_name='所属样本')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='sampleItemCreated')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='sampleItemModified')

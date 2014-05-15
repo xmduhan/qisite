@@ -11,131 +11,164 @@ from models import *
 import account.models
 from datetime import datetime
 
-class SurveyModelTest(TestCase):
 
+class SurveyModelTest(TestCase):
     def addUser(self):
-        user = account.models.User()
-        user.name = 'tsUser'
-        user.phone = '1234567890'
-        user.email = 'sample@example.com'
+        user = account.models.User(
+            name='tsUser',
+            phone='1234567890',
+            email='sample@example.com'
+        )
         user.save()
         self.tsUser = user
 
     def addPaper(self):
-        paper = Paper()
-        paper.title = 'tsPaper'
-        paper.description = 'tsPaper.description'
-        paper.inOrder = True
-        paper.lookBack = False
-        paper.style =  'P'
-        paper.createBy = self.tsUser
-        paper.modifyBy = self.tsUser
+        paper = Paper(
+            title='tsPaper',
+            description='tsPaper.description',
+            inOrder=True,
+            lookBack=False,
+            style='P',
+            createBy=self.tsUser,
+            modifyBy=self.tsUser
+        )
         paper.save()
         self.tsPaper = paper
 
     def addSurvey(self):
-        survey = Survey()
-        survey.paper = self.tsPaper     # 在没有问卷的情况下，是无法创建调查的
-        survey.targetOnly = True
-        survey.state = '?'
-        survey.shared = False
-        survey.viewResult = False
-        survey.resubmit = False
-        survey.passwd = ''
-        #survey.ipLimit = 5
-        #survey.ipLimit = 5
-        survey.hardCost = 0
-        survey.bonus = 0
-        survey.fee = 0
-        survey.validSampleLimit = 0
-        survey.createBy = self.tsUser
-        survey.modifyBy = self.tsUser
+        survey = Survey(
+            paper=self.tsPaper,  # 在没有问卷的情况下，是无法创建调查的
+            targetOnly=True,
+            state='?',
+            shared=False,
+            viewResult=False,
+            resubmit=False,
+            passwd='',
+            #survey.ipLimit = 5
+            #survey.ipLimit = 5
+            hardCost=0,
+            bonus=0,
+            fee=0,
+            validSampleLimit=0,
+            createBy=self.tsUser,
+            modifyBy=self.tsUser
+        )
         survey.save()
         self.tsSurvey = survey
 
     def addSingleQuestion(self):
         # 增加一个单选题
-        singleQuestion = Question()
-        singleQuestion.type = 'Single'
-        singleQuestion.contentLengh = 0
-        singleQuestion.valueMin = 0
-        singleQuestion.valueMin = 0
-        singleQuestion.confused = False
-        singleQuestion.nextQuestion = None
-        singleQuestion.paper = self.tsPaper
-        singleQuestion.createBy = self.tsUser
-        singleQuestion.modifyBy = self.tsUser
+        singleQuestion = Question(
+            type='Single',
+            contentLengh=0,
+            valueMin=0,
+            valueMax=0,
+            confused=False,
+            branchNumStyle='S1',
+            nextQuestion=None,
+            paper=self.tsPaper,
+            createBy=self.tsUser,
+            modifyBy=self.tsUser
+        )
         singleQuestion.save()
         self.tsSingleQuestion = singleQuestion
         # 增加单选题的题干
-        singleStem = Stem()
-        singleStem.text = '选择题'
-        singleStem.question = singleQuestion
-        singleStem.createBy = self.tsUser
-        singleStem.modifyBy = self.tsUser
+        singleStem = Stem(
+            text='选择题',
+            question=singleQuestion,
+            createBy=self.tsUser,
+            modifyBy=self.tsUser
+        )
         singleStem.save()
         self.tsSingleStem = singleStem
         # 增加题支
         ## 1
-        singleBranch1 = Branch()
-        singleBranch1.text = '选项1'
-        singleBranch1.ord = 1
-        singleBranch1.nextQuestion = None
-        singleBranch1.question = singleQuestion
-        singleBranch1.createBy = self.tsUser
-        singleBranch1.modifyBy = self.tsUser
+        singleBranch1 = Branch(
+            text='选项1',
+            ord=1,
+            nextQuestion=None,
+            question=singleQuestion,
+            createBy=self.tsUser,
+            modifyBy=self.tsUser
+        )
         singleBranch1.save()
+        self.tsSingleBranch1 = singleBranch1
         ## 2
-        singleBranch2 = Branch()
-        singleBranch2.text = '选项2'
-        singleBranch2.ord = 2
-        singleBranch2.nextQuestion = None
-        singleBranch2.question = singleQuestion
-        singleBranch2.createBy = self.tsUser
-        singleBranch2.modifyBy = self.tsUser
+        singleBranch2 = Branch(
+            text='选项2',
+            ord=2,
+            nextQuestion=None,
+            question=singleQuestion,
+            createBy=self.tsUser,
+            modifyBy=self.tsUser
+        )
         singleBranch2.save()
+        self.tsSingleBranch2 = singleBranch2
         ## 3
-        singleBranch3 = Branch()
-        singleBranch3.text = '选项3'
-        singleBranch3.ord = 3
-        singleBranch3.nextQuestion = None
-        singleBranch3.question = singleQuestion
-        singleBranch3.createBy = self.tsUser
-        singleBranch3.modifyBy = self.tsUser
+        singleBranch3 = Branch(
+            text='选项3',
+            ord=3,
+            nextQuestion=None,
+            question=singleQuestion,
+            createBy=self.tsUser,
+            modifyBy=self.tsUser
+        )
         singleBranch3.save()
+        self.tsSingleBranch3 = singleBranch3
         ## 4
-        singleBranch4 = Branch()
-        singleBranch4.text = '选项4'
-        singleBranch4.ord = 4
-        singleBranch4.nextQuestion = None
-        singleBranch4.question = singleQuestion
-        singleBranch4.createBy = self.tsUser
-        singleBranch4.modifyBy = self.tsUser
+        singleBranch4 = Branch(
+            text='选项4',
+            ord=4,
+            nextQuestion=None,
+            question=singleQuestion,
+            createBy=self.tsUser,
+            modifyBy=self.tsUser
+        )
         singleBranch4.save()
+        self.tsSingleBranch4 = singleBranch4
 
     def addQuestions(self):
         self.addSingleQuestion()
 
     def addTargetCust(self):
-        pass
+        targetCust = TargetCust(
+            name = '用户1',
+            phone = '1234567890',
+            email = 'targetCust@example.com',
+            token = 'XC65GXAG',
+            survey=self.tsSurvey,
+            createBy=self.tsUser,
+            modifyBy=self.tsUser
+        )
+        targetCust.save()
+        self.tsTargetCust = targetCust
 
     def addSamples(self):
         #  添加样本
-        sample = Sample()
-        sample.targetCust = None
-        sample.user = None
-        sample.ipAddress = '127.0.0.1'
-        sample.macAddress = 'B8-70-F4-13-43-C6'
-        sample.finished = True
-        sample.isValid = True
-        sample.paper = self.tsPaper
-        sample.createBy = self.tsUser
-        sample.modifyBy = self.tsUser
+        sample = Sample(
+            targetCust=self.tsTargetCust,
+            user=None,
+            ipAddress='127.0.0.1',
+            macAddress='B8-70-F4-13-43-C6',
+            finished=True,
+            isValid=True,
+            paper=self.tsPaper,
+            createBy=self.tsUser,
+            modifyBy=self.tsUser
+        )
         sample.save()
         #  添加样本项
-        sampleItem = SampleItem()
-        sampleItem.question = self.tsSingleQuestion
-        sampleItem.content = None
+        sampleItem = SampleItem(
+            question=self.tsSingleQuestion,
+            content=None,
+            score=0,
+            sample=sample,
+            createBy=self.tsUser,
+            modifyBy=self.tsUser
+        )
+        sampleItem.save()
+        sampleItem.branch_set.add(self.tsSingleBranch3)
+        sampleItem.save()
 
 
     def setUp(self):
