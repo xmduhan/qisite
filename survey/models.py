@@ -14,16 +14,17 @@ class TimeModel(models.Model):
 
 class Paper(TimeModel):
     PAPER_STYLE = ( ('F', 'Flat'), ('P', 'Page'))
+    QUESTION_NUM_STYLE = (('S1', 'NUM STYLE 1'), ('S2', 'NUM STYLE 2'), ('S3', 'NUM STYLE 3'))
     title = models.CharField('问卷标题', max_length=500)
     description = models.CharField('问卷说明', max_length=500)
     # 题目集 question_set (ok) (已在Question中设置外键引用)
     inOrder = models.BooleanField('顺序答题')
-    # 问题标号样式	numStyle 对象 (hold)
+    QuestionNumStyle = models.CharField('问题标号样式', max_length=50, choices=QUESTION_NUM_STYLE)
     lookBack = models.BooleanField('返回修改')
     style = models.CharField('展现方式', max_length=5, choices=PAPER_STYLE)
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='paperCreated')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='paperModified')
-    # 样本集 samples (ok) (已在sample中设置外键引用)
+    # 样本集 sample_set (ok) (已在sample中设置外键引用)
 
 
 class PaperCatalog(TimeModel):
@@ -31,11 +32,12 @@ class PaperCatalog(TimeModel):
     code = models.CharField("目录编码", max_length=50, unique=True)
     parent = models.ForeignKey('self', blank=True, null=True, verbose_name="上级目录")
     ord = models.IntegerField("排序号")
-    # 包含问题 Paper 对象集  多对多 (hold)
+    paper_set = models.ManyToManyField(Paper, verbose_name='包含问卷', blank=True, null=True)
 
 
 class Question(TimeModel):
     QUESTION_TYPE = (('Single', '单选题'), ('Multiple', '多选题'), ('Fillblank', '填空题'), ('Score', '评分题'))
+    BRANCH_NUM_STYLE = (('S1', 'NUM STYLE 1'), ('S2', 'NUM STYLE 2'), ('S3', 'NUM STYLE 3'))
     type = models.CharField('题型', max_length=100, choices=QUESTION_TYPE)
     contentLengh = models.IntegerField('内容长度', default=0)  # 仅填空题有效,是否可以作为多选题的选项数量限制
     valueMin = models.FloatField('最小值', null=True, blank=True, default=0)  # 仅评分题有效
@@ -43,7 +45,7 @@ class Question(TimeModel):
     # 题干 stem_set 对象集 (ok) (已在stem设置反向外键) 实际没有多个，只是用外键比较方便一些
     # 题支 branch_set 对象集 (ok) (已在branche中设置反向外键)
     confused = models.BooleanField('乱序', default=False)
-    #题支编号样式	numStyle  对象 (hold)
+    branchNumStyle = models.CharField('标号样式', max_length=50, choices=BRANCH_NUM_STYLE)
     nextQuestion = models.ForeignKey('self', verbose_name='下一题', blank=True, null=True)  # 是否需要这个信息,似乎多余?
     paper = models.ForeignKey(Paper, verbose_name='所属问卷', null=True, blank=True)
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='questionCreated')
@@ -55,7 +57,7 @@ class QuestionCatalog(TimeModel):
     code = models.CharField("目录编码", max_length=50, unique=True)
     parent = models.ForeignKey('self', blank=True, null=True, verbose_name="上级目录")
     ord = models.IntegerField("排序号")
-    # 包含问题 questions 对象集 多对多 (hold)
+    paper_set = models.ManyToManyField(Question, verbose_name='包含问题')
 
 
 class Stem(TimeModel):
@@ -136,7 +138,7 @@ class Sample(TimeModel):
 
 class SampleItem(TimeModel):
     question = models.ForeignKey('Question', verbose_name='问题')
-    # 已选项 branches 对象集  多对多关系 (hold)
+    branch_set = models.ManyToManyField(Branch, verbose_name='已选')
     content = models.CharField('内容', max_length=500, blank=True)
     score = models.FloatField('得分')
     sample = models.ForeignKey(Sample, verbose_name='所属样本')
