@@ -1,0 +1,29 @@
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+        <ul class="nav navbar-nav">
+            <li {% if position == 'home' %} class="active" {% endif %} >
+                <a href="{% url 'www:index' %}"> QI微调查</a></li>
+            <li {% if position == 'survey' %} class="active" {% endif %} >
+                <a href="{% url 'survey:survey' %}">调查</a></li>
+            <li {% if position == 'paper' %} class="active" {% endif %} >
+                <a href="{% url 'survey:paper' %}">问卷</a></li>
+            <li {% if position == 'list' %} class="active" {% endif %} >
+                <a href="{% url 'survey:list' %}">清单</a></li>
+            <li {% if position == 'help' %} class="active" {% endif %} >
+                <a href="{% url 'www:help' %}">帮助</a></li>
+        </ul>
+        <div class="navbar-collapse collapse">
+            <form class="navbar-form navbar-right" role="form">
+                <div class="form-group">
+                    <input type="text" placeholder="手机/Email" class="form-control">
+                </div>
+                <div class="form-group">
+                    <input type="password" placeholder="密码" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-success">登陆</button>
+                <button type="submit" class="btn btn-primary">注册</button>
+            </form>
+        </div>
+        <!--/.navbar-collapse -->
+    </div>
+</div>
