@@ -44,8 +44,7 @@ INSTALLED_APPS = (
     'restful',
     'survey',
     'account',
-    'survey',
-    'demos'
+    'demos',
 )
 
 
@@ -79,7 +78,7 @@ DATABASES = {
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-CN'
 
 TIME_ZONE = 'UTC'
 

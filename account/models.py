@@ -32,5 +32,5 @@ class User(models.Model):
 
     class Meta:
         verbose_name = "用户"
-        verbose_name_plural = "<03>.用户"
+        verbose_name_plural = "[01].用户"
         ordering = ["name"]
