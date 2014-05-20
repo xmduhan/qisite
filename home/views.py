@@ -38,7 +38,7 @@ def test(request):
     return HttpResponse(result)
 
 def test01(request):
-    template = loader.get_template('home/test01.html')
+    template = loader.get_template('home/SurveyEdit.html')
     context = Context({})
     return HttpResponse(template.render(context))
 

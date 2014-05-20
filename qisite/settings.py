@@ -44,7 +44,8 @@ INSTALLED_APPS = (
     'restful',
     'survey',
     'account',
-    'survey'
+    'survey',
+    'demos'
 )
 
 

@@ -13,6 +13,8 @@ urlpatterns = patterns('',
     #url(r'^admin/', include(admin.site.urls)),
     url(r'^$', include('home.urls',namespace="home")),
     url(r'^home/', include('home.urls',namespace="home")),
+    url(r'^survey/', include('survey.urls',namespace="survey")),
+     url(r'^demos/', include('demos.urls',namespace="demos")),
     url(r'^restful/', include('restful.urls',namespace="restful")),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 )
