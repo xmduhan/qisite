@@ -98,6 +98,7 @@ class SurveyAdmin(admin.ModelAdmin):
         'macLimit', 'publishTime', 'endTime', 'hardCost', 'bonus', 'fee', 'validSampleLimit',
         'createBy', 'modifyBy', 'createTime', 'modifyTime'
     ]
+    list_display = ['paper', 'targetOnly', 'state', 'viewResult', 'createBy', 'createTime']
 
 
 admin.site.register(Survey, SurveyAdmin)
@@ -137,6 +138,7 @@ class CustListAdmin(admin.ModelAdmin):
     fields = [
         'name', 'descrition', 'createBy', 'modifyBy', 'createTime', 'modifyTime'
     ]
+    list_display = ('name', 'descrition', 'createBy', 'createTime')
 
 
 admin.site.register(CustList, CustListAdmin)

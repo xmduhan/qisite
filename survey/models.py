@@ -255,7 +255,7 @@ class CustListItem(TimeModel):
     name = models.CharField('名称', max_length=50)
     phone = models.CharField('手机号', max_length=50)
     email = models.CharField('电子邮件', max_length=100)
-    custList = models.ForeignKey(CustList, verbose_name='所属清单')
+    custList = models.ForeignKey(CustList, verbose_name='所属清单',related_name="custListItem_set")
     defineInfo_set = models.ManyToManyField('DefineInfo', verbose_name='附件信息')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='custListItemCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='custListItemModified_set')

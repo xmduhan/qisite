@@ -4,5 +4,5 @@ import views
 urlpatterns = patterns('',
     url(r'^survey$', views.surveyList, name='survey'),
     url(r'^paper$', views.paperList, name='paper'),
-    url(r'^list$', views.custList, name='list'),
+    url(r'^list$', views.custListList, name='list'),
 )
