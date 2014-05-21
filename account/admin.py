@@ -9,6 +9,7 @@ class UserAdmin(admin.ModelAdmin):
         'code', 'phone', 'email', 'name', 'birthDate', 'createBy', 'modifyBy',
         'createTime', 'modifyTime'
     ]
+    list_display = ['code','name','phone','email','createTime']
 
 
 admin.site.register(User, UserAdmin)

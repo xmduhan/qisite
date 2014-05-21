@@ -13,8 +13,11 @@ class TimeModel(models.Model):
 
 
 class Paper(TimeModel):
-    PAPER_STYLE = ( ('F', 'Flat'), ('P', 'Page'))
-    QUESTION_NUM_STYLE = (('S1', 'NUM STYLE 1'), ('S2', 'NUM STYLE 2'), ('S3', 'NUM STYLE 3'))
+    def __unicode__(self):
+        return self.title
+
+    PAPER_STYLE = ( ('F', '平展'), ('P', '分页'))
+    QUESTION_NUM_STYLE = (('123', '1.2.3.……'), ('一二三', '一、二、三、……'), ('Q1Q2Q3', 'Q1.Q2.Q3……'))
     title = models.CharField('问卷标题', max_length=500)
     description = models.CharField('问卷说明', max_length=500)
     # 题目集 question_set (ok) (已在Question中设置外键引用)
@@ -28,6 +31,7 @@ class Paper(TimeModel):
     class Meta:
         verbose_name = "问卷"
         verbose_name_plural = "[01].问卷"
+        ordering = ["title"]
 
 
 class PaperCatalog(TimeModel):
@@ -38,9 +42,11 @@ class PaperCatalog(TimeModel):
     paper_set = models.ManyToManyField(Paper, verbose_name='包含问卷', through='PaperCatalogPaper')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='paperCatalogCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='paperCatalogModified_set')
+
     class Meta:
         verbose_name = "问卷目录"
         verbose_name_plural = "[02].问卷目录"
+
 
 class PaperCatalogPaper(TimeModel):
     paperCatalog = models.ForeignKey(PaperCatalog, verbose_name='对应的目录')
@@ -48,13 +54,18 @@ class PaperCatalogPaper(TimeModel):
     ord = models.IntegerField("排序号")
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='paperCatalogPaperCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='paperCatalogPaperModified_set')
+
     class Meta:
         verbose_name = "问卷目录-问卷"
         verbose_name_plural = "[03].问卷目录-问卷"
 
+
 class Question(TimeModel):
-    QUESTION_TYPE = (('Single', '单选题'), ('Multiple', '多选题'), ('Fillblank', '填空题'), ('Score', '评分题'))
-    BRANCH_NUM_STYLE = (('S1', 'NUM STYLE 1'), ('S2', 'NUM STYLE 2'), ('S3', 'NUM STYLE 3'))
+    QUESTION_TYPE = (
+        ('Single', '单选题'), ('Multiple', '多选题'), ('Fillblank', '填空题'), ('Score', '评分题'),
+        ('EndValid', '有效结束'), ('EndInvalid', '无效结束')
+    )
+    BRANCH_NUM_STYLE = (('A.B.C', 'A.B.C.……'), ('a.b.c.', 'a.b.c.……'), ('1.2.3.', '1.2.3……'))
     type = models.CharField('题型', max_length=100, choices=QUESTION_TYPE)
     ord = models.IntegerField("排序号")
     contentLengh = models.IntegerField('内容长度', default=0)  # 仅填空题有效,是否可以作为多选题的选项数量限制
@@ -68,9 +79,22 @@ class Question(TimeModel):
     paper = models.ForeignKey(Paper, verbose_name='所属问卷', null=True, blank=True)
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='questionCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='questionModified_set')
+
+    def getStemText(self):
+        if self.stem_set.count() > 0:
+            return self.stem_set.all()[0].text
+        else:
+            return None
+
+    def __unicode__(self):
+        return u"(%d)%s" % (self.ord, unicode(self.getStemText()))
+
+    getStemText.short_description = '题干信息'
+
     class Meta:
         verbose_name = "问题"
         verbose_name_plural = "[04].问题"
+        ordering = ["ord"]
 
 
 class QuestionCatalog(TimeModel):
@@ -81,9 +105,11 @@ class QuestionCatalog(TimeModel):
     question_set = models.ManyToManyField(Question, verbose_name='包含问题', through='QuestionCatalogQuestion')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='questionCatalogCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='questionCatalogModified_set')
+
     class Meta:
         verbose_name = "问题目录"
         verbose_name_plural = "[05].问题目录"
+
 
 class QuestionCatalogQuestion(TimeModel):
     questionCatalog = models.ForeignKey(QuestionCatalog, verbose_name='对应的目录')
@@ -93,6 +119,7 @@ class QuestionCatalogQuestion(TimeModel):
         account.models.User, verbose_name="创建者", related_name='questionCatalogQuestionCreated_set')
     modifyBy = models.ForeignKey(
         account.models.User, verbose_name="修改者", related_name='questionCatalogQuestionModified_set')
+
     class Meta:
         verbose_name = "问题目录-问题"
         verbose_name_plural = "[06].问题目录-问题"
@@ -104,6 +131,7 @@ class Stem(TimeModel):
     question = models.ForeignKey(Question, verbose_name="问题")
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='stemCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='stemModified_set')
+
     class Meta:
         verbose_name = "题干"
         verbose_name_plural = "[07].题干"
@@ -118,6 +146,7 @@ class Resource(TimeModel):
     stem = models.ForeignKey(Stem, verbose_name="对应题干")
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='resourceCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='resourceModified_set')
+
     class Meta:
         verbose_name = "资源"
         verbose_name_plural = "[08].资源"
@@ -132,6 +161,7 @@ class Branch(TimeModel):
     question = models.ForeignKey(Question, verbose_name="问题")
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='branchCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='branchModified_set')
+
     class Meta:
         verbose_name = "题支"
         verbose_name_plural = "[09].题支"
@@ -157,6 +187,7 @@ class Survey(TimeModel):
     validSampleLimit = models.IntegerField("有效样本上限", default=0)  # 0 表示无限制
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='surveyCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='surveyModified_set')
+
     class Meta:
         verbose_name = "调查"
         verbose_name_plural = "[10].调查"
@@ -172,6 +203,7 @@ class TargetCust(TimeModel):
     survey = models.ForeignKey(Survey, verbose_name="所属调查", related_name='targetCust_set')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='targetCustCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='targetCustModified_set')
+
     class Meta:
         verbose_name = "目标客户"
         verbose_name_plural = "[11].目标客户"
@@ -188,6 +220,7 @@ class Sample(TimeModel):
     paper = models.ForeignKey(Paper, verbose_name='所属问卷')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='sampleCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='sampleModified_set')
+
     class Meta:
         verbose_name = "样本"
         verbose_name_plural = "[12].样本"
@@ -201,6 +234,7 @@ class SampleItem(TimeModel):
     sample = models.ForeignKey(Sample, verbose_name='所属样本')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='sampleItemCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='sampleItemModified_set')
+
     class Meta:
         verbose_name = "样本项"
         verbose_name_plural = "[13].样本项"
@@ -211,6 +245,7 @@ class CustList(TimeModel):
     descrition = models.CharField('清单说明', max_length=200)
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='custListCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='custListModified_set')
+
     class Meta:
         verbose_name = "客户清单"
         verbose_name_plural = "[14].客户清单"
@@ -224,9 +259,11 @@ class CustListItem(TimeModel):
     defineInfo_set = models.ManyToManyField('DefineInfo', verbose_name='附件信息')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='custListItemCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='custListItemModified_set')
+
     class Meta:
         verbose_name = "客户清单项"
         verbose_name_plural = "[15].客户清单项"
+
 
 class DefineInfo(TimeModel):
     name = models.CharField('信息名称', max_length=100)
@@ -234,6 +271,7 @@ class DefineInfo(TimeModel):
     ord = models.IntegerField('排序号')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='defineInfoCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='defineInfoModified_set')
+
     class Meta:
         verbose_name = "自定义信息"
         verbose_name_plural = "[16].自定义信息"

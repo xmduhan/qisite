@@ -9,7 +9,7 @@ class PaperAdmin(admin.ModelAdmin):
         'title', 'description', 'inOrder', 'QuestionNumStyle', 'lookBack',
         'style', 'createBy', 'modifyBy', 'createTime', 'modifyTime'
     ]
-    list_display = ('title', 'inOrder', 'lookBack', 'createTime', 'modifyTime')
+    list_display = ('title','description', 'inOrder', 'lookBack','createBy', 'createTime')
 
 
 admin.site.register(Paper, PaperAdmin)
@@ -38,7 +38,8 @@ class QuestionAdmin(admin.ModelAdmin):
         'type', 'ord', 'contentLengh', 'valueMin', 'valueMax', 'confused', 'branchNumStyle',
         'nextQuestion', 'paper', 'createBy', 'modifyBy', 'createTime', 'modifyTime'
     ]
-
+    list_display = ('ord','getStemText','type', 'branchNumStyle', 'paper','createBy', 'createTime')
+    list_filter = ('paper',)
 
 admin.site.register(Question, QuestionAdmin)
 
@@ -63,7 +64,8 @@ admin.site.register(QuestionCatalogQuestion, QuestionCatalogQuestionAdmin)
 
 class StemAdmin(admin.ModelAdmin):
     fields = ['text', 'question', 'createBy', 'modifyBy', 'createTime', 'modifyTime']
-
+    list_display = ('question','text','createBy','createTime')
+    list_filter = ('question__paper',)
 
 admin.site.register(Stem, StemAdmin)
 
@@ -82,7 +84,7 @@ class BranchAdmin(admin.ModelAdmin):
     fields = [
         'text', 'ord', 'nextQuestion', 'question', 'createBy', 'modifyBy', 'createTime', 'modifyTime'
     ]
-
+    list_display = ('ord','question','text','createBy','createTime')
 
 admin.site.register(Branch, BranchAdmin)
 
@@ -141,7 +143,6 @@ class CustListItemAdmin(admin.ModelAdmin):
     fields = [
         'name', 'phone', 'email', 'custList', 'defineInfo_set', 'createBy', 'modifyBy',
         'createTime', 'modifyTime'
-
     ]
 
 
