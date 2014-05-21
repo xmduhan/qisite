@@ -9,7 +9,7 @@ class PaperAdmin(admin.ModelAdmin):
         'title', 'description', 'inOrder', 'QuestionNumStyle', 'lookBack',
         'style', 'createBy', 'modifyBy', 'createTime', 'modifyTime'
     ]
-    list_display = ('title','description', 'inOrder', 'lookBack','createBy', 'createTime')
+    list_display = ('title', 'description', 'inOrder', 'lookBack', 'createBy', 'createTime')
 
 
 admin.site.register(Paper, PaperAdmin)
@@ -38,8 +38,9 @@ class QuestionAdmin(admin.ModelAdmin):
         'type', 'ord', 'contentLengh', 'valueMin', 'valueMax', 'confused', 'branchNumStyle',
         'nextQuestion', 'paper', 'createBy', 'modifyBy', 'createTime', 'modifyTime'
     ]
-    list_display = ('ord','getStemText','type', 'branchNumStyle', 'paper','createBy', 'createTime')
+    list_display = ('ord', 'getStemText', 'type', 'branchNumStyle', 'paper', 'createBy', 'createTime')
     list_filter = ('paper',)
+
 
 admin.site.register(Question, QuestionAdmin)
 
@@ -64,8 +65,9 @@ admin.site.register(QuestionCatalogQuestion, QuestionCatalogQuestionAdmin)
 
 class StemAdmin(admin.ModelAdmin):
     fields = ['text', 'question', 'createBy', 'modifyBy', 'createTime', 'modifyTime']
-    list_display = ('question','text','createBy','createTime')
+    list_display = ('question', 'text', 'createBy', 'createTime')
     list_filter = ('question__paper',)
+
 
 admin.site.register(Stem, StemAdmin)
 
@@ -82,9 +84,10 @@ admin.site.register(Resource, ResourceAdmin)
 
 class BranchAdmin(admin.ModelAdmin):
     fields = [
-        'text', 'ord', 'nextQuestion', 'question', 'createBy', 'modifyBy', 'createTime', 'modifyTime'
+        'ord', 'text', 'question', 'nextQuestion', 'createBy', 'modifyBy', 'createTime', 'modifyTime'
     ]
-    list_display = ('ord','question','text','createBy','createTime')
+    list_display = ('ord', 'question', 'text', 'nextQuestion', 'createBy', 'createTime')
+
 
 admin.site.register(Branch, BranchAdmin)
 

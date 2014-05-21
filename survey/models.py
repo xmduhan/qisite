@@ -87,7 +87,7 @@ class Question(TimeModel):
             return None
 
     def __unicode__(self):
-        return u"(%d)%s" % (self.ord, unicode(self.getStemText()))
+        return u"(%d)(%s)%s" % (self.ord,self.type, unicode(self.getStemText()))
 
     getStemText.short_description = '题干信息'
 
