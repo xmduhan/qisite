@@ -4,13 +4,68 @@
     <title></title>
     {% include "www/commoncss.html" %}
 </head>
-<body >
-{% include "www/navbar.html"  with position='paper' only%}
-<div class="jumbotron">
-    <div class="well">
-        <h1>paper list</h1>
+<body>
+{% include "www/navbar.html"  with position='paper' only %}
+
+<div class="container" style="padding-top: 30px;">
+    <div class="row">
+        <p>
+            <button type="button" class="btn btn-primary">
+                <span class="glyphicon glyphicon-plus"></span>
+                新 增
+            </button>
+        </p>
     </div>
+
+    <div class="row">
+        <div class="panel panel-default">
+            <!-- Default panel contents -->
+            <div class="panel-heading">
+                <span class="glyphicon glyphicon-list-alt"></span>
+                问卷
+            </div>
+            <!-- Table -->
+            <table class="table table-striped table table-hover ">
+                <thead class="thead">
+                <tr>
+                    <th>#</th>
+                    <th>名称</th>
+                    <th>描述</th>
+                    <th>题目数量</th>
+                    <th>创建时间</th>
+                    <th colspan="3"></th>
+                </tr>
+                </thead>
+                {% for paper in paperList %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ paper.title }}</td>
+                        <td>{{ paper.description }}</td>
+                        <td>{{ paper.question_set.count }}</td>
+                        <td>{{ paper.createTime | date:"Y-m-d H:i" }}</td>
+                        <td><span class="glyphicon glyphicon-edit"></span></td>
+                        <td><span class="glyphicon glyphicon glyphicon-new-window"></span></td>
+                        <td><span class="glyphicon glyphicon-remove-circle"></span></td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+    <div class="row" align="center">
+        <div class="btn-group">
+            <button type="button" class="btn btn-default">&laquo;</button>
+            <button type="button" class="btn btn-default active">1</button>
+            <button type="button" class="btn btn-default disabled">2</button>
+            <button type="button" class="btn btn-default">3</button>
+            <button type="button" class="btn btn-default">4</button>
+            <button type="button" class="btn btn-default">5</button>
+            <button type="button" class="btn btn-default">&raquo;</button>
+        </div>
+    </div>
+
 </div>
+
 {% include "www/commonjs.html" %}
 </body>
 </html>

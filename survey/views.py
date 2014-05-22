@@ -21,14 +21,19 @@ def surveyEdit(request):
 
 
 def surveyList(request):
+    user = getCurrent()
+    surveyList = user.surveyCreated_set.all()
+    #surveyList = user.surveyCreated_set.filter(state = 'P')
     template = loader.get_template('survey/surveyList.html')
-    context = Context({})
+    context = Context({"surveyList": surveyList})
     return HttpResponse(template.render(context))
 
 
 def paperList(request):
+    user = getCurrent()
+    paperList = user.paperCreated_set.all()
     template = loader.get_template('survey/paperList.html')
-    context = Context({})
+    context = Context({"paperList": paperList})
     return HttpResponse(template.render(context))
 
 
@@ -36,5 +41,5 @@ def custListList(request):
     user = getCurrent()
     custListList = user.custListCreated_set.all()
     template = loader.get_template('survey/custListList.html')
-    context = Context({'custListList':custListList})
+    context = Context({'custListList': custListList})
     return HttpResponse(template.render(context))

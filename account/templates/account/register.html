@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+    <title></title>
+    {% include "www/commoncss.html" %}
+</head>
+<body>
+{% include "www/navbar.html" with position='home' only %}
+
+<div class="container">
+
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <form role="form">
+                <h2><span class="glyphicon glyphicon-info-sign"></span> 用户注册</h2>
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-earphone"></span>
+                            </span>
+                            <input type="text" name="phone" id="phone" class="form-control input-lg"
+                                   placeholder="请输入您的手机号码" tab index="1">
+                        </div>
+                    </div>
+                </div>
+                <p/>
+
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-comment"></span>
+                            </span>
+                            <input type="text" name="checkCode" id="checkCode" class="form-control input-lg"
+                                   placeholder="验证码" tabindex="2">
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <button type="submit" class="btn btn-default btn-block btn-lg">
+                            <span class="glyphicon glyphicon-flash"></span> 发送验证码
+                        </button>
+
+                    </div>
+                </div>
+                <p/>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-lock"></span>
+                            </span>
+                            <input type="password" name="password" id="password" tabindex="3"
+                                   class="form-control input-lg" placeholder="请输入您的密码">
+                        </div>
+                    </div>
+                </div>
+                <p/>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-repeat"></span>
+                            </span>
+                            <input type="password" name="confirmation" id="confirmation" tabindex="4"
+                                   class="form-control input-lg" placeholder="再次输入您的密码">
+                        </div>
+                    </div>
+                </div>
+                <p/>
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-1 col-md-offset-1">
+                        <h4><span class="glyphicon glyphicon-warning-sign"></span></h4>
+                    </div>
+                    <div class="col-md-10">
+                        请注意：注册前请详细阅读我们的
+                        <a class="label label-default" href="#" data-toggle="modal" data-target="#t_and_c_m">
+                            用户协议
+                        </a>，
+                        当您点击<strong class="label label-primary">注册</strong>按钮时就表示您已经阅读过用户协议，
+                        并同意协议中的所有条款。
+                    </div>
+                </div>
+
+                <hr>
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-3">
+                        <input type="submit" value="注册"
+                               class="btn btn-primary btn-block btn-lg" tabindex="7">
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="t_and_c_m" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <strong class="label label-default">用户协议</strong>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        条款1：………………………………………………………………………………………………
+                        …………………………………………………………………………………………………………
+                        ……………………………………………………………………………………………</p>
+
+                    <p>
+                        条款2：………………………………………………………………………………………………
+                        …………………………………………………………………………………………………………
+                        ……………………………………………………………………………………………</p>
+
+                    <p>
+                        条款3：………………………………………………………………………………………………
+                        …………………………………………………………………………………………………………
+                        ……………………………………………………………………………………………</p>
+
+                    <p>
+                        条款4：………………………………………………………………………………………………
+                        …………………………………………………………………………………………………………
+                        ……………………………………………………………………………………………</p>
+
+                    <p>
+                        条款5 ：………………………………………………………………………………………………
+                        …………………………………………………………………………………………………………
+                        ……………………………………………………………………………………………</p>
+
+                </div>
+                <div class="modal-footer">
+                    <div class="row">
+                        <div class="col-md-2 col-md-offset-5">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">我同意</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+</div>
+
+{% include "www/commonjs.html" %}
+</body>
+</html>

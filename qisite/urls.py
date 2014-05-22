@@ -11,6 +11,7 @@ urlpatterns = patterns(
     url(r'^$', include('www.urls', namespace="home")),
     url(r'^www/', include('www.urls', namespace="www")),
     url(r'^survey/', include('survey.urls', namespace="survey")),
+    url(r'^account/', include('account.urls', namespace="account")),
     url(r'^demos/', include('demos.urls', namespace="demos")),
     url(r'^restful/', include('restful.urls', namespace="restful")),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),

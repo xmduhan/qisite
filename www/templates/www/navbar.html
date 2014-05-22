@@ -13,6 +13,9 @@
                 <a href="{% url 'www:help' %}">帮助</a></li>
         </ul>
         <div class="navbar-collapse collapse">
+            <form class="navbar-form navbar-right" role="form" action="{% url 'account:register' %}">
+                <button type="submit" class="btn btn-primary">注册</button>
+            </form>
             <form class="navbar-form navbar-right" role="form">
                 <div class="form-group">
                     <input type="text" placeholder="手机/Email" class="form-control">
@@ -21,8 +24,9 @@
                     <input type="password" placeholder="密码" class="form-control">
                 </div>
                 <button type="submit" class="btn btn-success">登陆</button>
-                <button type="submit" class="btn btn-primary">注册</button>
+
             </form>
+
         </div>
         <!--/.navbar-collapse -->
     </div>
