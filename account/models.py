@@ -8,7 +8,8 @@ class User(models.Model):
     def __unicode__(self):
         return self.name
     code = models.CharField("用户代码", max_length=50,blank=True)
-    phone = models.CharField("手机号码", max_length=50,blank=True)
+    phone = models.CharField("手机号码", max_length=50)
+    password = models.CharField("密码", max_length=200)
     email = models.CharField("电子邮件", max_length=100,blank=True)
     #Surveys
     #Papers

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+    <title></title>
+    {% include "www/commoncss.html" %}
+</head>
+<body>
+{% include "www/navbar.html" with position='home' %}
+
+<div class="container" style="padding-top: 80px;">
+
+    <div class="row">
+        <div class="col-md-4 col-md-offset-4">
+            <form role="form" action="{% url 'account:login' %}" method="post">
+                {% csrf_token %}
+
+                <h2><span class="glyphicon glyphicon-user"></span> 用户登陆</h2>
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-earphone"></span>
+                            </span>
+                            <input type="text" name="phone" id="phone" class="form-control input-lg"
+                                   placeholder="请输入您的手机号码" tabindex="1">
+                        </div>
+                    </div>
+                </div>
+                <p/>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-lock"></span>
+                            </span>
+                            <input type="password" name="password" id="password" tabindex="3"
+                                   class="form-control input-lg" placeholder="请输入您的密码">
+                        </div>
+                    </div>
+                </div>
+                <p/>
+
+
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="submit" value="登陆"
+                               class="btn btn-success btn-block btn-lg" tabindex="7">
+                    </div>
+                    <div class="col-md-6">
+                        <input type="submit" value="忘记密码"
+                               class="btn btn-warning btn-block btn-lg" tabindex="7">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+</div>
+
+{% include "www/commonjs.html" %}
+</body>
+</html>

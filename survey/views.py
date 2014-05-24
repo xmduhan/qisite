@@ -2,7 +2,7 @@
 # Create your views here.
 
 from django.http import HttpResponse
-from django.template import Context, loader
+from django.template import Context, loader, RequestContext
 from account.models import User
 
 
@@ -16,7 +16,7 @@ def getCurrent():
 
 def surveyEdit(request):
     template = loader.get_template('survey/surveyEdit.html')
-    context = Context({})
+    context = RequestContext(request)
     return HttpResponse(template.render(context))
 
 
@@ -25,7 +25,7 @@ def surveyList(request):
     surveyList = user.surveyCreated_set.all()
     #surveyList = user.surveyCreated_set.filter(state = 'P')
     template = loader.get_template('survey/surveyList.html')
-    context = Context({"surveyList": surveyList})
+    context = RequestContext(request, {"surveyList": surveyList})
     return HttpResponse(template.render(context))
 
 
@@ -33,7 +33,7 @@ def paperList(request):
     user = getCurrent()
     paperList = user.paperCreated_set.all()
     template = loader.get_template('survey/paperList.html')
-    context = Context({"paperList": paperList})
+    context = RequestContext(request, {"paperList": paperList})
     return HttpResponse(template.render(context))
 
 
@@ -41,5 +41,5 @@ def custListList(request):
     user = getCurrent()
     custListList = user.custListCreated_set.all()
     template = loader.get_template('survey/custListList.html')
-    context = Context({'custListList': custListList})
+    context = RequestContext(request, {'custListList': custListList})
     return HttpResponse(template.render(context))

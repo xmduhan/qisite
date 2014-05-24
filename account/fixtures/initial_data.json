@@ -1,0 +1,1 @@
+[{"pk": 1, "model": "account.user", "fields": {"createBy": null, "name": "\u675c\u6db5", "birthDate": "1980-11-01T10:12:58", "createTime": "2014-05-21T10:13:09", "phone": "18906021980", "code": "duhan", "modifyTime": "2014-05-21T10:13:10", "email": "duhan@189.cn", "modifyBy": null}}]
