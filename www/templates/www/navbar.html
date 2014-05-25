@@ -2,35 +2,67 @@
     <div class="container">
         <ul class="nav navbar-nav">
             <li {% if position == 'home' %} class="active" {% endif %} >
-                <a href="{% url 'www:index' %}"> QI微调查</a></li>
+                <a href="{% url 'www:index' %}"> QI微调查</a>
+            </li>
             <li {% if position == 'survey' %} class="active" {% endif %} >
-                <a href="{% url 'survey:survey' %}">调查</a></li>
+                {% if session.user %}<a href="{% url 'survey:survey' %}">调查</a>{% endif %}
+            </li>
             <li {% if position == 'paper' %} class="active" {% endif %} >
-                <a href="{% url 'survey:paper' %}">问卷</a></li>
+                {% if session.user %}<a href="{% url 'survey:paper' %}">问卷</a>{% endif %}
+            </li>
             <li {% if position == 'list' %} class="active" {% endif %} >
-                <a href="{% url 'survey:list' %}">清单</a></li>
-            <li {% if position == 'help' %} class="active" {% endif %} >
-                <a href="{% url 'www:help' %}">帮助</a></li>
-        </ul>
-        <div class="navbar-collapse collapse">
-            <form class="navbar-form navbar-right" role="form" action="{% url 'account:register' %}">
-                <button type="submit" class="btn btn-primary">注册</button>
-            </form>
-            <form class="navbar-form navbar-right" role="form"
-                  action="{% url 'account:login' %}" method="post">
-                {% csrf_token %}
-                <div class="form-group">
-                    <input type="text" placeholder="手机" class="form-control"
-                           name="phone" id="phone">
-                </div>
-                <div class="form-group">
-                    <input type="password" placeholder="密码" class="form-control"
-                           name="password" id="password">
-                </div>
-                <button type="submit" class="btn btn-success">登陆</button>
-            </form>
+                {% if session.user %}<a href="{% url 'survey:list' %}">清单</a>{% endif %}
+            </li>
 
-        </div>
+            <li {% if position == 'help' %} class="active" {% endif %} >
+                <a href="{% url 'www:help' %}">帮助</a>
+            </li>
+        </ul>
+
+        {% if session.user %}
+            <div class="navbar-collapse collapse">
+                <form class="navbar-form navbar-right" role="form" action="{% url 'account:logout' %}">
+
+                    <button type="submit" class="btn btn-warning">退出</button>
+                </form>
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a>
+                            <span class="glyphicon glyphicon-user"></span>
+                            {{ session.user.name }}
+                            ({{ session.user.phone }})
+                        </a>
+                    </li>
+                    <li>
+                        <a>
+                            <span class="glyphicon glyphicon-cog"></span>
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+        {% else %}
+            <div class="navbar-collapse collapse">
+                <form class="navbar-form navbar-right" role="form" action="{% url 'account:register' %}">
+
+                    <button type="submit" class="btn btn-primary">注册</button>
+                </form>
+                <form class="navbar-form navbar-right" role="form"
+                      action="{% url 'account:login' %}" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input type="text" placeholder="手机" class="form-control"
+                               name="phone" id="phone">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="密码" class="form-control"
+                               name="password" id="password">
+                    </div>
+                    <button type="submit" class="btn btn-success">登陆</button>
+                </form>
+
+            </div>
+        {% endif %}
         <!--/.navbar-collapse -->
     </div>
 </div>
