@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+    <title></title>
+    {% include "www/commoncss.html" %}
+</head>
+<body>
+{% include "www/navbar.html" with position='home' %}
+
+<div class="container" style="padding-top: 30px;">
+
+    <div class="row">
+        <div class="col-md-4 col-md-offset-4">
+            <form role="form" action="{% url 'account:recovery' %}" method="post">
+                {% csrf_token %}
+                <h2><span class="glyphicon glyphicon-info-sign"></span> 找回密码</h2>
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-earphone"></span>
+                            </span>
+                            <input type="text" name="phone" id="phone" class="form-control input-lg"
+                                   placeholder="请输入您的手机号码" tabindex="1">
+                        </div>
+                    </div>
+                </div>
+                <p/>
+
+
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-comment"></span>
+                            </span>
+                            <input type="text" name="checkCode" id="checkCode" class="form-control input-lg"
+                                   placeholder="验证码" tabindex="2">
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <button type="submit" class="btn btn-default btn-block btn-lg">
+                            <span class="glyphicon glyphicon-flash"></span> 发送验证码
+                        </button>
+                    </div>
+                </div>
+                <p/>
+
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-lock"></span>
+                            </span>
+                            <input type="password" name="password" id="password" tabindex="3"
+                                   class="form-control input-lg" placeholder="请输入您的新密码">
+                        </div>
+                    </div>
+                </div>
+                <p/>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-repeat"></span>
+                            </span>
+                            <input type="password" name="confirmation" id="confirmation" tabindex="4"
+                                   class="form-control input-lg" placeholder="再次输入您的新密码">
+                        </div>
+                    </div>
+                </div>
+                <p/>
+
+                <hr>
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-3">
+                        <input type="submit" value="修改密码"
+                               class="btn btn-warning btn-block btn-lg" tabindex="7">
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+{% include "www/commonjs.html" %}
+</body>
+</html>

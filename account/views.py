@@ -57,3 +57,10 @@ def logout(request):
     template = loader.get_template('www/index.html')
     context = RequestContext(request, {'session': session})
     return HttpResponse(template.render(context))
+
+
+def recovery(request):
+    session = request.session
+    template = loader.get_template('account/recovery.html')
+    context = RequestContext(request, {'session': session})
+    return HttpResponse(template.render(context))

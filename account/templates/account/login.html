@@ -63,10 +63,12 @@
                     <div class="col-md-6">
                         <input type="submit" value="登陆"
                                class="btn btn-success btn-block btn-lg" tabindex="7">
+
                     </div>
                     <div class="col-md-6">
-                        <input type="submit" value="忘记密码"
-                               class="btn btn-warning btn-block btn-lg" tabindex="7">
+                        <a href="{% url 'account:recovery' %}"
+                           type="button" class="btn btn-warning btn-block btn-lg">忘记密码
+                        </a>
                     </div>
                 </div>
             </form>
