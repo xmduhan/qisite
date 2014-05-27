@@ -4,6 +4,7 @@
 from django.http import HttpResponse
 from django.template import Context, loader, RequestContext
 from account.models import User
+from models import *
 
 
 def getCurrent():
@@ -14,18 +15,19 @@ def getCurrent():
         return None
 
 
-def surveyEdit(request):
-    template = loader.get_template('survey/surveyEdit.html')
-    context = RequestContext(request, {'session': request.session})
-    return HttpResponse(template.render(context))
-
-
 def surveyList(request):
     user = getCurrent()
     surveyList = user.surveyCreated_set.all()
     #surveyList = user.surveyCreated_set.filter(state = 'P')
     template = loader.get_template('survey/surveyList.html')
     context = RequestContext(request, {"surveyList": surveyList, 'session': request.session})
+    return HttpResponse(template.render(context))
+
+
+def surveyEdit(request):
+    paper = Paper.objects.filter()[0]
+    template = loader.get_template('survey/surveyEdit.html')
+    context = RequestContext(request, {'session': request.session, 'paper': paper})
     return HttpResponse(template.render(context))
 
 

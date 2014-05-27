@@ -1,0 +1,13 @@
+{% if question.type == 'Single' %}
+    {% include "survey/question/single.html" with question=question only %}
+{% elif question.type == 'Multiple' %}
+    {% include "survey/question/multiple.html" with question=question only %}
+{% elif question.type == 'Fillblank' %}
+    {% include "survey/question/fillblank.html" with question=question only %}
+{% elif question.type == 'Score' %}
+    {% include "survey/question/score.html" with question=question only %}
+{% else %}
+    <div class="well">
+        未知的题目类型
+    </div>>
+{% endif %}

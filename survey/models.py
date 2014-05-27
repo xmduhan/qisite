@@ -2,6 +2,7 @@
 from django.db import models
 import account.models
 from datetime import datetime
+from numstyle import NumStyle
 
 
 class TimeModel(models.Model):
@@ -17,12 +18,12 @@ class Paper(TimeModel):
         return self.title
 
     PAPER_STYLE = ( ('F', '平展'), ('P', '分页'))
-    QUESTION_NUM_STYLE = (('123', '1.2.3.……'), ('一二三', '一、二、三、……'), ('Q1Q2Q3', 'Q1.Q2.Q3……'))
+    QUESTION_NUM_STYLE = (('123', '1.2.3.……'), ('(1)(2)(3)', '(1).(2).(3).……'), ('Q1Q2Q3', 'Q1.Q2.Q3.……'))
     title = models.CharField('问卷标题', max_length=500)
     description = models.CharField('问卷说明', max_length=500)
     # 题目集 question_set (ok) (已在Question中设置外键引用)
     inOrder = models.BooleanField('顺序答题')
-    QuestionNumStyle = models.CharField('问题标号样式', max_length=50, choices=QUESTION_NUM_STYLE)
+    questionNumStyle = models.CharField('问题标号样式', max_length=50, choices=QUESTION_NUM_STYLE)
     lookBack = models.BooleanField('返回修改')
     style = models.CharField('展现方式', max_length=5, choices=PAPER_STYLE)
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='paperCreated_set')
@@ -32,6 +33,9 @@ class Paper(TimeModel):
         verbose_name = "问卷"
         verbose_name_plural = "[01].问卷"
         ordering = ["title"]
+
+    def getQuestionSetInOrder(self):
+        return self.question_set.order_by('ord')
 
 
 class PaperCatalog(TimeModel):
@@ -65,7 +69,7 @@ class Question(TimeModel):
         ('Single', '单选题'), ('Multiple', '多选题'), ('Fillblank', '填空题'), ('Score', '评分题'),
         ('EndValid', '有效结束'), ('EndInvalid', '无效结束')
     )
-    BRANCH_NUM_STYLE = (('A.B.C', 'A.B.C.……'), ('a.b.c.', 'a.b.c.……'), ('1.2.3.', '1.2.3……'))
+    BRANCH_NUM_STYLE = (('ABC', 'A.B.C.……'), ('abc.', 'a.b.c.……'), ('123.', '1.2.3……'))
     type = models.CharField('题型', max_length=100, choices=QUESTION_TYPE)
     ord = models.IntegerField("排序号")
     contentLengh = models.IntegerField('内容长度', default=0)  # 仅填空题有效,是否可以作为多选题的选项数量限制
@@ -81,15 +85,29 @@ class Question(TimeModel):
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='questionModified_set')
 
     def getStemText(self):
+        '''
+            通过问题直接读取题干的文字信息
+        '''
         if self.stem_set.count() > 0:
             return self.stem_set.all()[0].text
         else:
             return None
 
-    def __unicode__(self):
-        return u"(%d)(%s)%s" % (self.ord,self.type, unicode(self.getStemText()))
-
     getStemText.short_description = '题干信息'
+
+    def getBranchSetInOrder(self):
+        return self.branch_set.order_by('ord')
+
+    def getNum(self):
+        # 针对特殊问题类型做特殊处理
+        if self.type in ('EndValid', 'EndInvalid'):
+            return self.get_type_display()
+        else:
+            numStyle = NumStyle(self.paper.questionNumStyle)
+            return numStyle.getNum(self.ord)
+
+    def __unicode__(self):
+        return u"(%d)(%s)%s" % (self.ord, self.type, unicode(self.getStemText()))
 
     class Meta:
         verbose_name = "问题"
@@ -166,6 +184,15 @@ class Branch(TimeModel):
         verbose_name = "题支"
         verbose_name_plural = "[09].题支"
 
+    def getNum(self):
+        numStyle = NumStyle(self.question.branchNumStyle)
+        return numStyle.getNum(self.ord)
+
+    def getReachableQuestion(self):
+        question = self.question
+        paper = question.paper
+        return paper.question_set.filter(ord__gt=question.ord)
+
 
 class Survey(TimeModel):
     paper = models.ForeignKey('Paper', verbose_name="问卷")
@@ -212,7 +239,8 @@ class TargetCust(TimeModel):
 class Sample(TimeModel):
     #样本项集	sampleItems	对象集 (ok) (已在样本中设置对应外键)
     targetCust = models.OneToOneField('TargetCust', verbose_name='清单项', null=True, blank=True)
-    user = models.ForeignKey(account.models.User, verbose_name="参与用户", null=True, blank=True)  # 这里是否设置一个related_name
+    user = models.ForeignKey(account.models.User, verbose_name="参与用户", null=True,
+                             blank=True)  # 这里是否设置一个related_name
     ipAddress = models.CharField('受访IP', max_length=50)
     macAddress = models.CharField('受访MAC', max_length=50)
     finished = models.BooleanField('是否完成')
@@ -255,7 +283,7 @@ class CustListItem(TimeModel):
     name = models.CharField('名称', max_length=50)
     phone = models.CharField('手机号', max_length=50)
     email = models.CharField('电子邮件', max_length=100)
-    custList = models.ForeignKey(CustList, verbose_name='所属清单',related_name="custListItem_set")
+    custList = models.ForeignKey(CustList, verbose_name='所属清单', related_name="custListItem_set")
     defineInfo_set = models.ManyToManyField('DefineInfo', verbose_name='附件信息')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='custListItemCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='custListItemModified_set')

@@ -2,7 +2,8 @@ from django.conf.urls import patterns, url
 import views
 
 urlpatterns = patterns('',
-    url(r'^survey$', views.surveyList, name='survey'),
-    url(r'^paper$', views.paperList, name='paper'),
-    url(r'^list$', views.custListList, name='list'),
+    url(r'^survey/list$', views.surveyList, name='surveyList'),
+    url(r'^survey/edit$', views.surveyEdit, name='surveyEdit'),
+    url(r'^paper/list$', views.paperList, name='paperList'),
+    url(r'^custlist/list$', views.custListList, name='custlistList'),
 )

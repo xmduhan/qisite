@@ -4,21 +4,19 @@
     <title></title>
     {% include "www/commoncss.html" %}
 </head>
-<body >
+<body>
 {% include "www/navbar.html" with position='survey' %}
-<div class="container">
+<div class="container" style="padding-top: 30px;">
     <div class="row well">
-        <div class="col-md-4 well">
-            1
-        </div>
-        <div class="col-md-4 well">
-            2
-        </div>
-        <div class="col-md-4 well">
-            3
-        </div>
     </div>
+
+    {% for question in paper.getQuestionSetInOrder %}
+        {% include "survey/question/question.html" %}
+    {% endfor %}
+
 </div>
 {% include "www/commonjs.html" %}
+<script src="/static/survey/js/surveyEdit.js"></script>
+
 </body>
 </html>
