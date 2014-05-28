@@ -43,7 +43,11 @@
                         <td>{{ paper.description }}</td>
                         <td>{{ paper.question_set.count }}</td>
                         <td>{{ paper.createTime | date:"Y-m-d H:i" }}</td>
-                        <td><span class="glyphicon glyphicon-edit"></span></td>
+                        <td>
+                            <a href="{% url 'survey:paperEdit' paper.id %}">
+                                <span class="glyphicon glyphicon-edit"></span>
+                            </a>
+                        </td>
                         <td><span class="glyphicon glyphicon glyphicon-new-window"></span></td>
                         <td><span class="glyphicon glyphicon-remove-circle"></span></td>
                     </tr>

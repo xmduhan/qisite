@@ -12,7 +12,7 @@
     {% for  branch in question.getBranchSetInOrder %}
         <div class="row">
 
-            <div class="col-md-8">
+            <div class="col-md-10">
                 <div class="input-group">
                     <span class="input-group-addon"><input type="radio" name="{{ question.id }}"></span>
                     <span class="input-group-addon">{{ branch.getNum }}</span>
@@ -20,31 +20,39 @@
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="btn-group">
-                    <div class="input-group-btn">
-                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                            转向 <span class="caret"></span></button>
-                        <button type="button" class="btn btn-default">
-                            {% if branch.nextQuestion %}
-                                {{ branch.nextQuestion.getNum }}
-                            {% endif %}
-                        </button>
-                        <ul class="dropdown-menu">
-                            {% for reachableQuestion in branch.getReachableQuestion %}
-                                <li>
-                                    <a>
-                                        {{ reachableQuestion.getNum }}{{ reachableQuestion.getStemText | truncatechars:10 }}
-                                    </a>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
+            <div class="col-md-2">
+                <div class="btn-group btn-block">
+                    <button type="button" class="btn btn-default dropdown-toggle btn-block" data-toggle="dropdown">
+                        {% if branch.nextQuestion %}
+                            {{ branch.nextQuestion.getNum }}
+                        {% endif %}
+                        <span class="caret"></span>
+                    </button>
+                    {% comment %}
+                    <button type="button" class="btn btn-default ">
+                        {% if branch.nextQuestion %}
+                            {{ branch.nextQuestion.getNum }}
+                        {% endif %}
+                    </button>
+                    {% endcomment %}
+                    <ul class="dropdown-menu">
+                        {% for reachableQuestion in branch.getReachableQuestion %}
+                            <li>
+                                <a>
+                                    {{ reachableQuestion.getNum }}{{ reachableQuestion.getStemText | truncatechars:10 }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
                 </div>
             </div>
 
         </div><p></p>
     {% endfor %}
+
+    <button class="btn btn-primary btn-sm">
+        <span class="glyphicon glyphicon-plus"></span>
+    </button>
 
 
 </div>

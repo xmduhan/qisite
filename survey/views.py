@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 # Create your views here.
 
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.template import Context, loader, RequestContext
 from account.models import User
 from models import *
@@ -38,11 +38,15 @@ def paperList(request):
     return HttpResponse(template.render(context))
 
 
-def paperEdit(request):
-    paper = Paper.objects.filter()[0]
-    template = loader.get_template('survey/paperEdit.html')
-    context = RequestContext(request, {'session': request.session, 'paper': paper})
-    return HttpResponse(template.render(context))
+def paperEdit(request, paperId):
+    paperList = Paper.objects.filter(id=paperId)
+    if paperList:
+        paper = paperList[0]
+        template = loader.get_template('survey/paperEdit.html')
+        context = RequestContext(request, {'session': request.session, 'paper': paper})
+        return HttpResponse(template.render(context))
+    else:
+        raise Http404
 
 
 def custListList(request):

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap-switch.min.css">
+</head>
+<body>
+<input class="bootstrap-switch" type="checkbox" checked/>
+<script src="/static/jquery/jquery.min.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+<script src="/static/bootstrap/js/bootstrap-switch.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $(".bootstrap-switch").bootstrapSwitch.defaults.onColor = 'primary'
+        $(".bootstrap-switch").bootstrapSwitch.defaults.offColor = 'danger'
+        $(".bootstrap-switch").bootstrapSwitch.defaults.onText = '开'
+        $(".bootstrap-switch").bootstrapSwitch.defaults.offText = '关'
+        $(".bootstrap-switch").bootstrapSwitch();
+    });
+</script>
+</body>
+</html>

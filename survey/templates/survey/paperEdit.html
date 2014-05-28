@@ -3,16 +3,16 @@
 <head>
     <title></title>
     {% include "www/commoncss.html" %}
+    <link rel="stylesheet" href="/static/survey/css/paperEdit.css">
 </head>
 <body>
 {% include "www/navbar.html" with position='paper' %}
 <div class="container" style="padding-top: 30px;">
     <div class="row">
         <div class="col-md-1">
-            <button class="btn btn-success btn-block ">
-                <span class="glyphicon glyphicon-ok"></span>
-                完成
-            </button>
+            <a href="{% url 'survey:paperList' %}"
+               type="button" class="btn btn-success btn-block">
+                <span class="glyphicon glyphicon-ok"></span>完成</a>
         </div>
         <div class="col-md-1 col-md-offset-10">
             <button class="btn btn-default btn-block ">
@@ -63,7 +63,8 @@
             <div class="col-md-3">
                 <div class="input-group input-group-sm">
                     <span class="input-group-addon">顺序答题</span>
-                    <input type="text" class="form-control" value="{{ paper.inOrder }}">
+                    <button type="button" class="btn btn-primary active">是</button>
+                    <button type="button" class="btn btn-default ">否</button>
                 </div>
             </div>
 
@@ -93,6 +94,7 @@
             </button>
         </div>
     </div>
+
 
 </div>
 {% include "www/commonjs.html" %}
