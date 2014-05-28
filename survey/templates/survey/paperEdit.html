@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    {% include "www/commoncss.html" %}
+</head>
+<body>
+{% include "www/navbar.html" with position='paper' %}
+<div class="container" style="padding-top: 30px;">
+    <div class="row">
+        <div class="col-md-1">
+            <button class="btn btn-success btn-block ">
+                <span class="glyphicon glyphicon-ok"></span>
+                完成
+            </button>
+        </div>
+        <div class="col-md-1 col-md-offset-10">
+            <button class="btn btn-default btn-block ">
+                {% comment %}<span class="glyphicon glyphicon-plus"></span> {% endcomment %}
+                <span class="glyphicon glyphicon-minus"></span>
+                折叠
+            </button>
+        </div>
+    </div>
+    <p></p>
+
+    <div class="well well-lg">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-addon">问卷名称</span>
+                    <input type="text" class="form-control" placeholder="请填写问卷名称" value="{{ paper.title }}">
+                </div>
+            </div>
+        </div>
+        <p></p>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-addon">问卷描述</span>
+                    <input type="text" class="form-control" placeholder="请填写问卷描述" value="{{ paper.description }}">
+                </div>
+            </div>
+        </div>
+        <p></p>
+
+        <div class="row">
+            <div class="col-md-3">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-addon">问题标号样式</span>
+                    <input type="text" class="form-control" value="{{ paper.get_questionNumStyle_display }}">
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-addon">展现方式</span>
+                    <input type="text" class="form-control" value="{{ paper.style }}">
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-addon">顺序答题</span>
+                    <input type="text" class="form-control" value="{{ paper.inOrder }}">
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-addon">返回修改</span>
+                    <input type="text" class="form-control" value="{{ paper.lookBack }}">
+                </div>
+            </div>
+        </div>
+        <p></p>
+
+    </div>
+
+    <div class="well">
+        {% for question in paper.getQuestionSetInOrder %}
+            {% include "survey/question/question.html" %}
+        {% endfor %}
+    </div>
+    <p></p>
+
+    <div class="row">
+        <div class="col-md-2 col-md-offset-5">
+            <button class="btn btn-primary btn-block ">
+                <span class="glyphicon glyphicon-plus"></span>
+                新增问题
+            </button>
+        </div>
+    </div>
+
+</div>
+{% include "www/commonjs.html" %}
+<script src="/static/survey/js/surveyEdit.js"></script>
+
+</body>
+</html>

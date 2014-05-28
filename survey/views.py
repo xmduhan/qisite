@@ -25,9 +25,8 @@ def surveyList(request):
 
 
 def surveyEdit(request):
-    paper = Paper.objects.filter()[0]
     template = loader.get_template('survey/surveyEdit.html')
-    context = RequestContext(request, {'session': request.session, 'paper': paper})
+    context = RequestContext(request, {'session': request.session})
     return HttpResponse(template.render(context))
 
 
@@ -36,6 +35,13 @@ def paperList(request):
     paperList = user.paperCreated_set.all()
     template = loader.get_template('survey/paperList.html')
     context = RequestContext(request, {"paperList": paperList, 'session': request.session})
+    return HttpResponse(template.render(context))
+
+
+def paperEdit(request):
+    paper = Paper.objects.filter()[0]
+    template = loader.get_template('survey/paperEdit.html')
+    context = RequestContext(request, {'session': request.session, 'paper': paper})
     return HttpResponse(template.render(context))
 
 

@@ -5,5 +5,6 @@ urlpatterns = patterns('',
     url(r'^survey/list$', views.surveyList, name='surveyList'),
     url(r'^survey/edit$', views.surveyEdit, name='surveyEdit'),
     url(r'^paper/list$', views.paperList, name='paperList'),
+    url(r'^paper/edit$', views.paperEdit, name='paperEdit'),
     url(r'^custlist/list$', views.custListList, name='custlistList'),
 )

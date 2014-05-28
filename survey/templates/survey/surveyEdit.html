@@ -7,13 +7,9 @@
 <body>
 {% include "www/navbar.html" with position='survey' %}
 <div class="container" style="padding-top: 30px;">
-    <div class="row well">
+    <div class="row well" align='center'>
+        <h1>Survey Edit</h1>
     </div>
-
-    {% for question in paper.getQuestionSetInOrder %}
-        {% include "survey/question/question.html" %}
-    {% endfor %}
-
 </div>
 {% include "www/commonjs.html" %}
 <script src="/static/survey/js/surveyEdit.js"></script>
