@@ -25,8 +25,8 @@ class Paper(TimeModel):
     inOrder = models.BooleanField('顺序答题')
     questionNumStyle = models.CharField('问题标号样式', max_length=50, choices=QUESTION_NUM_STYLE)
     lookBack = models.BooleanField('返回修改')
+    #style = models.CharField('展现方式', max_length=5, choices=PAPER_STYLE) #使用paging字段取代
     paging = models.BooleanField('分页答题', default=True)
-    style = models.CharField('展现方式', max_length=5, choices=PAPER_STYLE)
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='paperCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='paperModified_set')
     # 样本集 sample_set (ok) (已在sample中设置外键引用)
