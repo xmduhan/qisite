@@ -5,14 +5,26 @@
         <span class="glyphicon glyphicon-remove-sign pull-right " style="font-size:1.3em;"></span>
     </div>
     <div class="panel-body">
-        <div class="input-group input-group-sm">
-            <span class="input-group-addon">{{ question.getNum }}</span>
-            {#  <span class="input-group-addon">问题</span>#}
-            <input type="text" class="form-control" placeholder="请填写" value="{{ question.getStemText }}">
-        </div>
 
+        {# 题干 #}
+        <div class="row">
+            <div class="col-md-10">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-addon">{{ question.getNum }}</span>
+                    {#  <span class="input-group-addon">问题</span>#}
+                    <input type="text" class="form-control" placeholder="请填写" value="{{ question.getStemText }}">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="input-group input-group-sm">
+                    {#  <span class="input-group-addon">乱序</span> #}
+                    <input class="bootstrap-switch-confused" type="checkbox" {% if question.confused %}checked{% endif %}/>
+                </div>
+            </div>
+        </div>
         <p></p>
 
+        {# 题支 #}
         {% for  branch in question.getBranchSetInOrder %}
             <div class="row">
 
@@ -33,13 +45,6 @@
                             {% endif %}
                             <span class="caret"></span>
                         </button>
-                        {% comment %}
-                    <button type="button" class="btn btn-default ">
-                        {% if branch.nextQuestion %}
-                            {{ branch.nextQuestion.getNum }}
-                        {% endif %}
-                    </button>
-                    {% endcomment %}
                         <ul class="dropdown-menu">
                             {% for reachableQuestion in branch.getReachableQuestion %}
                                 <li>
