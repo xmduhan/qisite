@@ -2,12 +2,16 @@
 <html>
 <head>
     <title></title>
+    {# 加载相关的css #}
     {% include "www/commoncss.html" %}
 </head>
 <body>
+{# 顶部的导航栏 #}
 {% include "www/navbar.html"  with position='paper' %}
 
+{# 页面主体 #}
 <div class="container" style="padding-top: 30px;">
+    {# 新增按钮 #}
     <div class="row">
         <p>
             <button type="button" class="btn btn-primary">
@@ -19,13 +23,15 @@
 
     <div class="row">
         <div class="panel panel-default">
-            <!-- Default panel contents -->
+            {# panel标题 #}
             <div class="panel-heading">
                 <span class="glyphicon glyphicon-list-alt"></span>
                 问卷
             </div>
-            <!-- Table -->
+
+            {# 数据表格 #}
             <table class="table table-striped table table-hover ">
+                {# 表头 #}
                 <thead class="thead">
                 <tr>
                     <th>#</th>
@@ -36,19 +42,28 @@
                     <th colspan="3"></th>
                 </tr>
                 </thead>
+                {# 表格内容 #}
                 {% for paper in paperList %}
                     <tr>
+                        {# 标号 #}
                         <td>{{ forloop.counter }}</td>
+                        {# 问卷标题 #}
                         <td>{{ paper.title }}</td>
+                        {# 问卷说明 #}
                         <td>{{ paper.description }}</td>
+                        {# 问题数量 #}
                         <td>{{ paper.question_set.count }}</td>
+                        {# 创建时间 #}
                         <td>{{ paper.createTime | date:"Y-m-d H:i" }}</td>
+                        {# 编辑按钮 #}
                         <td>
                             <a href="{% url 'survey:paperEdit' paper.id %}">
                                 <span class="glyphicon glyphicon-edit"></span>
                             </a>
                         </td>
+                        {# 发起调查 #}
                         <td><span class="glyphicon glyphicon glyphicon-new-window"></span></td>
+                        {# 删除 #}
                         <td><span class="glyphicon glyphicon-remove-circle"></span></td>
                     </tr>
                 {% endfor %}
@@ -56,6 +71,7 @@
         </div>
     </div>
 
+    {# 分页控件 #}
     <div class="row" align="center">
         <div class="btn-group">
             <button type="button" class="btn btn-default">&laquo;</button>
@@ -70,6 +86,7 @@
 
 </div>
 
+{# 加载Javascript程序 #}
 {% include "www/commonjs.html" %}
 </body>
 </html>

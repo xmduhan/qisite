@@ -2,49 +2,61 @@
 <html>
 <head>
     <title></title>
+    {# 加载相关的css #}
     {% include "www/commoncss.html" %}
     <link rel="stylesheet" href="/static/survey/css/paperEdit.css">
 </head>
 <body>
+
+{# 顶部的导航栏 #}
 {% include "www/navbar.html" with position='paper' %}
+
+{# 页面主体 #}
 <div class="container" style="padding-top: 30px;">
 
+    {# 完成按钮 #}
     <a href="{% url 'survey:paperList' %}"
        type="button" class="btn btn-success ">
         <span class="glyphicon glyphicon-ok"></span>
         完成
     </a>
+    {# 新增问题按钮 #}
     <button class="btn btn-primary ">
         <span class="glyphicon glyphicon-plus"></span>
         新增问题
     </button>
 
+    {# 右侧按钮组 #}
     <div class="btn-group pull-right">
+        {# 预览按钮 #}
         <button class="btn btn-default ">
-            {% comment %}<span class="glyphicon glyphicon-plus"></span> {% endcomment %}
             <span class="glyphicon glyphicon-eye-open"></span>
             预览
         </button>
+        {# 折叠按钮 #}
         <button class="btn btn-default ">
-            {% comment %}<span class="glyphicon glyphicon-plus"></span> {% endcomment %}
             <span class="glyphicon glyphicon-collapse-up"></span>
             折叠
         </button>
+        {# 展开按钮 #}
         <button class="btn btn-default ">
-            {% comment %}<span class="glyphicon glyphicon-plus"></span> {% endcomment %}
             <span class="glyphicon glyphicon-collapse-down"></span>
             展开
         </button>
     </div>
     <p></p>
 
+    {# 问卷信息 #}
     <div class="panel panel-default">
+        {# panel标题 #}
         <div class="panel-heading">
             <span class="glyphicon glyphicon-list-alt"></span>
             问卷
         </div>
+        {# panel内容 #}
         <div class="panel-body">
             <div class="well well-lg">
+                {# 问卷的标题 #}
                 <div class="row">
                     <div class="col-md-12">
                         <div class="input-group input-group-sm">
@@ -55,6 +67,7 @@
                 </div>
                 <p></p>
 
+                {# 问卷的描述 #}
                 <div class="row">
                     <div class="col-md-12">
                         <div class="input-group input-group-sm">
@@ -67,13 +80,8 @@
                 <p></p>
 
                 <div class="row">
+                    {# 标号样式选择 #}
                     <div class="col-md-3">
-                        {% comment %}
-                <div class="input-group input-group-sm">
-                    <span class="input-group-addon">问题标号样式</span>
-                    <input type="text" class="form-control" value="{{ paper.get_questionNumStyle_display }}">
-                </div>
-                {% endcomment %}
                         <div class="btn-group btn-block">
                             <button type="button" class="btn btn-default">问题标号样式</button>
                             <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
@@ -88,6 +96,7 @@
                         </div>
                     </div>
 
+                    {# 分页显示(switch控件) #}
                     <div class="col-md-3">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">分页显示</span>
@@ -95,28 +104,32 @@
                         </div>
                     </div>
 
+                    {# 分页显示(switch控件) #}
                     <div class="col-md-3">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">顺序答题</span>
-                            {#  <span class="input-group-addon">---</span> #}
                             <input class="bootstrap-switch" type="checkbox" {% if paper.inOrder %}checked{% endif %}/>
                         </div>
                     </div>
 
+                    {# 返回修改(switch控件) #}
                     <div class="col-md-3 ">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">返回修改</span>
-                            {#  <span class="input-group-addon">---</span> #}
                             <input class="bootstrap-switch" type="checkbox" {% if paper.lookBack %}checked{% endif %}/>
                         </div>
                     </div>
                 </div>
+                {# <div class="row"> #}
                 <p></p>
-
             </div>
+            {# end <div class="well well-lg"> #}
         </div>
+        {# end <div class="panel-body"> #}
     </div>
+    {# end panel #}
 
+    {# 问题内容框 #}
     <div class="well">
         {% for question in paper.getQuestionSetInOrder %}
             {% include "survey/question/question.html" %}
@@ -124,6 +137,7 @@
     </div>
     <p></p>
 
+    {# 新增问题的按钮 #}
     <div class="row">
         <div class="col-md-2 col-md-offset-5">
             <button class="btn btn-primary btn-block ">
@@ -133,12 +147,12 @@
         </div>
     </div>
 
-
 </div>
-{# end container #}
+{# end <div class="container"> #}
+
+{# 加载Javascript程序 #}
 {% include "www/commonjs.html" %}
 <script src="/static/survey/js/paperEdit.js"></script>
-
 
 </body>
 </html>
