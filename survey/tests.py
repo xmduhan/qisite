@@ -13,6 +13,9 @@ from datetime import datetime
 
 
 class SurveyModelTest(TestCase):
+    '''
+        数据模型的基本操作测试
+    '''
     def addUser(self):
         user = account.models.User(name='tsUser', phone='1234567890', email='sample@example.com')
         user.save()
@@ -20,7 +23,7 @@ class SurveyModelTest(TestCase):
 
     def addPaper(self):
         paper = Paper(
-            title='tsPaper', description='tsPaper.description', inOrder=True, lookBack=False, style='P',
+            title='tsPaper', description='tsPaper.description', inOrder=True, lookBack=False, paging=False,
             createBy=self.tsUser, modifyBy=self.tsUser
         )
         paper.save()
@@ -39,7 +42,7 @@ class SurveyModelTest(TestCase):
     def addSingleQuestion(self):
         # 增加一个单选题
         singleQuestion = Question(
-            type='Single',ord = 1, contentLengh=0, valueMin=0, valueMax=0, confused=False, branchNumStyle='S1',
+            type='Single', ord=1, contentLengh=0, valueMin=0, valueMax=0, confused=False, branchNumStyle='S1',
             nextQuestion=None, paper=self.tsPaper, createBy=self.tsUser, modifyBy=self.tsUser
         )
         singleQuestion.save()
@@ -86,7 +89,7 @@ class SurveyModelTest(TestCase):
             增加一个填空题
         '''
         fillblankQuestion = Question(
-            type='Fillblank',ord = 2, contentLengh=100, valueMin=0, valueMax=0, confused=False, branchNumStyle='S1',
+            type='Fillblank', ord=2, contentLengh=100, valueMin=0, valueMax=0, confused=False, branchNumStyle='S1',
             nextQuestion=None, paper=self.tsPaper, createBy=self.tsUser, modifyBy=self.tsUser
         )
         fillblankQuestion.save()
@@ -302,10 +305,14 @@ class SurveyModelTest(TestCase):
             这里主要我们在添加问题和目录的关联的时候，故意的将问题目录和问题间的关联的排序号(ord)，设置成和问题本身相反
         '''
         questionCatalog = self.tsQuestionCatalog
-        question = questionCatalog.question_set.order_by('questioncatalogquestion__ord','ord')[0]
-        self.assertEqual(question.id,self.tsFillblankQuestion.id)
+        question = questionCatalog.question_set.order_by('questioncatalogquestion__ord', 'ord')[0]
+        self.assertEqual(question.id, self.tsFillblankQuestion.id)
         question = questionCatalog.question_set.order_by('ord')[0]
-        self.assertEqual(question.id,self.tsSingleQuestion.id)
+        self.assertEqual(question.id, self.tsSingleQuestion.id)
 
 
-
+class sendSmsCheckCodeTest(TestCase):
+    '''
+        测试发送短信验证码的服务sendSmsCheckCode
+    '''
+    pass
