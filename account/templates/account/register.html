@@ -32,6 +32,7 @@
 
                 {# 短信验证码 #}
                 <div class="row">
+                    {# 验证码输入框 #}
                     <div class="col-md-7">
                         <div class="input-group">
                             <span class="input-group-addon">
@@ -43,6 +44,7 @@
 
                         </div>
                     </div>
+                    {# 发送验证码的按钮 #}
                     <div class="col-md-5">
                         <button type='button' id="sendCheckCode" class="btn btn-default btn-block btn-lg">
                             <span class="glyphicon glyphicon-flash"></span> 发送验证码
@@ -113,7 +115,7 @@
                 <hr>
                 </p>
 
-                <div class="alert alert-danger alert-dismissable">
+                <div id="errorMessage" class="alert alert-danger alert-dismissable">
                     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
                     <strong>
                         <span class="glyphicon glyphicon-exclamation-sign"></span>
@@ -180,7 +182,7 @@
 {% include "www/commonjs.html" %}
 <script>
 
-
+    {% comment %}
     $('#sendCheckCode').on('click', function () {
         //alert($('#registerForm #phone').val());
         $.ajax({
@@ -203,7 +205,27 @@
             }
         });
     });
+    {% endcomment %}
 
+    $(document).ready(function () {
+        $('#sendCheckCode').on('click', function () {
+            $(this).attr('disabled', true);
+            $(this).append('');
+            i = 0;
+            buttonHtml = $('#sendCheckCode').html();
+            timer = setInterval(function () {
+                if (i++ < 5) {
+                    console.log("i=" + i);
+                    $('#sendCheckCode').html(i);
+                } else {
+                    clearInterval(timer);
+                    $('#sendCheckCode').html(buttonHtml)
+                    $('#sendCheckCode').attr('disabled', false);
+                }
+            }, 1000);
+        });
+
+    });
 
 </script>
 </body>
