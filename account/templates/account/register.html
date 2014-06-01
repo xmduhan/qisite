@@ -11,10 +11,11 @@
 
     <div class="row">
         <div class="col-md-4 col-md-offset-4">
-            <form role="form" method="get">
+            <form id="registerForm" role="form" method="post">{% csrf_token %}
                 <h2><span class="glyphicon glyphicon-info-sign"></span> 用户注册</h2>
                 <hr>
 
+                {# 手机号码 #}
                 <div class="row">
                     <div class="col-md-12">
                         <div class="input-group">
@@ -22,13 +23,14 @@
                                 <span class="glyphicon glyphicon-earphone"></span>
                             </span>
                             <input type="text" name="phone" id="phone" class="form-control input-lg"
-                                   placeholder="请输入您的手机号码" tabindex="1">
+                                   placeholder="请输入您的手机号码" tabindex="1"
+                                   {% if phone %}value = {{ phone }}{% endif %}>
                         </div>
                     </div>
                 </div>
                 <p/>
 
-
+                {# 短信验证码 #}
                 <div class="row">
                     <div class="col-md-7">
                         <div class="input-group">
@@ -36,11 +38,13 @@
                                 <span class="glyphicon glyphicon-comment"></span>
                             </span>
                             <input type="text" name="checkCode" id="checkCode" class="form-control input-lg"
-                                   placeholder="验证码" tabindex="2">
+                                   placeholder="验证码" tabindex="2"
+                                   {% if checkCode %}value = {{ checkCode }}{% endif %}>
+
                         </div>
                     </div>
                     <div class="col-md-5">
-                        <button type="submit" class="btn btn-default btn-block btn-lg">
+                        <button type='button' id="sendCheckCode" class="btn btn-default btn-block btn-lg">
                             <span class="glyphicon glyphicon-flash"></span> 发送验证码
                         </button>
                     </div>
@@ -48,6 +52,7 @@
                 <p/>
 
 
+                {# 密码 #}
                 <div class="row">
                     <div class="col-md-12">
                         <div class="input-group">
@@ -61,6 +66,7 @@
                 </div>
                 <p/>
 
+                {# 确认密码 #}
                 <div class="row">
                     <div class="col-md-12">
                         <div class="input-group">
@@ -75,6 +81,7 @@
                 <p/>
                 <hr>
 
+                {# 协议条款说明 #}
                 <div class="row">
                     <div class="col-md-1 col-md-offset-1">
                         <h4><span class="glyphicon glyphicon-warning-sign"></span></h4>
@@ -90,6 +97,7 @@
                 </div>
 
                 <hr>
+                {# 提交注册的按钮 #}
                 <div class="row">
                     <div class="col-md-6 col-md-offset-3">
                         <input type="submit" value="注册"
@@ -98,11 +106,27 @@
 
                 </div>
             </form>
+
+            {# 出错提示信息 #}
+            {% if errorMessage %}
+                </p>
+                <hr>
+                </p>
+
+                <div class="alert alert-danger alert-dismissable">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                    <strong>
+                        <span class="glyphicon glyphicon-exclamation-sign"></span>
+                        出错 :
+                    </strong>
+                    {{ errorMessage }}
+                </div>
+            {% endif %}
         </div>
     </div>
 
 
-    <!-- Modal -->
+    {# 条款显示对话框 #}
     <div class="modal fade" id="t_and_c_m" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
          aria-hidden="true">
         <div class="modal-dialog">
@@ -154,5 +178,33 @@
 </div>
 
 {% include "www/commonjs.html" %}
+<script>
+
+
+    $('#sendCheckCode').on('click', function () {
+        //alert($('#registerForm #phone').val());
+        $.ajax({
+            url: "{% url 'account:sendSmsCheckCode' %}",
+            data: { phone: $('#registerForm #phone').val() },
+            type: "post",
+            dataType: "json",
+            async: true,
+            success: function (json) {
+                console.log("The request is success!");
+                console.log(json);
+                alert(json)
+            }, error: function (xhr, status, errorThrown) {
+                console.log("Error: " + errorThrown);
+                console.log("Status: " + status);
+                console.dir(xhr);
+            },
+            complete: function (xhr, status) {
+                console.log("The request is complete!");
+            }
+        });
+    });
+
+
+</script>
 </body>
 </html>

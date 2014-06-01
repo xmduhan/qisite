@@ -50,7 +50,7 @@ def sendSmsCheckCode(request, sender=sms):
     # 是否符合发送的时间间隔
     interval = timedelta(minutes=3)
     smsCheckCodeList = SmsCheckCode.objects.filter(
-        phone=phone, createTime__lte=datetime.now() - interval
+        phone=phone, createTime__gte=datetime.now() - interval
     ).order_by("-createTime")
     if len(smsCheckCodeList) > 0:
         smsCheckCode = smsCheckCodeList[0]
@@ -79,7 +79,102 @@ def sendSmsCheckCode(request, sender=sms):
 
 
 def register(request):
-    template = loader.get_template('account/register.html')
+    # 初始化变量
+    registered = False
+    errorMessage = ''
+    phone = ''
+    checkCode = ''
+    password = ''
+    confirmation = ''
+
+    # 读取提交的表单信息
+    keys = request.REQUEST.keys()
+    # 检查是提交还是首次进入页面
+    # 连phone都不存在说明是首次进入页面
+    if 'phone' in keys:
+        while True:
+            # 检查手机号码是否合法
+            phone = request.REQUEST['phone']
+            if len(phone) == 0:
+                errorMessage = '请填写手机号码'
+                break
+            if not phonePattern.match(phone):
+                errorMessage = '手机号码填写有误'
+                break
+
+            # 检查手机号是否已经注册
+            userList = User.objects.filter(phone=phone)
+            if len(userList) != 0:
+                errorMessage = '该号码已注册'
+                break
+
+            # 检查验证码是否正确
+            if 'checkCode' not in keys:
+                errorMessage = '请填写短信验证码'
+                break
+            checkCode = request.REQUEST['checkCode']
+            if len(checkCode) == 0:
+                errorMessage = '请填写短信验证码'
+                break
+            interval = timedelta(minutes=5)
+            smsCheckCodeList = SmsCheckCode.objects.filter(
+                phone=phone, createTime__lte=datetime.now() - interval
+            ).order_by('-createTime')
+            if len(smsCheckCodeList) == 0:
+                errorMessage = '验证码还没生成或已经过期，请点击发送验证码'
+                break
+            if checkCode != smsCheckCodeList[0].checkCode:
+                errorMessage = '输入的验证码不正确'
+                break
+
+            # 检查是否填写密码
+            if 'password' not in keys:
+                errorMessage = '请填写密码'
+                break
+            password = request.REQUEST['password']
+            if len(password) == 0:
+                errorMessage = '请填写密码'
+                break
+
+            # 检查两次密码是否一致
+            if 'confirmation' not in keys:
+                errorMessage = '两次密码不一致'
+                break
+            confirmation = request.REQUEST['confirmation']
+            if confirmation != password:
+                errorMessage = '两次密码不一致'
+                break
+
+            # 注册成功，创建用户
+            user = User(phone=phone, password=make_password(password))
+            user.save()
+            request.session['user'] = user
+            registered = True
+            break
+
+    if registered:
+        # 注册成功转向新用户向导界面
+        template = loader.get_template('account/newUserGuide.html')
+        context = RequestContext(request, {'session': request.session})
+        return HttpResponse(template.render(context))
+    else:
+        # 注册失败显示失败原因
+        template = loader.get_template('account/register.html')
+        context = RequestContext(
+            request,
+            {
+                'errorMessage': errorMessage,
+                'phone': phone,
+                'checkCode': checkCode,
+                'password': password,
+                'confirmation': confirmation
+            }
+        )
+        return HttpResponse(template.render(context))
+
+
+def newUserGuide(request):
+    template = loader.get_template('account/newUserGuide.html')
     context = RequestContext(request, {'session': request.session})
     return HttpResponse(template.render(context))
 
@@ -91,6 +186,9 @@ class Login_ErrorMessage:
 
 
 def login(request):
+    '''
+        用户登录用户处理
+    '''
     logined = False
     errorMessage = ''
     login_ErrorMessage = Login_ErrorMessage()
