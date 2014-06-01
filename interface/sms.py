@@ -18,6 +18,7 @@ errorMessage = {
     -51, '短信签名格式不正确',
 }
 
+
 def send(phone, text):
     '''
         短信接口格式
@@ -28,13 +29,13 @@ def send(phone, text):
     req = urllib2.Request(smsServerUrl, postData);
     response = urllib2.urlopen(req);
     content = response.read();
-    resCode = int(content)
-    if resCode > 0:
-        return [0,'成功']
+    resultCode = int(content)
+    if resultCode > 0:
+        return {'errorCode': 0, 'errorMessage': '成功'}
     else:
-        if resCode in errorMessage.keys():
-            return [resCode,errorMessage[resCode]]
+        if resultCode in errorMessage.keys():
+            return {'errorCode': resultCode, 'errorMessage': errorMessage[resultCode]}
         else:
-            return [-100,'未知错误']
+            return [-100, '未知错误']
 
 
