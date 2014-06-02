@@ -10,6 +10,7 @@ import json, random, string
 from interface import sms
 from datetime import datetime, timedelta
 import re
+from qisite.settings import smsSend
 
 ## 手机号码格式定义
 phonePattern = re.compile(r'^((13[0-9])|(15[^4,\D])|(14[57])|(17[0])|(18[0,0-9]))\d{8}$')
@@ -27,7 +28,7 @@ class SendSmsCheckCode_ErrorMessage:
     success = u'发送成功'
 
 
-def sendSmsCheckCode(request, sender=sms):
+def sendSmsCheckCode(request):
     '''
         发送短信验证码服务，主要为以下两个流程提供短信验证码服务：：
         （1）注册（2）找回密码。
@@ -57,7 +58,7 @@ def sendSmsCheckCode(request, sender=sms):
     ).order_by("-createTime")
     if len(smsCheckCodeList) > 0:
         smsCheckCode = smsCheckCodeList[0]
-        remain = datetime.now() - smsCheckCode.createTime - interval
+        remain = interval - (datetime.now() - smsCheckCode.createTime)
         result['errorCode'] = -1
         result['errorMessage'] = errorMessage.need_wait % remain.seconds
         result['secondsRemain'] = remain.seconds
@@ -69,7 +70,7 @@ def sendSmsCheckCode(request, sender=sms):
 
     # 发送短信
     checkCodeText = checkCodeTextFormat % checkCode
-    smsSendResult = sender.send(phone, checkCodeText)
+    smsSendResult = smsSend(phone, checkCodeText)
     if smsSendResult['errorCode'] <> 0:
         result['errorCode'] = -1
         result['errorMessage'] = errorMessage.send_sms_fail
@@ -79,6 +80,18 @@ def sendSmsCheckCode(request, sender=sms):
     result['errorCode'] = 0
     result['errorMessage'] = errorMessage.success
     return HttpResponse(json.dumps(result))
+
+
+class Register_ErrorMessage:
+    no_phone = u'请提填写手机号码'
+    invaild_phone = u'输入的不是一个有效的手机号码'
+    phone_registered = u'该号码已注册'
+    no_check_code = u'请填写短信验证码'
+    send_check_code_first = u'验证码还没生成或已经过期，请点击发送验证码'
+    invaild_check_code = u'输入的验证码不正确'
+    no_password = u'请填写密码'
+    password_len_lt_len6 = u'密码需要6位以上'
+    password_different = u'两次密码不一致'
 
 
 def register(request):
@@ -99,53 +112,56 @@ def register(request):
             # 检查手机号码是否合法
             phone = request.REQUEST['phone']
             if len(phone) == 0:
-                errorMessage = '请填写手机号码'
+                errorMessage = Register_ErrorMessage.no_phone
                 break
             if not phonePattern.match(phone):
-                errorMessage = '手机号码填写有误'
+                errorMessage = Register_ErrorMessage.invaild_phone
                 break
 
             # 检查手机号是否已经注册
             userList = User.objects.filter(phone=phone)
             if len(userList) != 0:
-                errorMessage = '该号码已注册'
+                errorMessage = Register_ErrorMessage.phone_registered
                 break
 
             # 检查验证码是否正确
             if 'checkCode' not in keys:
-                errorMessage = '请填写短信验证码'
+                errorMessage = Register_ErrorMessage.no_check_code
                 break
             checkCode = request.REQUEST['checkCode']
             if len(checkCode) == 0:
-                errorMessage = '请填写短信验证码'
+                errorMessage = Register_ErrorMessage.no_check_code
                 break
             interval = timedelta(minutes=5)
             smsCheckCodeList = SmsCheckCode.objects.filter(
-                phone=phone, createTime__lte=datetime.now() - interval
+                phone=phone, createTime__gte=datetime.now() - interval
             ).order_by('-createTime')
             if len(smsCheckCodeList) == 0:
-                errorMessage = '验证码还没生成或已经过期，请点击发送验证码'
+                errorMessage = Register_ErrorMessage.send_check_code_first
                 break
             if checkCode != smsCheckCodeList[0].checkCode:
-                errorMessage = '输入的验证码不正确'
+                errorMessage = Register_ErrorMessage.invaild_check_code
                 break
 
             # 检查是否填写密码
             if 'password' not in keys:
-                errorMessage = '请填写密码'
+                errorMessage = Register_ErrorMessage.no_password
                 break
             password = request.REQUEST['password']
             if len(password) == 0:
-                errorMessage = '请填写密码'
+                errorMessage = Register_ErrorMessage.no_password
+                break
+            if len(password) < 6:
+                errorMessage = Register_ErrorMessage.password_len_lt_len6
                 break
 
             # 检查两次密码是否一致
             if 'confirmation' not in keys:
-                errorMessage = '两次密码不一致'
+                errorMessage = Register_ErrorMessage.password_different
                 break
             confirmation = request.REQUEST['confirmation']
             if confirmation != password:
-                errorMessage = '两次密码不一致'
+                errorMessage = Register_ErrorMessage.password_different
                 break
 
             # 注册成功，创建用户

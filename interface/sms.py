@@ -18,6 +18,7 @@ errorMessage = {
     -51, '短信签名格式不正确',
 }
 
+
 def send(phone, text):
     '''
         短信接口格式
@@ -38,3 +39,5 @@ def send(phone, text):
             return [-100, '未知错误']
 
 
+def sendTest(phone, text):
+    return {'errorCode': 0, 'errorMessage': '成功'}

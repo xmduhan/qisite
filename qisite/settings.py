@@ -10,6 +10,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+from interface import sms
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 import south
@@ -101,3 +102,5 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAdminUser',),
     'PAGINATE_BY': 10
 }
+
+smsSend = sms.sendTest
