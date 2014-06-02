@@ -79,6 +79,7 @@ def sendSmsCheckCode(request):
     # 返回成功
     result['errorCode'] = 0
     result['errorMessage'] = errorMessage.success
+    result['secondsRemain'] = interval.seconds
     return HttpResponse(json.dumps(result))
 
 

@@ -29,8 +29,8 @@ class User(models.Model):
     #position
     createBy = models.ForeignKey('self', blank=True, null=True, verbose_name="创建者", related_name='userCreated')
     modifyBy = models.ForeignKey('self', blank=True, null=True, verbose_name="修改者", related_name='userModified')
-    createTime = models.DateTimeField("创建时间", default=datetime.now())
-    modifyTime = models.DateTimeField("修改时间", default=datetime.now())
+    createTime = models.DateTimeField("创建时间", default=datetime.now)
+    modifyTime = models.DateTimeField("修改时间", default=datetime.now)
 
     class Meta:
         verbose_name = "用户"
@@ -41,4 +41,4 @@ class User(models.Model):
 class SmsCheckCode(models.Model):
     phone = models.CharField("手机号码", max_length=20)
     checkCode = models.CharField("验证码", max_length=20)
-    createTime = models.DateTimeField("创建时间", default=datetime.now())
+    createTime = models.DateTimeField("创建时间", default=datetime.now)

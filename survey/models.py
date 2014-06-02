@@ -6,8 +6,8 @@ from numstyle import NumStyle
 
 
 class TimeModel(models.Model):
-    createTime = models.DateTimeField("创建时间", default=datetime.now())
-    modifyTime = models.DateTimeField("修改时间", default=datetime.now())
+    createTime = models.DateTimeField("创建时间", default=datetime.now)
+    modifyTime = models.DateTimeField("修改时间", default=datetime.now)
 
     class Meta:
         abstract = True
@@ -206,8 +206,8 @@ class Survey(TimeModel):
     passwd = models.CharField("参与密码", max_length=10, blank=True)
     ipLimit = models.IntegerField("IP限制", default=5)
     macLimit = models.IntegerField("MAC限制", default=5)
-    publishTime = models.DateTimeField("发布时间", default=datetime.now())
-    endTime = models.DateTimeField("结束时间", default=datetime.now())
+    publishTime = models.DateTimeField("发布时间", default=datetime.now)
+    endTime = models.DateTimeField("结束时间", default=datetime.now)
     #参与者约束	constraints	对象集 (hold)
     hardCost = models.FloatField('调查费', default=0)
     bonus = models.FloatField('奖金', default=0)
