@@ -20,11 +20,11 @@ checkCodeTextFormat = '您的注册验证码为%s，您可以它进行注册了�
 
 ## 服务返回的出错信息定义
 class SendSmsCheckCode_ErrorMessage:
-    no_phone = '请提填写手机号码'
-    invaild_phone = '输入的不是一个有效的手机号码'
-    need_wait = '验证码已发送，%d秒后可以重发'
-    send_sms_fail = '短信发送失败，请稍后重试'
-    success = '发送成功'
+    no_phone = u'请提填写手机号码'
+    invaild_phone = u'输入的不是一个有效的手机号码'
+    need_wait = u'验证码已发送，%d秒后可以重发'
+    send_sms_fail = u'短信发送失败，请稍后重试'
+    success = u'发送成功'
 
 
 def sendSmsCheckCode(request, sender=sms):
@@ -46,6 +46,9 @@ def sendSmsCheckCode(request, sender=sms):
         result['errorCode'] = -1
         result['errorMessage'] = errorMessage.invaild_phone
         return HttpResponse(json.dumps(result))
+
+    # 注意：这里不能检查号码是否注册过，因为该服务还要用作找回密码的时候使用
+
 
     # 是否符合发送的时间间隔
     interval = timedelta(minutes=3)
@@ -199,7 +202,6 @@ def login(request):
         if phone and password:
             userList = User.objects.filter(phone=phone)
             if userList:
-                #print "password : %s " % password
                 user = userList[0]
                 check = check_password(password, user.password)
                 if check:

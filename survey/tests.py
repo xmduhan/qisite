@@ -310,9 +310,3 @@ class SurveyModelTest(TestCase):
         question = questionCatalog.question_set.order_by('ord')[0]
         self.assertEqual(question.id, self.tsSingleQuestion.id)
 
-
-class sendSmsCheckCodeTest(TestCase):
-    '''
-        测试发送短信验证码的服务sendSmsCheckCode
-    '''
-    pass

@@ -33,7 +33,7 @@
                 {# 短信验证码 #}
                 <div class="row">
                     {# 验证码输入框 #}
-                    <div class="col-md-7">
+                    <div class="col-md-6">
                         <div class="input-group">
                             <span class="input-group-addon">
                                 <span class="glyphicon glyphicon-comment"></span>
@@ -45,8 +45,9 @@
                         </div>
                     </div>
                     {# 发送验证码的按钮 #}
-                    <div class="col-md-5">
-                        <button type='button' id="sendCheckCode" class="btn btn-default btn-block btn-lg">
+                    <div class="col-md-6">
+                        <button type='button' id="sendCheckCode" class="btn btn-default btn-block btn-lg"
+                                data-service-url="{% url 'account:sendSmsCheckCode' %}">
                             <span class="glyphicon glyphicon-flash"></span> 发送验证码
                         </button>
                     </div>
@@ -102,28 +103,25 @@
                 {# 提交注册的按钮 #}
                 <div class="row">
                     <div class="col-md-6 col-md-offset-3">
-                        <input type="submit" value="注册"
+                        <input id="registerSubmit" type="submit" value="注册"
                                class="btn btn-primary btn-block btn-lg" tabindex="7">
                     </div>
 
                 </div>
             </form>
 
+            </p>
+            <hr>
+            </p>
             {# 出错提示信息 #}
-            {% if errorMessage %}
-                </p>
-                <hr>
-                </p>
-
-                <div id="errorMessage" class="alert alert-danger alert-dismissable">
-                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                    <strong>
+            <div id="errorMessageBox" class="alert alert-danger">
+                <strong>
+                    <div>
                         <span class="glyphicon glyphicon-exclamation-sign"></span>
-                        出错 :
-                    </strong>
-                    {{ errorMessage }}
-                </div>
-            {% endif %}
+                        出错 :<span id="errorMessage">{{ errorMessage }}</span>
+                    </div>
+                </strong>
+            </div>
         </div>
     </div>
 
@@ -180,53 +178,6 @@
 </div>
 
 {% include "www/commonjs.html" %}
-<script>
-
-    {% comment %}
-    $('#sendCheckCode').on('click', function () {
-        //alert($('#registerForm #phone').val());
-        $.ajax({
-            url: "{% url 'account:sendSmsCheckCode' %}",
-            data: { phone: $('#registerForm #phone').val() },
-            type: "post",
-            dataType: "json",
-            async: true,
-            success: function (json) {
-                console.log("The request is success!");
-                console.log(json);
-                alert(json)
-            }, error: function (xhr, status, errorThrown) {
-                console.log("Error: " + errorThrown);
-                console.log("Status: " + status);
-                console.dir(xhr);
-            },
-            complete: function (xhr, status) {
-                console.log("The request is complete!");
-            }
-        });
-    });
-    {% endcomment %}
-
-    $(document).ready(function () {
-        $('#sendCheckCode').on('click', function () {
-            $(this).attr('disabled', true);
-            $(this).append('');
-            i = 0;
-            buttonHtml = $('#sendCheckCode').html();
-            timer = setInterval(function () {
-                if (i++ < 5) {
-                    console.log("i=" + i);
-                    $('#sendCheckCode').html(i);
-                } else {
-                    clearInterval(timer);
-                    $('#sendCheckCode').html(buttonHtml)
-                    $('#sendCheckCode').attr('disabled', false);
-                }
-            }, 1000);
-        });
-
-    });
-
-</script>
+<script src="/static/account/js/register.js"></script>
 </body>
 </html>

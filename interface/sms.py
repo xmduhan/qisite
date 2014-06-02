@@ -18,7 +18,6 @@ errorMessage = {
     -51, '短信签名格式不正确',
 }
 
-
 def send(phone, text):
     '''
         短信接口格式
