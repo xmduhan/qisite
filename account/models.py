@@ -42,3 +42,8 @@ class SmsCheckCode(models.Model):
     phone = models.CharField("手机号码", max_length=20)
     checkCode = models.CharField("验证码", max_length=20)
     createTime = models.DateTimeField("创建时间", default=datetime.now)
+
+    class Meta:
+        verbose_name = "短信验证码"
+        verbose_name_plural = "[02].短信验证码"
+        ordering = ["createTime"]
