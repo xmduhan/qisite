@@ -103,5 +103,5 @@ REST_FRAMEWORK = {
     'PAGINATE_BY': 10
 }
 
-smsSend = sms.send
-#smsSend = sms.sendTest
+#smsSend = sms.send
+smsSend = sms.sendTest
