@@ -41,6 +41,10 @@ function showErrorMessage(message) {
 var timer;
 var timerCounter;
 function disableSendCheckCode(seconds) {
+    /*
+     将按钮状态改为禁用状态，并在倒计时结束将按钮状态改为可用
+     注意：如果按钮原来状态就为禁用，倒计时结束后按钮会可用状态，而不是之前的禁用状态。
+     */
     // 设置默认参数
     if (arguments.length == 0) {
         seconds = 60;
@@ -49,20 +53,20 @@ function disableSendCheckCode(seconds) {
     sendCheckCode = $('#sendCheckCode');
     if (sendCheckCode.attr('disabled') == undefined) {
         sendCheckCode.attr('disabled', true);
-        timerCounter = seconds;
-        // 保存按钮原来的html内容
-        buttonHtml = sendCheckCode.html();
-        // 启动一个定时器
-        timer = setInterval(function () {
-            if (timerCounter-- > 0) {
-                sendCheckCode.html("" + timerCounter + "秒后可重发");
-            } else {
-                clearInterval(timer);
-                sendCheckCode.html(buttonHtml);
-                sendCheckCode.attr('disabled', false);
-            }
-        }, 1000);
     }
+    timerCounter = seconds;
+    // 保存按钮原来的html内容
+    buttonHtml = sendCheckCode.html();
+    // 启动一个定时器
+    timer = setInterval(function () {
+        if (timerCounter-- > 0) {
+            sendCheckCode.html("" + timerCounter + "秒后可重发");
+        } else {
+            clearInterval(timer);
+            sendCheckCode.html(buttonHtml);
+            sendCheckCode.attr('disabled', false);
+        }
+    }, 1000);
 }
 
 // document ready 的加载动作
@@ -71,6 +75,7 @@ $(document).ready(function () {
     // 定义发送验证码按钮事件
     $('#sendCheckCode').on('click', function () {
         // 调用发送短信验证码的服务
+        $(this).attr('disabled', true);
         $.ajax({
             url: $('#sendCheckCode').data('service-url'),
             data: { phone: $('#registerForm #phone').val() },
@@ -82,6 +87,8 @@ $(document).ready(function () {
                 if (result.secondsRemain != undefined) {
                     // 如果服务返回了延时控制信息，根据延时控制信息禁用按钮
                     disableSendCheckCode(result.secondsRemain);
+                } else {
+                    $('#sendCheckCode').attr('disabled', false);
                 }
                 if (result.errorCode != 0) {
                     // 如果返回失败显示出错信息
@@ -91,6 +98,7 @@ $(document).ready(function () {
             // 失败说明网络有问题或者服务器有问题
             error: function (xhr, status, errorThrown) {
                 showErrorMessage('网络连接不稳定，请稍后重试!');
+                $('#sendCheckCode').attr('disabled', false);
             }
         });
     });
