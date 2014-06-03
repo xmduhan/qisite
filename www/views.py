@@ -8,7 +8,6 @@ from django.views.decorators.csrf import csrf_protect
 def index(request):
     template = loader.get_template('www/index.html')
     context = RequestContext(request, {'session': request.session})
-    print context
     return HttpResponse(template.render(context))
 
 

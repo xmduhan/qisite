@@ -1,3 +1,4 @@
+#-*- coding: utf-8 -*-
 """
 Django settings for qisite project.
 
@@ -105,3 +106,24 @@ REST_FRAMEWORK = {
 
 #smsSend = sms.send
 smsSend = sms.sendTest
+
+""" SQL日志开关
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'sql.log',
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+#"""
