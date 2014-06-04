@@ -61,7 +61,8 @@
                     <div class="col-md-12">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">问卷名称</span>
-                            <input type="text" class="form-control" placeholder="请填写问卷名称" value="{{ paper.title }}">
+                            <input type="text" class="form-control paper-attr-text" placeholder="请填写问卷名称"
+                                   value="{{ paper.title }}">
                         </div>
                     </div>
                 </div>
@@ -72,7 +73,7 @@
                     <div class="col-md-12">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">问卷描述</span>
-                            <input type="text" class="form-control" placeholder="请填写问卷描述"
+                            <input type="text" class="form-control paper-attr-text" placeholder="请填写问卷描述"
                                    value="{{ paper.description }}">
                         </div>
                     </div>
@@ -83,16 +84,31 @@
                     {# 标号样式选择 #}
                     <div class="col-md-3">
                         <div class="btn-group btn-block">
-                            <button type="button" class="btn btn-default">问题标号样式</button>
-                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                            <button type="button" class="btn btn-default">标号样式</button>
+                            {% comment %}
+                            <button type="button" class="btn btn-default dropdown-toggle paper-attr-select"
+                                    data-toggle="dropdown">
                                 {{ paper.get_questionNumStyle_display }}
                                 <span class="caret"></span>
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a> 1</a></li>
+                                <li class="paper-attr-select-option"><a> 1</a></li>
                                 <li><a> 2</a></li>
                                 <li><a> 3</a></li>
                             </ul>
+                            {% endcomment %}
+                            <select class="selectpicker paper-attr-select" data-width='auto'>
+                                <optgroup label="Picnic">
+                                    <option value='1'>Mustard</option>
+                                    <option value='2'>Ketchup</option>
+                                    <option value='3'>Relish</option>
+                                </optgroup>
+                                <optgroup label="Camping">
+                                    <option value="4">Tent</option>
+                                    <option value='5'>Flashlight</option>
+                                    <option value='6'>Toilet Paper</option>
+                                </optgroup>
+                            </select>
                         </div>
                     </div>
 
@@ -100,15 +116,17 @@
                     <div class="col-md-3">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">分页显示</span>
-                            <input class="bootstrap-switch" type="checkbox" {% if paper.paging %}checked{% endif %}/>
+                            <input name='test01' class="bootstrap-switch-input paper-attr-switch" type="checkbox"
+                                   {% if paper.paging %}checked{% endif %}/>
                         </div>
                     </div>
 
-                    {# 分页显示(switch控件) #}
+                    {# 顺序答题(switch控件) #}
                     <div class="col-md-3">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">顺序答题</span>
-                            <input class="bootstrap-switch" type="checkbox" {% if paper.inOrder %}checked{% endif %}/>
+                            <input class="bootstrap-switch-input paper-attr-switch" type="checkbox"
+                                   {% if paper.inOrder %}checked{% endif %}/>
                         </div>
                     </div>
 
@@ -116,7 +134,8 @@
                     <div class="col-md-3 ">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">返回修改</span>
-                            <input class="bootstrap-switch" type="checkbox" {% if paper.lookBack %}checked{% endif %}/>
+                            <input class="bootstrap-switch-input paper-attr-switch" type="checkbox"
+                                   {% if paper.lookBack %}checked{% endif %}/>
                         </div>
                     </div>
                 </div>

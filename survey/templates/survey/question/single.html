@@ -21,7 +21,7 @@
             {# 是否乱序(switch控件) #}
             <div class="col-md-2">
                 <div class="input-group input-group-sm">
-                    <input class="bootstrap-switch-confused" type="checkbox"
+                    <input class="bootstrap-switch-input-confused" type="checkbox"
                            {% if question.confused %}checked{% endif %}/>
                 </div>
             </div>
@@ -40,6 +40,10 @@
                         <span class="input-group-addon">{{ branch.getNum }}</span>
                         {# 题支的文字内容 #}
                         <input type="text" class="form-control" value="{{ branch.text }}">
+                        {# 题支的删除按钮 #}
+                        <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-remove-sign pull-right "></span>
+                        </span>
                     </div>
                 </div>
 
