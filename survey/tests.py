@@ -316,7 +316,7 @@ class SurveyModelTest(TestCase):
         self.assertEqual(question.id, self.tsSingleQuestion.id)
 
 
-class PaperEditTest(TestCase):
+class PaperAddTest(TestCase):
     '''
         对问卷修改服务的测试
     '''
@@ -332,11 +332,16 @@ class PaperEditTest(TestCase):
     def test_add_paper_no_title(self):
         setup_test_environment()
         client = Client()
-        client.post(reverse('account:login'))
+        # 为client准备session数据
+        phone = '18906021980'
+        user = User.objects.get_or_create(phone=phone)[0]
+        client.session['user'] = user
+        # 调用问卷添加服务
         response = client.post(
-            reverse('survey:service.paper.add'), {'title': 'test'}
+            reverse('survey:service.paper.add'), {}
         )
-        self.assertContains(response, PaperAdd_ErrorMessage.no_login)
+        self.assertContains(response, PaperAdd_ErrorMessage.no_title)
+
 
 
 

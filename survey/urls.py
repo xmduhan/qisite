@@ -1,14 +1,32 @@
 #-*- coding: utf-8 -*-
 from django.conf.urls import patterns, url
-import views
+import views, services
+
 
 urlpatterns = patterns(
     '',
+    # 列表页面
     url(r'^view/survey/list$', views.surveyList, name='view.survey.list'),
     url(r'^view/custList/list$', views.custListList, name='view.custList.list'),
     url(r'^view/paper/list$', views.paperList, name='view.paper.list'),
-    # 编辑
+    # 编辑页面
     url(r'^view/survey/edit$', views.surveyEdit, name='view.survey.edit'),
     url(r'^view/paper/edit/(?P<paperId>\d+)$', views.paperEdit, name='view.paper.edit'),
-
+    # 增删改服务
+    ## survey
+    url(r'^service/survey/add$', services.surveyAdd, name='service.survey.add'),
+    url(r'^service/survey/modify$', services.surveyModify, name='service.survey.modify'),
+    url(r'^service/survey/delete$', services.surveyDelete, name='service.survey.delete'),
+    ## paper
+    url(r'^service/paper/add$', services.paperAdd, name='service.paper.add'),
+    url(r'^service/paper/modify$', services.paperModify, name='service.paper.modify'),
+    url(r'^service/paper/delete$', services.paperDelete, name='service.paper.delete'),
+    ## question
+    url(r'^service/question/add$', services.questionAdd, name='service.question.add'),
+    url(r'^service/question/modify$', services.questionModify, name='service.question.modify'),
+    url(r'^service/question/delete$', services.questionDelete, name='service.question.delete'),
+    ## branch
+    url(r'^service/branch/add$', services.branchAdd, name='service.branch.add'),
+    url(r'^service/branch/modify$', services.branchModify, name='service.branch.modify'),
+    url(r'^service/branch/delete$', services.branchDelete, name='service.branch.delete'),
 )
