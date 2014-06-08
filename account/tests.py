@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.test.utils import setup_test_environment
 from django.test.client import Client
 from django.core.urlresolvers import reverse
-from views import SendSmsCheckCode_ErrorMessage, Register_ErrorMessage
+from views import SendSmsCheckCode_ErrorMessage, Register_ErrorMessage, Login_ErrorMessage
 import json
 from time import sleep
 from datetime import datetime, timedelta
@@ -312,3 +312,108 @@ class RegisterTest(TestCase):
         # 检查数据是否已经添加进去
         userList = User.objects.filter(phone=phone)
         self.assertEquals(userList.count(), 1)
+
+
+class LoginTest(TestCase):
+    '''
+        登录页面测试
+    '''
+
+    def test_enter_login_page(self):
+        '''
+            测试首次进入登录页面
+        '''
+        setup_test_environment()
+        client = Client()
+        response = client.get(reverse('account:login'))
+        self.assertContains(response, u'<span id="errorMessage"></span>')
+
+    def test_no_phone(self):
+        '''
+            测试没有提供号码的情况
+        '''
+        setup_test_environment()
+        client = Client()
+        response = client.post(
+            reverse('account:login'), {'phone': ''}
+        )
+        self.assertContains(response, Login_ErrorMessage.no_phone)
+
+    def test_invaild_phone(self):
+        '''
+            测试提供一个不符规格的手机号码
+        '''
+        setup_test_environment()
+        client = Client()
+        response = client.post(
+            reverse('account:login'), {'phone': '12456789'}
+        )
+        self.assertContains(response, Login_ErrorMessage.invaild_phone)
+
+    def test_no_password(self):
+        '''
+            测试提供不提供密码的情况
+        '''
+        setup_test_environment()
+        client = Client()
+        response = client.post(
+            reverse('account:login'), {'phone': '18906021980'}
+        )
+        self.assertContains(response, Login_ErrorMessage.no_password)
+
+    def test_no_register(self):
+        '''
+            测试没有注册的情况
+        '''
+        setup_test_environment()
+        # 保证号码没有注册过
+        phone = '18906021980'
+        User.objects.filter(phone=phone).delete()
+        # 测试登录
+        client = Client()
+        response = client.post(
+            reverse('account:login'), {'phone': phone, 'password': '123456'}
+        )
+        self.assertContains(response, Login_ErrorMessage.no_register)
+
+
+    def test_phone_or_password_invalid(self):
+        '''
+            测试错误密码
+        '''
+        setup_test_environment()
+        # 保证号码没有注册过
+        phone = '18906021980'
+        password = '123456'
+        user = User.objects.get_or_create(phone=phone)[0]
+        user.password = make_password(password)
+        user.save()
+        # 测试登录
+        client = Client()
+        response = client.post(
+            reverse('account:login'), {'phone': phone, 'password': '123'}
+        )
+        self.assertContains(response, Login_ErrorMessage.phone_or_password_invalid)
+
+
+    def test_success(self):
+        '''
+            测试成功登录
+        '''
+        setup_test_environment()
+        # 获得测试用户
+        phone = '18906021980'
+        password = '123456'
+        user = User.objects.get_or_create(phone=phone)[0]
+        user.password = make_password(password)
+        user.save()
+        # 测试登录
+        client = Client()
+        response = client.post(
+            reverse('account:login'), {'phone': phone, 'password': password}
+        )
+        self.assertIn('user', client.session.keys())
+        user = client.session['user']
+        self.assertEquals(user.phone, phone)
+        self.assertTrue(check_password(password, user.password))
+

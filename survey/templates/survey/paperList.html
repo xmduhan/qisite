@@ -57,7 +57,7 @@
                         <td>{{ paper.createTime | date:"Y-m-d H:i" }}</td>
                         {# 编辑按钮 #}
                         <td>
-                            <a href="{% url 'survey:paperEdit' paper.id %}">
+                            <a href="{% url 'survey:view.paper.edit' paper.id %}">
                                 <span class="glyphicon glyphicon-edit"></span>
                             </a>
                         </td>

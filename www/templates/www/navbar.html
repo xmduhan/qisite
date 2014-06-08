@@ -1,17 +1,19 @@
 <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
     <div class="container">
+
+        {# 主菜单 #}
         <ul class="nav navbar-nav">
             <li {% if position == 'home' %} class="active" {% endif %} >
                 <a href="{% url 'www:index' %}"> QI微调查</a>
             </li>
             <li {% if position == 'survey' %} class="active" {% endif %} >
-                {% if session.user %}<a href="{% url 'survey:surveyList' %}">调查</a>{% endif %}
+                {% if session.user %}<a href="{% url 'survey:view.survey.list' %}">调查</a>{% endif %}
             </li>
             <li {% if position == 'paper' %} class="active" {% endif %} >
-                {% if session.user %}<a href="{% url 'survey:paperList' %}">问卷</a>{% endif %}
+                {% if session.user %}<a href="{% url 'survey:view.paper.list' %}">问卷</a>{% endif %}
             </li>
             <li {% if position == 'list' %} class="active" {% endif %} >
-                {% if session.user %}<a href="{% url 'survey:custlistList' %}">清单</a>{% endif %}
+                {% if session.user %}<a href="{% url 'survey:view.custList.list' %}">清单</a>{% endif %}
             </li>
 
             <li {% if position == 'help' %} class="active" {% endif %} >
@@ -19,13 +21,19 @@
             </li>
         </ul>
 
+
         {% if session.user %}
+            {# 显示用户信息和退出按钮 #}
             <div class="navbar-collapse collapse">
+                {# 退出按钮 #}
                 <form class="navbar-form navbar-right" role="form" action="{% url 'account:logout' %}">
 
                     <button type="submit" class="btn btn-warning">退出</button>
                 </form>
+
+                {# 显示用户信息和设置按钮 #}
                 <ul class="nav navbar-nav navbar-right">
+                    {#  用户信息 #}
                     <li>
                         <a>
                             <span class="glyphicon glyphicon-user"></span>
@@ -33,6 +41,7 @@
                             ({{ session.user.phone }})
                         </a>
                     </li>
+                    {# 设置按钮 #}
                     <li>
                         <a>
                             <span class="glyphicon glyphicon-cog"></span>
@@ -42,22 +51,30 @@
                 </ul>
             </div>
         {% else %}
+            {# inline登录界面 #}
             <div class="navbar-collapse collapse">
+
+                {# 注册按钮 #}
                 <form class="navbar-form navbar-right" role="form" action="{% url 'account:register' %}">
 
                     <button type="submit" class="btn btn-primary">注册</button>
                 </form>
+
+                {# 登录表单 #}
                 <form class="navbar-form navbar-right" role="form"
                       action="{% url 'account:login' %}" method="post">
                     {% csrf_token %}
+                    {# 手机号 #}
                     <div class="form-group">
                         <input type="text" placeholder="手机" class="form-control"
                                name="phone" id="phone">
                     </div>
+                    {# 密码 #}
                     <div class="form-group">
                         <input type="password" placeholder="密码" class="form-control"
                                name="password" id="password">
                     </div>
+                    {# 登录按钮 #}
                     <button type="submit" class="btn btn-success">登陆</button>
                 </form>
 

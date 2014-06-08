@@ -200,9 +200,11 @@ def newUserGuide(request):
 
 
 class Login_ErrorMessage:
-    no_phone_or_password = '请提供用户名和密码'
-    phone_or_password_invalid = '手机号或密码不正确'
-    no_register = '该手机号码还未注册过'
+    no_phone = u'请提填写手机号码'
+    invaild_phone = u'输入的不是一个有效的手机号码'
+    no_password = u'请填写密码'
+    phone_or_password_invalid = u'手机号或密码不正确'
+    no_register = u'该手机号码还未注册过'
 
 
 def login(request):
@@ -211,28 +213,45 @@ def login(request):
     '''
     logined = False
     errorMessage = ''
-    login_ErrorMessage = Login_ErrorMessage()
     keys = request.REQUEST.keys()
-    if 'phone' in keys and 'password' in keys:
+
+    while True:
+        # 检查是否是首次进入页面,如果是首次进入页面不需要错误信息
+        if 'phone' not in keys:
+            break
+
+        # 检查填写的手机号码是否正确
         phone = request.REQUEST['phone']
+        if len(phone) == 0:
+            errorMessage = Login_ErrorMessage.no_phone
+            break
+        if not phonePattern.match(phone):
+            errorMessage = Login_ErrorMessage.invaild_phone
+            break
+        # 检查是否提供了密码
+        if 'password' not in keys:
+            errorMessage = Login_ErrorMessage.no_password
+            break
         password = request.REQUEST['password']
-        if phone and password:
-            userList = User.objects.filter(phone=phone)
-            if userList:
-                user = userList[0]
-                check = check_password(password, user.password)
-                if check:
-                    # 把用户信息放到session中去
-                    request.session['user'] = user
-                    logined = True
-                else:
-                    errorMessage = login_ErrorMessage.phone_or_password_invalid
-            else:
-                errorMessage = login_ErrorMessage.no_register
-        else:
-            errorMessage = login_ErrorMessage.no_phone_or_password
-    #else:
-    #通过连接访问,不需要提示错误
+        if len(password) == 0:
+            errorMessage = Login_ErrorMessage.no_password
+            break
+        # 检查用户是否存在
+        userList = User.objects.filter(phone=phone)
+        if not userList:
+            errorMessage = Login_ErrorMessage.no_register
+            break
+        # 检查密码是否正确
+        user = userList[0]
+        if not check_password(password, user.password):
+            errorMessage = Login_ErrorMessage.phone_or_password_invalid
+            break
+
+        # 登录成功,将user放在session中,并设置logined标志
+        request.session['user'] = user
+        logined = True
+        break
+
     if logined:
         # 如果登录成功返回首页
         template = loader.get_template('www/index.html')
@@ -246,6 +265,9 @@ def login(request):
 
 
 def logout(request):
+    '''
+        退出登录
+    '''
     session = request.session
     if 'user' in session.keys():
         del session['user']
@@ -255,6 +277,9 @@ def logout(request):
 
 
 def recovery(request):
+    '''
+        找回密码
+    '''
     session = request.session
     template = loader.get_template('account/recovery.html')
     context = RequestContext(request, {'session': session})

@@ -10,12 +10,17 @@ from django.test import TestCase
 from models import *
 import account.models
 from datetime import datetime
+from django.test.utils import setup_test_environment
+from django.test import Client
+from django.core.urlresolvers import reverse
+from services import PaperAdd_ErrorMessage
 
 
 class SurveyModelTest(TestCase):
     '''
         数据模型的基本操作测试
     '''
+
     def addUser(self):
         user = account.models.User(name='tsUser', phone='1234567890', email='sample@example.com')
         user.save()
@@ -309,4 +314,32 @@ class SurveyModelTest(TestCase):
         self.assertEqual(question.id, self.tsFillblankQuestion.id)
         question = questionCatalog.question_set.order_by('ord')[0]
         self.assertEqual(question.id, self.tsSingleQuestion.id)
+
+
+class PaperEditTest(TestCase):
+    '''
+        对问卷修改服务的测试
+    '''
+
+    def test_add_paper_no_login(self):
+        setup_test_environment()
+        client = Client()
+        response = client.post(
+            reverse('survey:service.paper.add'), {'title': 'test'}
+        )
+        self.assertContains(response, PaperAdd_ErrorMessage.no_login)
+
+    def test_add_paper_no_title(self):
+        setup_test_environment()
+        client = Client()
+        client.post(reverse('account:login'))
+        response = client.post(
+            reverse('survey:service.paper.add'), {'title': 'test'}
+        )
+        self.assertContains(response, PaperAdd_ErrorMessage.no_login)
+
+
+
+
+
 
