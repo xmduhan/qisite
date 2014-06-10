@@ -50,6 +50,3 @@ class SmsCheckCode(models.Model):
         ordering = ["createTime"]
 
 
-class Test001(TestCase):
-    def test001(self):
-        pass
