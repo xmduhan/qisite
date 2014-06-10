@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 from datetime import datetime
+from django.test import TestCase
 # Create your models here.
 
 
@@ -47,3 +48,8 @@ class SmsCheckCode(models.Model):
         verbose_name = "短信验证码"
         verbose_name_plural = "[02].短信验证码"
         ordering = ["createTime"]
+
+
+class Test001(TestCase):
+    def test001(self):
+        pass
