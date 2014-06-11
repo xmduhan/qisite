@@ -11,6 +11,32 @@ from datetime import datetime, timedelta
 from models import SmsCheckCode, User
 from django.contrib.auth.hashers import make_password, check_password
 
+phoneForTest = '18906021980'
+phoneListForTest = ['18906021980', '18959208875']
+passwordForTest = '123456'
+
+
+def loginForTest(client, phone, password):
+    '''
+        提供测试用例使用的登陆函数
+        client     要登陆的客户端(django.test.Client对象)
+        phone      用户手机号码
+        password   密码
+    '''
+    client.post(reverse('account:login'), {'phone': phone, 'password': password})
+    if 'user' not in client.session.keys():
+        return False
+    user = client.session['user']
+    if user.phone <> phone:
+        return False
+    return True
+
+
+def createTestUser(phone, password):
+    user = User.objects.create(phone=phone)
+    user.password = make_password(password)
+    user.save()
+
 
 class SendSmsCheckCodeTest(TestCase):
     '''
@@ -416,4 +442,22 @@ class LoginTest(TestCase):
         user = client.session['user']
         self.assertEquals(user.phone, phone)
         self.assertTrue(check_password(password, user.password))
+
+
+class LoginForTestTest(TestCase):
+    def test_login_with_phone_password(self):
+        '''
+            用户已经存在且，使用正确的用户名和密码
+        '''
+        # 创建用户
+        user = User.objects.create(phone=phoneForTest, password=make_password(passwordForTest))
+        user.save()
+        # 尝试用loginForTest登陆
+        client = Client()
+        result = loginForTest(client, user.phone, passwordForTest)
+        # 检查登陆结果
+        self.assertTrue(result)
+        session = client.session
+        self.assertIn('user', session.keys())
+        self.assertEqual(session['user'].id, user.id)
 

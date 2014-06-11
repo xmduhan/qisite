@@ -286,3 +286,9 @@ def recovery(request):
     return HttpResponse(template.render(context))
 
 
+def makeSessionExist(request):
+    '''
+       伪造一个seesion数据，主要用于测试用
+    '''
+    request.session['dummy'] = 'x'
+    return HttpResponse('')

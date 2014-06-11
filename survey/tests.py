@@ -16,6 +16,8 @@ from django.core.urlresolvers import reverse
 from services import PaperAdd_ErrorMessage, PaperAdd_ErrorCode
 from account.models import User
 import json
+from django.contrib.sessions.backends.db import SessionStore
+from django.contrib.auth.hashers import make_password, check_password
 
 
 class SurveyModelTest(TestCase):
@@ -337,24 +339,17 @@ class PaperAddTest(TestCase):
     def test_add_paper_no_title(self):
         setup_test_environment()
         client = Client()
+        client.get(reverse("account:makeSessionExist"))
         # 为client准备session数据
         phone = '18906021980'
         user = User.objects.get_or_create(phone=phone)[0]
-        session = self.client.session
+        session = client.session
         session['user'] = user
         session.save()
-
         # 调用问卷添加服务
-        response = client.post(
-            reverse('survey:service.paper.add'), {}
-        )
-        print response
-        self.assertContains(response, PaperAdd_ErrorMessage.no_title)
-
-
-
-
-
-
+        response = client.post(reverse('survey:service.paper.add'), {})
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], PaperAdd_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], PaperAdd_ErrorMessage.no_title)
 
 

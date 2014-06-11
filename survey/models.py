@@ -3,6 +3,7 @@ from django.db import models
 import account.models
 from datetime import datetime
 from numstyle import NumStyle
+from django.test import TestCase
 
 
 class TimeModel(models.Model):
@@ -304,3 +305,5 @@ class DefineInfo(TimeModel):
     class Meta:
         verbose_name = "自定义信息"
         verbose_name_plural = "[16].自定义信息"
+
+

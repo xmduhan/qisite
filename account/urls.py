@@ -9,4 +9,5 @@ urlpatterns = patterns(
     url(r'^login$', views.login, name='login'),
     url(r'^loguot$', views.logout, name='logout'),
     url(r'^recovery$', views.recovery, name='recovery'),
+    url(r'^makeSessionExist$', views.makeSessionExist, name='makeSessionExist'),
 )
