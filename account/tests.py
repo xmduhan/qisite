@@ -32,12 +32,6 @@ def loginForTest(client, phone, password):
     return True
 
 
-def createTestUser(phone, password):
-    user = User.objects.create(phone=phone)
-    user.password = make_password(password)
-    user.save()
-
-
 class SendSmsCheckCodeTest(TestCase):
     '''
         测试发送短信验证码的服务sendSmsCheckCode
