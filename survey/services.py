@@ -5,6 +5,7 @@ import json
 from models import Paper
 from django.forms import ValidationError
 from datetime import datetime
+from account.definitions import USER_SESSION_NAME, USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME
 
 
 def surveyAdd(request):
@@ -38,11 +39,11 @@ def paperAdd(request):
     result = {}
 
     # 检查用户是否登录，并读取session中的用户信息
-    if 'user' not in request.session.keys():
+    if USER_SESSION_NAME not in request.session.keys():
         result['errorCode'] = PaperAdd_ErrorCode.error
         result['errorMessage'] = PaperAdd_ErrorMessage.no_login
         return HttpResponse(json.dumps(result))
-    user = request.session['user']
+    user = request.session[USER_SESSION_NAME]
 
     # 获取Paper模型中的所有属性
     fields = zip(*Paper._meta.get_fields_with_model())[0]
@@ -57,12 +58,12 @@ def paperAdd(request):
         value = request.REQUEST.get(field.name, None)
 
         # 对创建人和修改人的信息进行特殊处理
-        if field.name in ('createBy', 'modifyBy'):
+        if field.name in (USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME):
             value = user
 
         # 如果调用者没有显示执行字段值为空，则不增加到data中去，让模型的默认值发挥作用
         # 字段代码不能早于对createBy和modifyBy的处理
-        if value == None and field.name not in keys:
+        if value is None and field.name not in keys:
             continue
 
         # 将校验的数据添加到data，准备为创建数据库用
@@ -87,6 +88,9 @@ def paperAdd(request):
 
 
 def paperModify(request):
+    '''
+        问卷基本信息修改服务
+    '''
     pass
 
 

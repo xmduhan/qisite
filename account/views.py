@@ -11,6 +11,7 @@ from interface import sms
 from datetime import datetime, timedelta
 import re
 from qisite.settings import smsSend
+from definitions import USER_SESSION_NAME
 
 ## 手机号码格式定义
 phonePattern = re.compile(r'^((13[0-9])|(15[^4,\D])|(14[57])|(17[0])|(18[0,0-9]))\d{8}$')
@@ -168,7 +169,7 @@ def register(request):
         # 注册成功，创建用户
         user = User(phone=phone, password=make_password(password))
         user.save()
-        request.session['user'] = user
+        request.session[USER_SESSION_NAME] = user
         registered = True
         break
 
@@ -248,7 +249,7 @@ def login(request):
             break
 
         # 登录成功,将user放在session中,并设置logined标志
-        request.session['user'] = user
+        request.session[USER_SESSION_NAME] = user
         logined = True
         break
 
@@ -269,8 +270,8 @@ def logout(request):
         退出登录
     '''
     session = request.session
-    if 'user' in session.keys():
-        del session['user']
+    if USER_SESSION_NAME in session.keys():
+        del session[USER_SESSION_NAME]
     template = loader.get_template('www/index.html')
     context = RequestContext(request, {'session': session})
     return HttpResponse(template.render(context))

@@ -10,6 +10,8 @@ from time import sleep
 from datetime import datetime, timedelta
 from models import SmsCheckCode, User
 from django.contrib.auth.hashers import make_password, check_password
+from account.definitions import USER_SESSION_NAME
+
 
 phoneForTest = '18906021980'
 phoneListForTest = ['18906021980', '18959208875']
@@ -24,9 +26,9 @@ def loginForTest(client, phone, password):
         password   密码
     '''
     client.post(reverse('account:login'), {'phone': phone, 'password': password})
-    if 'user' not in client.session.keys():
+    if USER_SESSION_NAME not in client.session.keys():
         return False
-    user = client.session['user']
+    user = client.session[USER_SESSION_NAME]
     if user.phone <> phone:
         return False
     return True
@@ -432,8 +434,8 @@ class LoginTest(TestCase):
         response = client.post(
             reverse('account:login'), {'phone': phone, 'password': password}
         )
-        self.assertIn('user', client.session.keys())
-        user = client.session['user']
+        self.assertIn(USER_SESSION_NAME, client.session.keys())
+        user = client.session[USER_SESSION_NAME]
         self.assertEquals(user.phone, phone)
         self.assertTrue(check_password(password, user.password))
 
@@ -452,6 +454,6 @@ class LoginForTestTest(TestCase):
         # 检查登陆结果
         self.assertTrue(result)
         session = client.session
-        self.assertIn('user', session.keys())
-        self.assertEqual(session['user'].id, user.id)
+        self.assertIn(USER_SESSION_NAME, session.keys())
+        self.assertEqual(session[USER_SESSION_NAME].id, user.id)
 
