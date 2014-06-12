@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
 # Create your views here.
 
-from django.template import loader, Context, RequestContext
-from django.http import HttpResponse
-from django.contrib.auth.hashers import make_password, check_password
-from account.models import User
-from models import SmsCheckCode
-import json, random, string
-from interface import sms
+import json
+import random
+import string
 from datetime import datetime, timedelta
 import re
+
+from django.template import loader, RequestContext
+from django.http import HttpResponse
+from django.contrib.auth.hashers import make_password, check_password
+
+from account.models import User
+from models import SmsCheckCode
 from qisite.settings import smsSend
-from definitions import USER_SESSION_NAME
+from qisite.definitions import USER_SESSION_NAME
+
 
 ## 手机号码格式定义
 phonePattern = re.compile(r'^((13[0-9])|(15[^4,\D])|(14[57])|(17[0])|(18[0,0-9]))\d{8}$')

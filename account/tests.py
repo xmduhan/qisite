@@ -1,16 +1,18 @@
 #-*- coding: utf-8 -*-
 
+import json
+from time import sleep
+from datetime import datetime, timedelta
+
 from django.test import TestCase
 from django.test.utils import setup_test_environment
 from django.test.client import Client
 from django.core.urlresolvers import reverse
-from views import SendSmsCheckCode_ErrorMessage, Register_ErrorMessage, Login_ErrorMessage
-import json
-from time import sleep
-from datetime import datetime, timedelta
-from models import SmsCheckCode, User
 from django.contrib.auth.hashers import make_password, check_password
-from account.definitions import USER_SESSION_NAME
+
+from views import SendSmsCheckCode_ErrorMessage, Register_ErrorMessage, Login_ErrorMessage
+from models import SmsCheckCode, User
+from qisite.definitions import USER_SESSION_NAME
 
 
 phoneForTest = '18906021980'

@@ -41,6 +41,7 @@ class Paper(TimeModel):
         return self.question_set.order_by('ord')
 
 
+
 class PaperCatalog(TimeModel):
     name = models.CharField("目录名称", max_length=100)
     code = models.CharField("目录编码", max_length=50, unique=True)
