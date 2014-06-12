@@ -21,7 +21,7 @@ class Paper(TimeModel):
     #PAPER_STYLE = ( ('F', '平展'), ('P', '分页'))
     QUESTION_NUM_STYLE = (('123', '1.2.3.……'), ('(1)(2)(3)', '(1).(2).(3).……'), ('Q1Q2Q3', 'Q1.Q2.Q3.……'))
     title = models.CharField('问卷标题', max_length=500)
-    description = models.CharField('问卷说明', max_length=500)
+    description = models.CharField('问卷说明', max_length=500, blank=True)
     # 题目集 question_set (ok) (已在Question中设置外键引用)
     inOrder = models.BooleanField('顺序答题')
     questionNumStyle = models.CharField(

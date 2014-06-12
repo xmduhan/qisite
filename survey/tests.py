@@ -326,28 +326,43 @@ class PaperAddTest(TestCase):
         对问卷修改服务的测试
     '''
 
-    def test_add_paper_no_login(self):
+    def setUp(self):
         setup_test_environment()
+        self.client = Client()
+        # 创建用户并且用其登陆
+        User(phone=phoneForTest, password=make_password(passwordForTest)).save()
+        loginForTest(self.client, phoneForTest, passwordForTest)
+
+    def test_add_paper_no_login(self):
+        '''
+            测试没有登录就调用服务的情况
+        '''
+        # 创建一个新的Client，而不是使用self.client，因为self.client已经在setUP中登录了。
         client = Client()
-        response = client.post(
-            reverse('survey:service.paper.add'), {'title': 'test'}
-        )
+        response = client.post(reverse('survey:service.paper.add'), {'title': 'test'})
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], PaperAdd_ErrorCode.error)
-        self.assertEquals(result['errorMessage'], PaperAdd_ErrorMessage.no_login)
+        self.assertEquals(result['errorCode'], PaperAdd_ErrorCode.error)  # 出错
+        self.assertEquals(result['errorMessage'], PaperAdd_ErrorMessage.no_login)  # 没有登录错误
 
 
     def test_add_paper_no_title(self):
-        setup_test_environment()
-        client = Client()
-        # 创建用户并且用其登陆
-        User(phone=phoneForTest, password=make_password(passwordForTest)).save()
-        loginForTest(client, phoneForTest, passwordForTest)
+        '''
+            测试没有提供标题的情况
+        '''
+        client = self.client
         # 调用问卷添加服务
-        response = client.post(reverse('survey:service.paper.add'), {})
+        response = client.post(reverse('survey:service.paper.add'), {'test': '123'})
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], PaperAdd_ErrorCode.error)
-        self.assertContains(response, u'title:')
-        self.assertContains(response, u'null')
+        self.assertEquals(result['errorCode'], PaperAdd_ErrorCode.error)  # 出错
+        self.assertEquals(result['errorMessage'], PaperAdd_ErrorMessage.validation_error)  # 数据校验错
+        self.assertIn('title', result['validationMessage'])  # 校验错误信息中含title
 
-
+    def test_add_paper_success(self):
+        '''
+            测试成功添加的情况
+        '''
+        client = self.client
+        response = client.post(reverse('survey:service.paper.add'), {'title': 'test'})
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], PaperAdd_ErrorCode.success)
+        self.assertEquals(result['errorMessage'], PaperAdd_ErrorMessage.success)
