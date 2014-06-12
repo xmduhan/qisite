@@ -2,7 +2,7 @@
 from django.db import models
 import account.models
 from datetime import datetime
-from numstyle import NumStyle
+from numstyle import NumStyle, defaultQuestionNumStyle, defaultBranchNumStyle
 from django.test import TestCase
 
 
@@ -18,13 +18,14 @@ class Paper(TimeModel):
     def __unicode__(self):
         return self.title
 
-    PAPER_STYLE = ( ('F', '平展'), ('P', '分页'))
+    #PAPER_STYLE = ( ('F', '平展'), ('P', '分页'))
     QUESTION_NUM_STYLE = (('123', '1.2.3.……'), ('(1)(2)(3)', '(1).(2).(3).……'), ('Q1Q2Q3', 'Q1.Q2.Q3.……'))
     title = models.CharField('问卷标题', max_length=500)
     description = models.CharField('问卷说明', max_length=500)
     # 题目集 question_set (ok) (已在Question中设置外键引用)
     inOrder = models.BooleanField('顺序答题')
-    questionNumStyle = models.CharField('问题标号样式', max_length=50, choices=QUESTION_NUM_STYLE)
+    questionNumStyle = models.CharField(
+        '问题标号样式', max_length=50, choices=QUESTION_NUM_STYLE, default=defaultQuestionNumStyle)
     lookBack = models.BooleanField('返回修改')
     #style = models.CharField('展现方式', max_length=5, choices=PAPER_STYLE) #使用paging字段取代
     paging = models.BooleanField('分页答题', default=True)
@@ -80,7 +81,7 @@ class Question(TimeModel):
     # 题干 stem_set 对象集 (ok) (已在stem设置反向外键) 实际没有多个，只是用外键比较方便一些
     # 题支 branch_set 对象集 (ok) (已在branche中设置反向外键)
     confused = models.BooleanField('乱序', default=False)
-    branchNumStyle = models.CharField('标号样式', max_length=50, choices=BRANCH_NUM_STYLE)
+    branchNumStyle = models.CharField('标号样式', max_length=50, choices=BRANCH_NUM_STYLE, default=defaultBranchNumStyle)
     nextQuestion = models.ForeignKey('self', verbose_name='下一题', blank=True, null=True)  # 是否需要这个信息,似乎多余?
     paper = models.ForeignKey(Paper, verbose_name='所属问卷', null=True, blank=True)
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='questionCreated_set')

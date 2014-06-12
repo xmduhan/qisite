@@ -88,8 +88,8 @@ class SendSmsCheckCodeTest(TestCase):
         result = json.loads(response.content)
         self.assertEquals(result['errorCode'], -1)
         ##self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.need_wait)
-        self.assertTrue(result['secondsRemain'] < 180)
-        self.assertTrue(result['secondsRemain'] > 150)
+        self.assertTrue(result['secondsRemain'] <= 180)
+        self.assertTrue(result['secondsRemain'] >= 150)
         ## 保存剩余时间提供比较
         secondsRemain = result['secondsRemain']
         ## 保证时间过去1秒可以比较出差别

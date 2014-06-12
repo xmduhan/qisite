@@ -10,6 +10,9 @@ StyleData = {
     'abc': [i + '.' for i in lowercase],
 }
 
+defaultQuestionNumStyle = '123'
+defaultBranchNumStyle = 'ABC'
+
 
 class NumStyle:
     def __init__(self, style):

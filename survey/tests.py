@@ -18,6 +18,7 @@ from account.models import User
 import json
 from django.contrib.sessions.backends.db import SessionStore
 from django.contrib.auth.hashers import make_password, check_password
+from account.tests import loginForTest, phoneForTest, passwordForTest
 
 
 class SurveyModelTest(TestCase):
@@ -339,13 +340,9 @@ class PaperAddTest(TestCase):
     def test_add_paper_no_title(self):
         setup_test_environment()
         client = Client()
-        client.get(reverse("account:makeSessionExist"))
-        # 为client准备session数据
-        phone = '18906021980'
-        user = User.objects.get_or_create(phone=phone)[0]
-        session = client.session
-        session['user'] = user
-        session.save()
+        # 创建用户并且用其登陆
+        User(phone=phoneForTest, password=make_password(passwordForTest)).save()
+        loginForTest(client, phoneForTest, passwordForTest)
         # 调用问卷添加服务
         response = client.post(reverse('survey:service.paper.add'), {})
         result = json.loads(response.content)

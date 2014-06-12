@@ -50,11 +50,34 @@ def paperAdd(request):
     title = request.REQUEST['title']
 
     # 读取description信息
-    description = None
-    inOrder = None
-    questionNumStyle = None
-    lookBack = None
-    paging = None
+    if 'description' in request.REQUEST.keys():
+        description = request.REQUEST['description']
+    else:
+        description = ''
+
+    # 读取inOrder信息
+    if 'inOrder' in request.REQUEST.keys():
+        inOrder = request.REQUEST['inOrder']
+    else:
+        inOrder = None  # 启用默认值
+
+    # 读取questionNumStyle
+    if 'questionNumStyle' in request.REQUEST.keys():
+        questionNumStyle = request.REQUEST['questionNumStyle']
+    else:
+        questionNumStyle = None  # 启用默认值
+
+    # 读取lookBack
+    if 'lookBack' in request.REQUEST.keys():
+        lookBack = request.REQUEST['lookBack']
+    else:
+        lookBack = None  # 启用默认值
+
+    # 读取paging
+    if 'paging' in request.REQUEST.keys():
+        paging = request.REQUEST['paging']
+    else:
+        paging = None  # 启用默认值
 
     Paper(
         title=title, description=description,
