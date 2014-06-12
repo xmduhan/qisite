@@ -3,6 +3,8 @@
 from django.http import HttpResponse
 import json
 from models import Paper
+from django.forms import ValidationError
+from datetime import datetime
 
 
 def surveyAdd(request):
@@ -42,52 +44,40 @@ def paperAdd(request):
         return HttpResponse(json.dumps(result))
     user = request.session['user']
 
-    # 检查是否提供了标题，创建一个问卷至少要提供标题
-    if 'title' not in request.REQUEST.keys():
-        result['errorCode'] = PaperAdd_ErrorCode.error
-        result['errorMessage'] = PaperAdd_ErrorMessage.no_title
-        return HttpResponse(json.dumps(result))
-    title = request.REQUEST['title']
+    # 获取Paper模型中的所有属性
+    fields = zip(*Paper._meta.get_fields_with_model())[0]
+    keys = request.REQUEST.keys()
+    data = {}
+    for field in fields:
+        # 跳过系统自动增加的字段
+        if field.auto_created:
+            continue
 
-    # 读取description信息
-    if 'description' in request.REQUEST.keys():
-        description = request.REQUEST['description']
-    else:
-        description = ''
+        # 读取request数据
+        value = request.REQUEST.get(field.name, None)
 
-    # 读取inOrder信息
-    if 'inOrder' in request.REQUEST.keys():
-        inOrder = request.REQUEST['inOrder']
-    else:
-        inOrder = None  # 启用默认值
+        # 对创建时间和修改时间进行特殊处理
+        if field.name in ['createTime', 'modifyTime']:
+            value = datetime.now()
 
-    # 读取questionNumStyle
-    if 'questionNumStyle' in request.REQUEST.keys():
-        questionNumStyle = request.REQUEST['questionNumStyle']
-    else:
-        questionNumStyle = None  # 启用默认值
+        # 对创建人和修改人的信息进行特殊处理
+        if field.name in ('createBy', 'modifyBy'):
+            value = user
 
-    # 读取lookBack
-    if 'lookBack' in request.REQUEST.keys():
-        lookBack = request.REQUEST['lookBack']
-    else:
-        lookBack = None  # 启用默认值
+        # 进行字段有效性的校验
+        try:
+            field.validate(value, Paper)
+        except ValidationError as exception:
+            result['errorCode'] = PaperAdd_ErrorCode.error
+            result['errorMessage'] = field.name + ':' + unicode(exception)
+            return HttpResponse(json.dumps(result))
+        # 将校验的数据添加到data，准备为创建数据库用
+        data[field.name] = value
 
-    # 读取paging
-    if 'paging' in request.REQUEST.keys():
-        paging = request.REQUEST['paging']
-    else:
-        paging = None  # 启用默认值
+    # 保存到数据库
+    Paper(**data).save()
 
-    Paper(
-        title=title, description=description,
-        questionNumStyle=questionNumStyle,
-        inOrder=inOrder, lookBack=lookBack, paging=paging,
-        createBy=user, modifyBy=user
-    ).save()
-
-
-    # 创建成功
+    # 创建成功,返回成功信息
     result['errorCode'] = PaperAdd_ErrorCode.success
     result['errorMessage'] = PaperAdd_ErrorMessage.no_login
     return HttpResponse(json.dumps(result))

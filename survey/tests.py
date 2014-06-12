@@ -347,6 +347,7 @@ class PaperAddTest(TestCase):
         response = client.post(reverse('survey:service.paper.add'), {})
         result = json.loads(response.content)
         self.assertEquals(result['errorCode'], PaperAdd_ErrorCode.error)
-        self.assertEquals(result['errorMessage'], PaperAdd_ErrorMessage.no_title)
+        self.assertContains(response, u'title:')
+        self.assertContains(response, u'null')
 
 
