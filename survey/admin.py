@@ -63,18 +63,9 @@ class QuestionCatalogQuestionAdmin(admin.ModelAdmin):
 admin.site.register(QuestionCatalogQuestion, QuestionCatalogQuestionAdmin)
 
 
-class StemAdmin(admin.ModelAdmin):
-    fields = ['text', 'question', 'createBy', 'modifyBy', 'createTime', 'modifyTime']
-    list_display = ('question', 'text', 'createBy', 'createTime')
-    list_filter = ('question__paper',)
-
-
-admin.site.register(Stem, StemAdmin)
-
-
 class ResourceAdmin(admin.ModelAdmin):
     fields = [
-        'resourceType', 'resourceUrl', 'width', 'height', 'stem', 'createBy', 'modifyBy',
+        'resourceType', 'resourceUrl', 'width', 'height', 'question', 'createBy', 'modifyBy',
         'createTime', 'modifyTime'
     ]
 

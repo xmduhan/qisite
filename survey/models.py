@@ -154,7 +154,7 @@ class Resource(TimeModel):
     resourceUrl = models.CharField('文字', max_length=1000)
     width = models.FloatField("资源宽度")
     height = models.FloatField("资源高度")
-    stem = models.ForeignKey(Question, verbose_name="对应问题")
+    question = models.ForeignKey(Question, verbose_name="对应问题")
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='resourceCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='resourceModified_set')
 

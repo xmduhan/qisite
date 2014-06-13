@@ -52,19 +52,17 @@ class SurveyModelTest(TestCase):
     def addSingleQuestion(self):
         # 增加一个单选题
         singleQuestion = Question(
-            type='Single', ord=1, contentLengh=0, valueMin=0, valueMax=0, confused=False, branchNumStyle='S1',
+            type='Single', text='问题1', ord=1, contentLengh=0, valueMin=0, valueMax=0, confused=False,
+            branchNumStyle='S1',
             nextQuestion=None, paper=self.tsPaper, createBy=self.tsUser, modifyBy=self.tsUser
         )
         singleQuestion.save()
         self.tsSingleQuestion = singleQuestion
-        # 增加单选题的题干
-        singleStem = Stem(text='选择题', question=singleQuestion, createBy=self.tsUser, modifyBy=self.tsUser)
-        singleStem.save()
-        self.tsSingleStem = singleStem
+
         # 增加题干的资源
         singleResource = Resource(
             resourceType='Picture', resourceUrl='http://example.com/picture/111', width=640, height=480,
-            stem=singleStem, createBy=self.tsUser, modifyBy=self.tsUser
+            question=singleQuestion, createBy=self.tsUser, modifyBy=self.tsUser
         )
         singleResource.save()
         self.singleResource = singleResource
@@ -105,9 +103,9 @@ class SurveyModelTest(TestCase):
         fillblankQuestion.save()
         self.tsFillblankQuestion = fillblankQuestion
         # 增加单选题的题干
-        fillblankStem = Stem(text='填空题', question=fillblankQuestion, createBy=self.tsUser, modifyBy=self.tsUser)
-        fillblankStem.save()
-        self.tsFillblankStem = fillblankStem
+        #fillblankStem = Stem(text='填空题', question=fillblankQuestion, createBy=self.tsUser, modifyBy=self.tsUser)
+        #fillblankStem.save()
+        #self.tsFillblankStem = fillblankStem
 
     def addQuestions(self):
         self.addSingleQuestion()
