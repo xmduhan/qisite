@@ -79,7 +79,6 @@ class Question(TimeModel):
     contentLengh = models.IntegerField('内容长度', default=0)  # 仅填空题有效,是否可以作为多选题的选项数量限制
     valueMin = models.FloatField('最小值', null=True, blank=True, default=0)  # 仅评分题有效
     valueMax = models.FloatField('最大值', null=True, blank=True, default=10)  # 仅评分题有效
-    # 题干 stem_set 对象集 (ok) (已在stem设置反向外键) 实际没有多个，只是用外键比较方便一些
     # 题支 branch_set 对象集 (ok) (已在branche中设置反向外键)
     confused = models.BooleanField('乱序', default=False)
     branchNumStyle = models.CharField('标号样式', max_length=50, choices=BRANCH_NUM_STYLE, default=defaultBranchNumStyle)
