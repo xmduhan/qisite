@@ -10,11 +10,14 @@ import json
 from django.http import HttpResponse
 from django.forms import ValidationError
 from django.core.signing import Signer, BadSignature
-
-from models import Paper
+from models import Paper, Question
 from qisite.definitions import USER_SESSION_NAME, USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME, \
     CREATE_TIME_FIELD_NAME, MODIFY_TIME_FIELD_NAME
 from datetime import datetime
+
+
+def getModelFields(model):
+    return zip(*model._meta.get_fields_with_model())[0]
 
 
 def surveyAdd(request):
@@ -55,30 +58,26 @@ def paperAdd(request):
     user = request.session[USER_SESSION_NAME]
 
     # 获取Paper模型中的所有属性
-    fields = zip(*Paper._meta.get_fields_with_model())[0]
     keys = request.REQUEST.keys()
     data = {}
-    for field in fields:
+    #fields = zip(*Paper._meta.get_fields_with_model())[0]
+    for field in getModelFields(Paper):
         # 跳过系统自动增加的字段
         if field.auto_created:
             continue
-
         # 读取request数据
         value = request.REQUEST.get(field.name, None)
-
         # 对创建人和修改人的信息进行特殊处理
         if field.name in [USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME]:
             value = user
-
         # 如果调用者没有显示执行字段值为空，则不增加到data中去，让模型的默认值发挥作用
         # 字段代码不能早于对createBy和modifyBy的处理
         if value is None and field.name not in keys:
             continue
-
         # 将校验的数据添加到data，准备为创建数据库用
         data[field.name] = value
-
     paper = Paper(**data)
+
     # 校验数据
     try:
         paper.full_clean()
@@ -206,6 +205,11 @@ class QuestionAdd_ErrorCode:
 class QuestionAdd_ErrorMessage:
     success = u'成功'
     no_login = u'没有登陆'
+    no_paper = u'需要提供要添加的问卷信息'
+    bad_signature = u'数字签名被篡改'
+    paper_no_exist = u'问卷已被删除'
+    no_privilege = u'没有权限修改'
+    validation_error = u'数据校验错误'
 
 
 def questionAdd(request):
@@ -221,7 +225,79 @@ def questionAdd(request):
         return HttpResponse(json.dumps(result))
     user = request.session[USER_SESSION_NAME]
 
-    # 检查是否提供了paper.id
+    # 检查是否有提供paper
+    keys = request.REQUEST.keys()
+    if 'paper' not in keys:
+        result['errorCode'] = QuestionAdd_ErrorCode.error
+        result['errorMessage'] = QuestionAdd_ErrorMessage.no_paper
+        return HttpResponse(json.dumps(result))
+    paperIdSigned = request.REQUEST['paper']
+
+    # 对id进行数字签名的检查
+    try:
+        signer = Signer()
+        paperId = signer.unsign(paperIdSigned)
+    except BadSignature:
+        # 篡改发现处理
+        result['errorCode'] = QuestionAdd_ErrorCode.error
+        result['errorMessage'] = QuestionAdd_ErrorMessage.bad_signature
+        return HttpResponse(json.dumps(result))
+
+    # 尝试读取paper信息
+    paperList = Paper.objects.filter(id=paperId)
+    if len(paperList) == 0:
+        result['errorCode'] = QuestionAdd_ErrorCode.error
+        result['errorMessage'] = QuestionAdd_ErrorMessage.paper_no_exist
+        return HttpResponse(json.dumps(result))
+    paper = paperList[0]
+
+    # 检查是否有权限修改
+    if paper.createBy.id != user.id:
+        result['errorCode'] = QuestionAdd_ErrorCode.error
+        result['errorMessage'] = QuestionAdd_ErrorMessage.no_privilege
+        return HttpResponse(json.dumps(result))
+
+    # 遍历Question的所有Field，并尝试在request中寻找是否提供了对应的数据
+    data = {}
+    for field in getModelFields(Question):
+        # 跳过系统自动增加的字段
+        if field.auto_created:
+            continue
+        # 读取request数据
+        value = request.REQUEST.get(field.name, None)
+        # 对创建人和修改人的信息进行特殊处理
+        if field.name in [USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME]:
+            value = user
+        # 对paper字段进行特殊处理,提交的数据是id转化为对象
+        if field.name == 'paper':
+            value = paper
+        # 对ord 字段进行特殊处理，取当前的问题数量加1
+        if field.name == 'ord':
+            # 这里锁定了paper所有question对象
+            value = paper.question_set.select_for_update().count() + 1
+        # 如果调用者没有显示执行字段值为空，则不增加到data中去，让模型的默认值发挥作用
+        # 字段代码不能早于对createBy和modifyBy的处理
+        if value is None and field.name not in keys:
+            continue
+        # 将校验的数据添加到data，准备为创建数据库用
+        data[field.name] = value
+    question = Question(**data)
+
+    # 进行数据校验
+    try:
+        question.full_clean()
+    except ValidationError as exception:
+        result['errorCode'] = QuestionAdd_ErrorCode.error
+        result['errorMessage'] = QuestionAdd_ErrorMessage.validation_error
+        result['validationMessage'] = exception.message_dict
+        return HttpResponse(json.dumps(result))
+
+    # 写到数据库
+    question.save()
+    # 返回成功
+    result['errorCode'] = QuestionAdd_ErrorCode.success
+    result['errorMessage'] = QuestionAdd_ErrorMessage.success
+    return HttpResponse(json.dumps(result))
 
 
 def questionModify(request):
