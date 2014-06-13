@@ -1,4 +1,9 @@
 #-*- coding: utf-8 -*-
+'''
+    存在问题：
+    1、对字段的处理，没有考虑外键、多对多关系、一对一关系。
+
+'''
 
 import json
 
@@ -73,8 +78,8 @@ def paperAdd(request):
         # 将校验的数据添加到data，准备为创建数据库用
         data[field.name] = value
 
-    # 校验数据
     paper = Paper(**data)
+    # 校验数据
     try:
         paper.full_clean()
     except ValidationError as exception:
@@ -100,9 +105,10 @@ class PaperModify_ErrorMessage:
     no_login = u'没有登录'
     no_id = u'需要提供问卷标识'
     bad_signature = u'数字签名被篡改'
-    paper_deleted = u'该问卷已经删除了'
+    paper_not_exist = u'该问卷已经删除了'
     no_privilege = u'没有权限修改'
     validation_error = u'数据校验错误'
+    success = u'成功'
 
 
 def paperModify(request):
@@ -139,7 +145,7 @@ def paperModify(request):
     paperList = Paper.objects.filter(id=id)
     if len(paperList) == 0:
         result['errorCode'] = PaperModify_ErrorCode.error
-        result['errorMessage'] = PaperModify_ErrorMessage.paper_deleted
+        result['errorMessage'] = PaperModify_ErrorMessage.paper_not_exist
         return HttpResponse(json.dumps(result))
     paper = paperList[0]
 
@@ -165,7 +171,7 @@ def paperModify(request):
         # 读取客户提供的新值
         value = request.REQUEST.get(field.name, None)
         # 执行修改
-        eval('paper.%s = value' % field.name)
+        exec ('paper.%s = value' % field.name)
 
     # 特殊处理最近修改时间和最近修改用户
     paper.modifyBy = user
@@ -192,8 +198,30 @@ def paperDelete(request):
     pass
 
 
+class QuestionAdd_ErrorCode:
+    success = 0
+    error = -1
+
+
+class QuestionAdd_ErrorMessage:
+    success = u'成功'
+    no_login = u'没有登陆'
+
+
 def questionAdd(request):
-    pass
+    '''
+        为已有问卷增加一个问题的服务
+    '''
+    result = {}
+
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result['errorCode'] = QuestionAdd_ErrorCode.error
+        result['errorMessage'] = QuestionAdd_ErrorMessage.no_login
+        return HttpResponse(json.dumps(result))
+    user = request.session[USER_SESSION_NAME]
+
+    # 检查是否提供了paper.id
 
 
 def questionModify(request):

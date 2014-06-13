@@ -13,12 +13,12 @@ from datetime import datetime
 from django.test.utils import setup_test_environment
 from django.test import Client
 from django.core.urlresolvers import reverse
-from services import PaperAdd_ErrorMessage, PaperAdd_ErrorCode
+from services import PaperAdd_ErrorMessage, PaperAdd_ErrorCode, PaperModify_ErrorCode, PaperModify_ErrorMessage
 from account.models import User
 import json
-from django.contrib.sessions.backends.db import SessionStore
 from django.contrib.auth.hashers import make_password, check_password
 from account.tests import loginForTest, phoneForTest, passwordForTest
+from django.core.signing import Signer
 
 
 class SurveyModelTest(TestCase):
@@ -323,15 +323,17 @@ class SurveyModelTest(TestCase):
 
 class PaperAddTest(TestCase):
     '''
-        对问卷修改服务的测试
+        对问卷修改服务(paperAdd)的测试
     '''
 
     def setUp(self):
         setup_test_environment()
-        self.client = Client()
         # 创建用户并且用其登陆
         User(phone=phoneForTest, password=make_password(passwordForTest)).save()
+        self.client = Client()
         loginForTest(self.client, phoneForTest, passwordForTest)
+        # 设定service url
+        self.serviceUrl = reverse('survey:service.paper.add')
 
     def test_add_paper_no_login(self):
         '''
@@ -339,7 +341,7 @@ class PaperAddTest(TestCase):
         '''
         # 创建一个新的Client，而不是使用self.client，因为self.client已经在setUP中登录了。
         client = Client()
-        response = client.post(reverse('survey:service.paper.add'), {'title': 'test'})
+        response = client.post(self.serviceUrl, {'title': 'test'})
         result = json.loads(response.content)
         self.assertEquals(result['errorCode'], PaperAdd_ErrorCode.error)  # 出错
         self.assertEquals(result['errorMessage'], PaperAdd_ErrorMessage.no_login)  # 没有登录错误
@@ -351,7 +353,7 @@ class PaperAddTest(TestCase):
         '''
         client = self.client
         # 调用问卷添加服务
-        response = client.post(reverse('survey:service.paper.add'), {'test': '123'})
+        response = client.post(self.serviceUrl, {'test': '123'})
         result = json.loads(response.content)
         self.assertEquals(result['errorCode'], PaperAdd_ErrorCode.error)  # 出错
         self.assertEquals(result['errorMessage'], PaperAdd_ErrorMessage.validation_error)  # 数据校验错
@@ -362,7 +364,129 @@ class PaperAddTest(TestCase):
             测试成功添加的情况
         '''
         client = self.client
-        response = client.post(reverse('survey:service.paper.add'), {'title': 'test'})
+        response = client.post(self.serviceUrl, {'title': 'test'})
         result = json.loads(response.content)
         self.assertEquals(result['errorCode'], PaperAdd_ErrorCode.success)
         self.assertEquals(result['errorMessage'], PaperAdd_ErrorMessage.success)
+
+
+class PaperModifyTest(TestCase):
+    '''
+        问卷修改服务(paperModify)测试
+    '''
+
+    def setUp(self):
+        setup_test_environment()
+        # 创建用户并且用其登陆
+        self.user = User(phone=phoneForTest, password=make_password(passwordForTest))
+        self.user.save()
+        self.client = Client()
+        loginForTest(self.client, phoneForTest, passwordForTest)
+        # 创建一个用于测试的Paper
+        self.paper = Paper(title='paper_123', createBy=self.user, modifyBy=self.user)
+        self.paper.save()
+        # 创建另一个测试用户
+        self.user_other = User(phone='123')
+        self.user_other.save()
+        self.paper_other = Paper(title='paper_other', createBy=self.user_other, modifyBy=self.user_other)
+        self.paper_other.save()
+        # 设定service url
+        self.serviceUrl = reverse('survey:service.paper.modify')
+        # 构造一个数字签名对象
+        signer = Signer()
+        # 准备提交的测试数据
+        self.data_valid = {'id': signer.sign(self.paper.id), 'inOrder': not self.paper.inOrder}
+        self.data_bad_signature = {'id': self.paper.id, 'inOrder': not self.paper.inOrder}
+        self.data_no_privilege = {'id': signer.sign(self.paper_other.id), 'inOrder': not self.paper_other.inOrder}
+        self.data_validation_error = {'id': signer.sign(self.paper.id), 'questionNumStyle': '未知'}
+        self.data_tamper = {'id': signer.sign(self.paper.id), 'createBy': self.user_other.id}
+
+    def test_no_login(self):
+        '''
+            测试没有登陆的情况
+        '''
+        # 使用新创建的client(未登录)，而不是self.client（已登录)
+        client = Client()
+        response = client.post(self.serviceUrl, self.data_bad_signature)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], PaperModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], PaperModify_ErrorMessage.no_login)
+
+    def test_no_id(self):
+        '''
+            测试没有提供id的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, {})
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], PaperModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], PaperModify_ErrorMessage.no_id)
+
+    def test_bad_signature(self):
+        '''
+            测试没有数字签名的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_bad_signature)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], PaperModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], PaperModify_ErrorMessage.bad_signature)
+
+    def test_paper_not_exist(self):
+        '''
+            测试修改不存在问卷的情况
+        '''
+        # 删除保证数据不存在
+        self.paper.delete()
+        #
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], PaperModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], PaperModify_ErrorMessage.paper_not_exist)
+
+    def test_no_privilege(self):
+        '''
+            尝试修改不是自己的问卷
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_no_privilege)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], PaperModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], PaperModify_ErrorMessage.no_privilege)
+
+    def test_validation_error(self):
+        '''
+            尝试修改不是自己的问卷
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_validation_error)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], PaperModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], PaperModify_ErrorMessage.validation_error)
+
+    def test_success(self):
+        '''
+           测试成功修改的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], PaperModify_ErrorCode.success)
+        self.assertEquals(result['errorMessage'], PaperModify_ErrorMessage.success)
+        # 确认数据已经被修改
+        paper = Paper.objects.filter(id=self.paper.id)[0]
+        self.assertNotEquals(paper.inOrder, self.paper.inOrder)
+
+    def test_tamper_1(self):
+        '''
+           确认数据不会摆篡改
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_tamper)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], PaperModify_ErrorCode.success)
+        self.assertEquals(result['errorMessage'], PaperModify_ErrorMessage.success)
+        # 确认数据不会被篡改
+        paper = Paper.objects.filter(id=self.paper.id)[0]
+        self.assertEquals(paper.createBy, self.paper.createBy)

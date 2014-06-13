@@ -41,7 +41,6 @@ class Paper(TimeModel):
         return self.question_set.order_by('ord')
 
 
-
 class PaperCatalog(TimeModel):
     name = models.CharField("目录名称", max_length=100)
     code = models.CharField("目录编码", max_length=50, unique=True)
@@ -74,6 +73,7 @@ class Question(TimeModel):
         ('EndValid', '有效结束'), ('EndInvalid', '无效结束')
     )
     BRANCH_NUM_STYLE = (('ABC', 'A.B.C.……'), ('abc.', 'a.b.c.……'), ('123.', '1.2.3……'))
+    text = models.CharField('文字', max_length=300)
     type = models.CharField('题型', max_length=100, choices=QUESTION_TYPE)
     ord = models.IntegerField("排序号")
     contentLengh = models.IntegerField('内容长度', default=0)  # 仅填空题有效,是否可以作为多选题的选项数量限制
@@ -92,10 +92,11 @@ class Question(TimeModel):
         '''
             通过问题直接读取题干的文字信息
         '''
-        if self.stem_set.count() > 0:
-            return self.stem_set.all()[0].text
-        else:
-            return None
+        #if self.stem_set.count() > 0:
+        #    return self.stem_set.all()[0].text
+        #else:
+        #    return ''
+        return self.text
 
     getStemText.short_description = '题干信息'
 
@@ -147,25 +148,13 @@ class QuestionCatalogQuestion(TimeModel):
         verbose_name_plural = "[06].问题目录-问题"
 
 
-class Stem(TimeModel):
-    text = models.CharField('文字', max_length=300)
-    #资源集合 resource_set 对象集 (ok) (已在资源中设置对应外键)
-    question = models.ForeignKey(Question, verbose_name="问题")
-    createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='stemCreated_set')
-    modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='stemModified_set')
-
-    class Meta:
-        verbose_name = "题干"
-        verbose_name_plural = "[07].题干"
-
-
 class Resource(TimeModel):
     RESOURCE_TYPE = (('Picture', '图片'), ('Audio', '音频'), ('Video', '视频'))
     resourceType = models.CharField('文字', max_length=50, choices=RESOURCE_TYPE)
     resourceUrl = models.CharField('文字', max_length=1000)
     width = models.FloatField("资源宽度")
     height = models.FloatField("资源高度")
-    stem = models.ForeignKey(Stem, verbose_name="对应题干")
+    stem = models.ForeignKey(Question, verbose_name="对应问题")
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='resourceCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='resourceModified_set')
 
