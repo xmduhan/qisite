@@ -13,12 +13,44 @@ from datetime import datetime
 from django.test.utils import setup_test_environment
 from django.test import Client
 from django.core.urlresolvers import reverse
-from services import PaperAdd_ErrorMessage, PaperAdd_ErrorCode, PaperModify_ErrorCode, PaperModify_ErrorMessage
+from services import PaperAdd_ErrorMessage, PaperAdd_ErrorCode, PaperModify_ErrorCode, PaperModify_ErrorMessage, \
+    QuestionAdd_ErrorCode, QuestionAdd_ErrorMessage
 from account.models import User
-import json
-from django.contrib.auth.hashers import make_password, check_password
+import json, random, string
+from django.contrib.auth.hashers import make_password
 from account.tests import loginForTest, phoneForTest, passwordForTest
 from django.core.signing import Signer
+from django.db import transaction
+
+
+class TransactionTest(TestCase):
+    def test_autocommit(self):
+        step = 0
+        title = "".join(random.sample(string.letters, 20))
+        try:
+            Paper(title=title).save()
+            step = 1
+            raise
+        except:
+            pass
+        paperList = Paper.objects.filter(title=title)
+        self.assertEqual(step, 1)  #  确认执行到了raise
+        self.assertEqual(len(paperList), 1)  #  确认数据已经提交了
+
+    def test_transaction_atomic(self):
+        step = 0
+        title = "".join(random.sample(string.letters, 20))
+        try:
+            with transaction.atomic():
+                Paper(title=title).save()
+                step = 1
+                raise
+        except Exception as e:
+            print e
+            pass
+        paperList = Paper.objects.filter(title=title)
+        self.assertEqual(step, 1)  # 确认执行到了raise
+        self.assertEqual(len(paperList), 0)  # 确认数据已经被回滚了
 
 
 class SurveyModelTest(TestCase):
@@ -52,7 +84,7 @@ class SurveyModelTest(TestCase):
     def addSingleQuestion(self):
         # 增加一个单选题
         singleQuestion = Question(
-            type='Single', text='问题1', ord=1, contentLengh=0, valueMin=0, valueMax=0, confused=False,
+            type='Single', text='问题1', ord=1, contentLength=0, valueMin=0, valueMax=0, confused=False,
             branchNumStyle='S1',
             nextQuestion=None, paper=self.tsPaper, createBy=self.tsUser, modifyBy=self.tsUser
         )
@@ -97,7 +129,7 @@ class SurveyModelTest(TestCase):
             增加一个填空题
         '''
         fillblankQuestion = Question(
-            type='Fillblank', ord=2, contentLengh=100, valueMin=0, valueMax=0, confused=False, branchNumStyle='S1',
+            type='Fillblank', ord=2, contentLength=100, valueMin=0, valueMax=0, confused=False, branchNumStyle='S1',
             nextQuestion=None, paper=self.tsPaper, createBy=self.tsUser, modifyBy=self.tsUser
         )
         fillblankQuestion.save()
@@ -390,9 +422,9 @@ class PaperModifyTest(TestCase):
         self.paper_other.save()
         # 设定service url
         self.serviceUrl = reverse('survey:service.paper.modify')
-        # 构造一个数字签名对象
-        signer = Signer()
+
         # 准备提交的测试数据
+        signer = Signer()
         self.data_valid = {'id': signer.sign(self.paper.id), 'inOrder': not self.paper.inOrder}
         self.data_bad_signature = {'id': self.paper.id, 'inOrder': not self.paper.inOrder}
         self.data_no_privilege = {'id': signer.sign(self.paper_other.id), 'inOrder': not self.paper_other.inOrder}
@@ -405,7 +437,7 @@ class PaperModifyTest(TestCase):
         '''
         # 使用新创建的client(未登录)，而不是self.client（已登录)
         client = Client()
-        response = client.post(self.serviceUrl, self.data_bad_signature)
+        response = client.post(self.serviceUrl, self.data_valid)
         result = json.loads(response.content)
         self.assertEquals(result['errorCode'], PaperModify_ErrorCode.error)
         self.assertEquals(result['errorMessage'], PaperModify_ErrorMessage.no_login)
@@ -488,3 +520,119 @@ class PaperModifyTest(TestCase):
         # 确认数据不会被篡改
         paper = Paper.objects.filter(id=self.paper.id)[0]
         self.assertEquals(paper.createBy, self.paper.createBy)
+
+
+class QuestionAddTest(TestCase):
+    '''
+        问题添加服务(questionAdd)测试
+    '''
+
+    def setUp(self):
+        setup_test_environment()
+        # 创建用户并且用其登陆
+        self.user = User(phone=phoneForTest, password=make_password(passwordForTest))
+        self.user.save()
+        self.client = Client()
+        loginForTest(self.client, phoneForTest, passwordForTest)
+        # 创建一个用于测试的Paper
+        self.paper = Paper(title='paper_123', createBy=self.user, modifyBy=self.user)
+        self.paper.save()
+        # 创建另一个测试用户
+        self.user_other = User(phone='123')
+        self.user_other.save()
+        self.paper_other = Paper(title='paper_other', createBy=self.user_other, modifyBy=self.user_other)
+        self.paper_other.save()
+        # 设定service url
+        self.serviceUrl = reverse('survey:service.question.add')
+        # 准备提交的测试数据
+        signer = Signer()
+        questionText = 'text123'
+        questionType = 'Single'
+        self.data_valid = {'paper': signer.sign(self.paper.id), 'text': questionText, 'type': questionType}
+        self.data_bad_signature = {'paper': self.paper.id, 'text': questionText, 'type': questionType}
+        self.data_no_privilege = {'paper': signer.sign(self.paper_other.id), 'text': questionText, 'type': questionType}
+        self.data_invalid_type = {'paper': signer.sign(self.paper.id), 'text': questionText, 'type': 'EndValid'}
+        self.data_invalid_length = {
+            'paper': signer.sign(self.paper.id), 'text': questionText, 'type': questionType, 'contentLength': 100}
+
+
+    def test_no_login(self):
+        '''
+            测试没有登录的情况
+        '''
+        client = Client()
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], QuestionAdd_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], QuestionAdd_ErrorMessage.no_login)
+
+    def test_no_paper(self):
+        '''
+            测试没有提供问卷的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, {})
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], QuestionAdd_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], QuestionAdd_ErrorMessage.no_paper)
+
+    def test_bad_signature(self):
+        '''
+            测试篡改数字签名的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_bad_signature)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], QuestionAdd_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], QuestionAdd_ErrorMessage.bad_signature)
+
+    def test_paper_no_exist(self):
+        '''
+            测试问卷不存在的情况
+        '''
+        self.paper.delete()
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], QuestionAdd_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], QuestionAdd_ErrorMessage.paper_no_exist)
+
+    def test_no_privilege(self):
+        '''
+            测试在非本用户添加的问卷中添加
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_no_privilege)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], QuestionAdd_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], QuestionAdd_ErrorMessage.no_privilege)
+
+    def test_invalid_type(self):
+        '''
+            测试使用无效的问题类型
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_invalid_type)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], QuestionAdd_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], QuestionAdd_ErrorMessage.validation_error)
+
+    def test_invalid_length(self):
+        '''
+            测试为选择设置问题的长度
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_invalid_length)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], QuestionAdd_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], QuestionAdd_ErrorMessage.validation_error)
+
+    def test_sucess(self):
+        '''
+            测试成功添加的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], QuestionAdd_ErrorCode.success)
+        self.assertEquals(result['errorMessage'], QuestionAdd_ErrorMessage.success)

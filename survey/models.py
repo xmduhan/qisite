@@ -3,7 +3,7 @@ from django.db import models
 import account.models
 from datetime import datetime
 from numstyle import NumStyle, defaultQuestionNumStyle, defaultBranchNumStyle
-from django.test import TestCase
+from django.core.exceptions import ValidationError
 
 
 class TimeModel(models.Model):
@@ -29,9 +29,22 @@ class Paper(TimeModel):
     lookBack = models.BooleanField('返回修改')
     #style = models.CharField('展现方式', max_length=5, choices=PAPER_STYLE) #使用paging字段取代
     paging = models.BooleanField('分页答题', default=True)
-    createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='paperCreated_set')
-    modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='paperModified_set')
+    createBy = models.ForeignKey(
+        account.models.User, verbose_name="创建者", related_name='paperCreated_set', blank=True, null=True)
+    modifyBy = models.ForeignKey(
+        account.models.User, verbose_name="修改者", related_name='paperModified_set', blank=True, null=True)
     # 样本集 sample_set (ok) (已在sample中设置外键引用)
+    def clean(self):
+        '''
+            说明：
+            1、createBy和modifyBy不能为空的校验放在这里，主要是考虑到我们经常需要创建一些测试用的Paper，如果这两个字段在
+            定义时就限定死成不能为空，则每次我们都还要多创建一个User，比较麻烦。
+        '''
+        if self.createBy is None:
+            raise ValidationError(u'创建者信息不能为空')
+        if self.modifyBy is None:
+            raise ValidationError(u'修改者信息不能为空')
+
     class Meta:
         verbose_name = "问卷"
         verbose_name_plural = "[01].问卷"
@@ -72,11 +85,12 @@ class Question(TimeModel):
         ('Single', '单选题'), ('Multiple', '多选题'), ('Fillblank', '填空题'), ('Score', '评分题'),
         ('EndValid', '有效结束'), ('EndInvalid', '无效结束')
     )
+    QUESTION_TYPE_AVAILABLE = ('Single', 'Multiple', 'Fillblank', 'Score')
     BRANCH_NUM_STYLE = (('ABC', 'A.B.C.……'), ('abc.', 'a.b.c.……'), ('123.', '1.2.3……'))
     text = models.CharField('文字', max_length=300)
     type = models.CharField('题型', max_length=100, choices=QUESTION_TYPE)
     ord = models.IntegerField("排序号")
-    contentLengh = models.IntegerField('内容长度', default=0)  # 仅填空题有效,是否可以作为多选题的选项数量限制
+    contentLength = models.IntegerField('内容长度', default=0)  # 仅填空题有效,是否可以作为多选题的选项数量限制
     valueMin = models.FloatField('最小值', null=True, blank=True, default=0)  # 仅评分题有效
     valueMax = models.FloatField('最大值', null=True, blank=True, default=10)  # 仅评分题有效
     # 题支 branch_set 对象集 (ok) (已在branche中设置反向外键)
@@ -87,14 +101,21 @@ class Question(TimeModel):
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='questionCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='questionModified_set')
 
+    def clean(self):
+        '''
+            问题模型校验
+        '''
+        if self.type not in Question.QUESTION_TYPE_AVAILABLE:
+            raise ValidationError(u'无效的问题类型')
+        if self.type in ( 'Single', 'Multiple') and self.contentLength != 0:
+            raise ValidationError(u'选择题不能有填写值长度')
+        if self.type not in ( 'Single', 'Multiple') and self.confused:
+            raise ValidationError(u'非选择题不能指定乱序选项')
+
     def getStemText(self):
         '''
             通过问题直接读取题干的文字信息
         '''
-        #if self.stem_set.count() > 0:
-        #    return self.stem_set.all()[0].text
-        #else:
-        #    return ''
         return self.text
 
     getStemText.short_description = '题干信息'
@@ -111,7 +132,7 @@ class Question(TimeModel):
             return numStyle.getNum(self.ord)
 
     def __unicode__(self):
-        return u"(%d)(%s)%s" % (self.ord, self.type, unicode(self.getStemText()))
+        return u"(%d)(%s)%s" % (self.ord, self.type, unicode(self.text))
 
     class Meta:
         verbose_name = "问题"
@@ -126,7 +147,8 @@ class QuestionCatalog(TimeModel):
     ord = models.IntegerField("排序号")
     question_set = models.ManyToManyField(Question, verbose_name='包含问题', through='QuestionCatalogQuestion')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='questionCatalogCreated_set')
-    modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='questionCatalogModified_set')
+    modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者",
+                                 related_name='questionCatalogModified_set')
 
     class Meta:
         verbose_name = "问题目录"
