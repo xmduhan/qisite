@@ -96,7 +96,7 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 
-
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
 # Configuration for django-rest-framework
 REST_FRAMEWORK = {

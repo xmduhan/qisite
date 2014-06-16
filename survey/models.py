@@ -23,10 +23,10 @@ class Paper(TimeModel):
     title = models.CharField('问卷标题', max_length=500)
     description = models.CharField('问卷说明', max_length=500, blank=True)
     # 题目集 question_set (ok) (已在Question中设置外键引用)
-    inOrder = models.BooleanField('顺序答题')
+    inOrder = models.BooleanField('顺序答题', default=False)
     questionNumStyle = models.CharField(
         '问题标号样式', max_length=50, choices=QUESTION_NUM_STYLE, default=defaultQuestionNumStyle)
-    lookBack = models.BooleanField('返回修改')
+    lookBack = models.BooleanField('返回修改', default=False)
     #style = models.CharField('展现方式', max_length=5, choices=PAPER_STYLE) #使用paging字段取代
     paging = models.BooleanField('分页答题', default=True)
     createBy = models.ForeignKey(

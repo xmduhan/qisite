@@ -14,7 +14,9 @@ from django.test.utils import setup_test_environment
 from django.test import Client
 from django.core.urlresolvers import reverse
 from services import PaperAdd_ErrorMessage, PaperAdd_ErrorCode, PaperModify_ErrorCode, PaperModify_ErrorMessage, \
-    QuestionAdd_ErrorCode, QuestionAdd_ErrorMessage
+    QuestionAdd_ErrorCode, QuestionAdd_ErrorMessage, QuestionModify_ErrorCode, QuestionModify_ErrorMessage, \
+    BranchAdd_ErrorCode, BranchAdd_ErrorMessage
+
 from account.models import User
 import json, random, string
 from django.contrib.auth.hashers import make_password
@@ -508,7 +510,7 @@ class PaperModifyTest(TestCase):
         paper = Paper.objects.filter(id=self.paper.id)[0]
         self.assertNotEquals(paper.inOrder, self.paper.inOrder)
 
-    def test_tamper_1(self):
+    def test_tamper(self):
         '''
            确认数据不会摆篡改
         '''
@@ -636,3 +638,225 @@ class QuestionAddTest(TestCase):
         result = json.loads(response.content)
         self.assertEquals(result['errorCode'], QuestionAdd_ErrorCode.success)
         self.assertEquals(result['errorMessage'], QuestionAdd_ErrorMessage.success)
+
+
+class QuestionModifyTest(TestCase):
+    '''
+        问题修改的测试用例
+    '''
+
+    def setUp(self):
+        setup_test_environment()
+        # 创建用户并且用其登陆
+        self.user = User(phone=phoneForTest, password=make_password(passwordForTest))
+        self.user.save()
+        self.client = Client()
+        loginForTest(self.client, phoneForTest, passwordForTest)
+        # 创建一个用于测试的Paper
+        self.paper = Paper(title='paper', createBy=self.user, modifyBy=self.user)
+        self.paper.save()
+        self.question = Question(
+            type='Single', text='question', ord=1, createBy=self.user, modifyBy=self.user, paper=self.paper)
+        self.question.save()
+        # 创建另一个测试用户
+        self.user_other = User(phone='123')
+        self.user_other.save()
+        self.paper_other = Paper(title='paper_other', createBy=self.user_other, modifyBy=self.user_other)
+        self.paper_other.save()
+        self.question_other = Question(
+            type='Single', text='question_other', ord=1, createBy=self.user_other, modifyBy=self.user_other,
+            paper=self.paper_other)
+        self.question_other.save()
+        # 设定service url
+        self.serviceUrl = reverse('survey:service.question.modify')
+        # 准备提交的测试数据
+        signer = Signer()
+        self.data_valid = {'id': signer.sign(self.question.id), 'confused': not self.question.confused}
+        self.data_bad_signature = {'id': self.question.id, 'confused': not self.question.confused}
+        self.data_no_privilege = \
+            {'id': signer.sign(self.question_other.id), 'confused': not self.question_other.confused}
+        self.data_validation_error = {'id': signer.sign(self.question.id), 'branchNumStyle': '未知'}
+        self.data_tamper = {'id': signer.sign(self.question.id), 'createBy': self.user_other.id}
+
+    def test_no_login(self):
+        '''
+            测试没有登陆的情况
+        '''
+        # 使用新创建的client(未登录)，而不是self.client（已登录)
+        client = Client()
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], QuestionModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], QuestionModify_ErrorMessage.no_login)
+
+    def test_no_id(self):
+        '''
+            测试没有提供id的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, {})
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], QuestionModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], QuestionModify_ErrorMessage.no_id)
+
+    def test_bad_signature(self):
+        '''
+            测试没有进行数据签名的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_bad_signature)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], QuestionModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], QuestionModify_ErrorMessage.bad_signature)
+
+    def test_question_not_exist(self):
+        '''
+            测试修改不存在的问题
+        '''
+        self.question.delete()
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], QuestionModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], QuestionModify_ErrorMessage.question_not_exist)
+
+    def test_no_privilege(self):
+        '''
+            测试修改非自己创建的问题
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_no_privilege)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], QuestionModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], QuestionModify_ErrorMessage.no_privilege)
+
+    def test_validation_error(self):
+        '''
+            测试改入一些非法的数据
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_validation_error)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], QuestionModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], QuestionModify_ErrorMessage.validation_error)
+
+    def test_success(self):
+        '''
+            测试修改成功的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], QuestionModify_ErrorCode.success)
+        self.assertEquals(result['errorMessage'], QuestionModify_ErrorMessage.success)
+        # 确认数据已经被修改
+        question = Question.objects.filter(id=self.question.id)[0]
+        self.assertNotEquals(question.confused, self.question.confused)
+
+    def test_tamper(self):
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_tamper)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], QuestionModify_ErrorCode.success)
+        self.assertEquals(result['errorMessage'], QuestionModify_ErrorMessage.success)
+        # 确定数据不会被篡改
+        question = Question.objects.filter(id=self.question.id)[0]
+        self.assertEquals(question.createBy, self.question.createBy)
+
+
+class BranchAddTest(TestCase):
+    '''
+        题支新增测试
+    '''
+
+    def setUp(self):
+        setup_test_environment()
+        # 创建用户并且用其登陆
+        self.user = User(phone=phoneForTest, password=make_password(passwordForTest))
+        self.user.save()
+        self.client = Client()
+        loginForTest(self.client, phoneForTest, passwordForTest)
+        # 创建一个用于测试的Paper
+        self.paper = Paper(title='paper', createBy=self.user, modifyBy=self.user)
+        self.paper.save()
+        self.question = Question(
+            type='Single', text='question', ord=1, createBy=self.user, modifyBy=self.user, paper=self.paper)
+        self.question.save()
+        # 创建另一个测试用户
+        self.user_other = User(phone='123')
+        self.user_other.save()
+        self.paper_other = Paper(title='paper_other', createBy=self.user_other, modifyBy=self.user_other)
+        self.paper_other.save()
+        self.question_other = Question(
+            type='Single', text='question_other', ord=1, createBy=self.user_other, modifyBy=self.user_other,
+            paper=self.paper_other)
+        self.question_other.save()
+        # 设定service url
+        self.serviceUrl = reverse('survey:service.branch.add')
+        # 准备提交的测试数据
+        signer = Signer()
+        self.data_valid = {'question': signer.sign(self.question.id), 'text': 'branch1'}
+        self.data_bad_signature = {'question': self.question.id, 'text': 'branch1'}
+        self.data_no_privilege = {'question': signer.sign(self.question_other.id), 'text': 'branch1'}
+
+    def test_no_login(self):
+        '''
+            测试没有登陆的情况
+        '''
+        client = Client()
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], BranchAdd_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], BranchAdd_ErrorMessage.no_login)
+
+
+    def test_no_question(self):
+        '''
+            测试没有提供问题的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, {})
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], BranchAdd_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], BranchAdd_ErrorMessage.no_question)
+
+    def test_bad_signature(self):
+        '''
+            测试没有进行数据签名的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_bad_signature)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], BranchAdd_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], BranchAdd_ErrorMessage.bad_signature)
+
+    def test_question_no_exist(self):
+        '''
+            测试提供的问题已经不存在的情况
+        '''
+        self.question.delete()
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], BranchAdd_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], BranchAdd_ErrorMessage.question_no_exist)
+
+    def test_no_privilege(self):
+        '''
+            测试没有权限的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_no_privilege)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], BranchAdd_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], BranchAdd_ErrorMessage.no_privilege)
+
+    def test_success(self):
+        '''
+            测试成功的操作
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], BranchAdd_ErrorCode.success)
+        self.assertEquals(result['errorMessage'], BranchAdd_ErrorMessage.success)
