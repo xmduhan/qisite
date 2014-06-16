@@ -193,8 +193,72 @@ def paperModify(request):
     return HttpResponse(json.dumps(result))
 
 
+class PaperDelete_ErrorCode:
+    success = 0
+    error = -1
+
+
+class PaperDelete_ErrorMessage:
+    no_login = u'没有登录'
+    no_id = u'需要提供问卷标识'
+    bad_signature = u'数字签名被篡改'
+    paper_not_exist = u'该问卷已经删除了'
+    no_privilege = u'没有权限修改'
+    validation_error = u'数据校验错误'
+    success = u'成功'
+
+
 def paperDelete(request):
-    pass
+    '''
+        问卷删除服务
+    '''
+    result = {}
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result['errorCode'] = PaperDelete_ErrorCode.error
+        result['errorMessage'] = PaperDelete_ErrorMessage.no_login
+        return HttpResponse(json.dumps(result))
+    user = request.session[USER_SESSION_NAME]
+
+    # 检查是否提供了id
+    keys = request.REQUEST.keys()
+    if 'id' not in keys:
+        result['errorCode'] = PaperDelete_ErrorCode.error
+        result['errorMessage'] = PaperDelete_ErrorMessage.no_id
+        return HttpResponse(json.dumps(result))
+    idSigned = request.REQUEST['id']
+
+    # 对id进行数字签名的检查
+    try:
+        signer = Signer()
+        id = signer.unsign(idSigned)
+    except BadSignature:
+        # 篡改发现处理
+        result['errorCode'] = PaperDelete_ErrorCode.error
+        result['errorMessage'] = PaperDelete_ErrorMessage.bad_signature
+        return HttpResponse(json.dumps(result))
+
+    # 检查对象是否还存在,并将对象锁定
+    paperList = Paper.objects.filter(id=id).select_for_update()
+    if len(paperList) == 0:
+        result['errorCode'] = PaperDelete_ErrorCode.error
+        result['errorMessage'] = PaperDelete_ErrorMessage.paper_not_exist
+        return HttpResponse(json.dumps(result))
+    paper = paperList[0]
+
+    # 检查当前用户是否有权限修改
+    if paper.createBy.id != user.id:
+        result['errorCode'] = PaperDelete_ErrorCode.error
+        result['errorMessage'] = PaperDelete_ErrorMessage.no_privilege
+        return HttpResponse(json.dumps(result))
+
+    # 执行删除
+    paper.delete()
+
+    # 返回成功
+    result['errorCode'] = PaperDelete_ErrorCode.success
+    result['errorMessage'] = PaperDelete_ErrorMessage.success
+    return HttpResponse(json.dumps(result))
 
 
 class QuestionAdd_ErrorCode:
@@ -395,8 +459,72 @@ def questionModify(request):
     return HttpResponse(json.dumps(result))
 
 
+class QuestionDelete_ErrorCode:
+    success = 0
+    error = -1
+
+
+class QuestionDelete_ErrorMessage:
+    no_login = u'没有登录'
+    no_id = u'需要提供问卷标识'
+    bad_signature = u'数字签名被篡改'
+    question_not_exist = u'要修改的问题不存在'
+    no_privilege = u'没有权限修该对象'
+    validation_error = u'数据校验错误'
+    success = u'成功'
+
+
 def questionDelete(request):
-    pass
+    '''
+        问题删除服务
+    '''
+    result = {}
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result['errorCode'] = QuestionDelete_ErrorCode.error
+        result['errorMessage'] = QuestionDelete_ErrorMessage.no_login
+        return HttpResponse(json.dumps(result))
+    user = request.session[USER_SESSION_NAME]
+
+    # 检查是否提供了id
+    keys = request.REQUEST.keys()
+    if 'id' not in keys:
+        result['errorCode'] = QuestionDelete_ErrorCode.error
+        result['errorMessage'] = QuestionDelete_ErrorMessage.no_id
+        return HttpResponse(json.dumps(result))
+    idSigned = request.REQUEST['id']
+
+    # 对id进行数字签名的检查
+    try:
+        signer = Signer()
+        id = signer.unsign(idSigned)
+    except BadSignature:
+        # 篡改发现处理
+        result['errorCode'] = QuestionDelete_ErrorCode.error
+        result['errorMessage'] = QuestionDelete_ErrorMessage.bad_signature
+        return HttpResponse(json.dumps(result))
+
+    # 检查对象是否还存在
+    questionList = Question.objects.filter(id=id).select_for_update()
+    if len(questionList) == 0:
+        result['errorCode'] = QuestionDelete_ErrorCode.error
+        result['errorMessage'] = QuestionDelete_ErrorMessage.question_not_exist
+        return HttpResponse(json.dumps(result))
+    question = questionList[0]
+
+    # 检查当前用户是否有权限修改
+    if question.createBy.id != user.id:
+        result['errorCode'] = QuestionDelete_ErrorCode.error
+        result['errorMessage'] = QuestionDelete_ErrorMessage.no_privilege
+        return HttpResponse(json.dumps(result))
+
+    # 删除数据
+    question.delete()
+
+    # 返回成功
+    result['errorCode'] = QuestionDelete_ErrorCode.success
+    result['errorMessage'] = QuestionDelete_ErrorMessage.success
+    return HttpResponse(json.dumps(result))
 
 
 class BranchAdd_ErrorCode:
@@ -596,5 +724,65 @@ def branchModify(request):
     return HttpResponse(json.dumps(result))
 
 
+class BranchDelete_ErrorCode:
+    success = 0
+    error = -1
+
+
+class BranchDelete_ErrorMessage:
+    success = u'成功'
+    no_login = u'没有登录'
+    no_id = u'需要提供问卷标识'
+    bad_signature = u'数字签名被篡改'
+    branch_not_exist = u'要修改的问题不存在'
+    no_privilege = u'没有权限修该对象'
+    validation_error = u'数据校验错误'
+
+
 def branchDelete(request):
-    pass
+    result = {}
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result['errorCode'] = BranchDelete_ErrorCode.error
+        result['errorMessage'] = BranchDelete_ErrorMessage.no_login
+        return HttpResponse(json.dumps(result))
+    user = request.session[USER_SESSION_NAME]
+
+    # 检查是否提供了id
+    keys = request.REQUEST.keys()
+    if 'id' not in keys:
+        result['errorCode'] = BranchDelete_ErrorCode.error
+        result['errorMessage'] = BranchDelete_ErrorMessage.no_id
+        return HttpResponse(json.dumps(result))
+    idSigned = request.REQUEST['id']
+
+    # 对id进行数字签名的检查
+    try:
+        signer = Signer()
+        id = signer.unsign(idSigned)
+    except BadSignature:
+        # 篡改发现处理
+        result['errorCode'] = BranchDelete_ErrorCode.error
+        result['errorMessage'] = BranchDelete_ErrorMessage.bad_signature
+        return HttpResponse(json.dumps(result))
+
+    # 检查对象是否还存在
+    branchList = Branch.objects.filter(id=id).select_for_update()
+    if len(branchList) == 0:
+        result['errorCode'] = BranchDelete_ErrorCode.error
+        result['errorMessage'] = BranchDelete_ErrorMessage.branch_not_exist
+        return HttpResponse(json.dumps(result))
+    branch = branchList[0]
+
+    # 检查当前用户是否有权限修改
+    if branch.createBy.id != user.id:
+        result['errorCode'] = BranchDelete_ErrorCode.error
+        result['errorMessage'] = BranchDelete_ErrorMessage.no_privilege
+        return HttpResponse(json.dumps(result))
+
+        # 执行删除
+    branch.delete()
+    # 返回成功
+    result['errorCode'] = BranchDelete_ErrorCode.success
+    result['errorMessage'] = BranchDelete_ErrorMessage.success
+    return HttpResponse(json.dumps(result))
