@@ -10,7 +10,7 @@ import json
 from django.http import HttpResponse
 from django.forms import ValidationError
 from django.core.signing import Signer, BadSignature
-from models import Paper, Question
+from models import Paper, Question, Branch
 from qisite.definitions import USER_SESSION_NAME, USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME, \
     CREATE_TIME_FIELD_NAME, MODIFY_TIME_FIELD_NAME
 from datetime import datetime
@@ -140,8 +140,8 @@ def paperModify(request):
         result['errorMessage'] = PaperModify_ErrorMessage.bad_signature
         return HttpResponse(json.dumps(result))
 
-    # 检查对象是否还存在
-    paperList = Paper.objects.filter(id=id)
+    # 检查对象是否还存在,并将对象锁定
+    paperList = Paper.objects.filter(id=id).select_for_update()
     if len(paperList) == 0:
         result['errorCode'] = PaperModify_ErrorCode.error
         result['errorMessage'] = PaperModify_ErrorMessage.paper_not_exist
@@ -300,20 +300,300 @@ def questionAdd(request):
     return HttpResponse(json.dumps(result))
 
 
+class QuestionModify_ErrorCode:
+    success = 0
+    error = -1
+
+
+class QuestionModify_ErrorMessage:
+    no_login = u'没有登录'
+    no_id = u'需要提供问卷标识'
+    bad_signature = u'数字签名被篡改'
+    question_not_exist = u'要修改的问题不存在'
+    no_privilege = u'没有权限修该对象'
+    validation_error = u'数据校验错误'
+    success = u'成功'
+
+
 def questionModify(request):
-    pass
+    result = {}
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result['errorCode'] = QuestionModify_ErrorCode.error
+        result['errorMessage'] = QuestionModify_ErrorMessage.no_login
+        return HttpResponse(json.dumps(result))
+    user = request.session[USER_SESSION_NAME]
+
+    # 检查是否提供了id
+    keys = request.REQUEST.keys()
+    if 'id' not in keys:
+        result['errorCode'] = QuestionModify_ErrorCode.error
+        result['errorMessage'] = QuestionModify_ErrorMessage.no_id
+        return HttpResponse(json.dumps(result))
+    idSigned = request.REQUEST['id']
+
+    # 对id进行数字签名的检查
+    try:
+        signer = Signer()
+        id = signer.unsign(idSigned)
+    except BadSignature:
+        # 篡改发现处理
+        result['errorCode'] = QuestionModify_ErrorCode.error
+        result['errorMessage'] = QuestionModify_ErrorMessage.bad_signature
+        return HttpResponse(json.dumps(result))
+
+    # 检查对象是否还存在
+    questionList = Question.objects.filter(id=id).select_for_update()
+    if len(questionList) == 0:
+        result['errorCode'] = QuestionModify_ErrorCode.error
+        result['errorMessage'] = QuestionModify_ErrorMessage.question_not_exist
+        return HttpResponse(json.dumps(result))
+    question = questionList[0]
+
+    # 检查当前用户是否有权限修改
+    if question.createBy.id != user.id:
+        result['errorCode'] = QuestionModify_ErrorCode.error
+        result['errorMessage'] = QuestionModify_ErrorMessage.no_privilege
+        return HttpResponse(json.dumps(result))
+
+    # 遍历每一个字段，检查是否提供修改信息，如果有则将器修改
+    fields = zip(*Question._meta.get_fields_with_model())[0]
+    for field in fields:
+        # 不能修改自动增加字段和id字段
+        if field.auto_created or field.name == 'id':
+            continue
+        # 对应字段没有提供修改信息就跳过。
+        if field.name not in keys:
+            continue
+        # 创建与修改的时间和用户不能由客户端来修改
+        if field.name in [USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME, CREATE_TIME_FIELD_NAME,
+                          MODIFY_TIME_FIELD_NAME]:
+            continue
+        # 读取客户提供的新值
+        value = request.REQUEST.get(field.name, None)
+        # 执行修改
+        exec ('question.%s = value' % field.name)
+
+    # 特殊处理最近修改时间和最近修改用户
+    question.modifyBy = user
+    question.modifyTime = datetime.now()
+
+    # 进行数据校验
+    try:
+        question.full_clean()
+    except ValidationError as exception:
+        result['errorCode'] = QuestionModify_ErrorCode.error
+        result['errorMessage'] = QuestionModify_ErrorMessage.validation_error
+        result['validationMessage'] = exception.message_dict
+        return HttpResponse(json.dumps(result))
+
+    # 写到数据库
+    question.save()
+    # 返回成功
+    result['errorCode'] = QuestionModify_ErrorCode.success
+    result['errorMessage'] = QuestionModify_ErrorMessage.success
+    return HttpResponse(json.dumps(result))
 
 
 def questionDelete(request):
     pass
 
 
+class BranchAdd_ErrorCode:
+    error = -1
+    success = 0
+
+
+class BranchAdd_ErrorMessage:
+    success = u'成功'
+    no_login = u'没有登陆'
+    no_question = u'需要指定要增加选项的问题'
+    bad_signature = u'数字签名被篡改'
+    question_no_exist = u'问题不存在'
+    no_privilege = u'没有权限修改'
+    validation_error = u'数据校验错误'
+
+
 def branchAdd(request):
-    pass
+    '''
+        为问题添加一个题支(选项）的服务
+    '''
+    result = {}
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result['errorCode'] = BranchAdd_ErrorCode.error
+        result['errorMessage'] = BranchAdd_ErrorMessage.no_login
+        return HttpResponse(json.dumps(result))
+    user = request.session[USER_SESSION_NAME]
+
+    # 检查是否有提供Question
+    keys = request.REQUEST.keys()
+    if 'question' not in keys:
+        result['errorCode'] = BranchAdd_ErrorCode.error
+        result['errorMessage'] = BranchAdd_ErrorMessage.no_question
+        return HttpResponse(json.dumps(result))
+    questionIdSigned = request.REQUEST['question']
+
+    # 对id进行数字签名的检查
+    try:
+        signer = Signer()
+        questionId = signer.unsign(questionIdSigned)
+    except BadSignature:
+        # 篡改发现处理
+        result['errorCode'] = BranchAdd_ErrorCode.error
+        result['errorMessage'] = BranchAdd_ErrorMessage.bad_signature
+        return HttpResponse(json.dumps(result))
+
+    # 尝试读取question信息
+    questionList = Question.objects.filter(id=questionId)
+    if len(questionList) == 0:
+        result['errorCode'] = BranchAdd_ErrorCode.error
+        result['errorMessage'] = BranchAdd_ErrorMessage.question_no_exist
+        return HttpResponse(json.dumps(result))
+    question = questionList[0]
+
+    # 检查是否有权限做新增
+    if question.createBy.id != user.id:
+        result['errorCode'] = BranchAdd_ErrorCode.error
+        result['errorMessage'] = BranchAdd_ErrorMessage.no_privilege
+        return HttpResponse(json.dumps(result))
+
+    # 遍历Branch的所有Field，并尝试在request中寻找是否提供了对应的数据
+    data = {}
+    for field in getModelFields(Branch):
+        # 跳过系统自动增加的字段
+        if field.auto_created:
+            continue
+        # 读取request数据
+        value = request.REQUEST.get(field.name, None)
+        # 对创建人和修改人的信息进行特殊处理
+        if field.name in [USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME]:
+            value = user
+        # 对question字段进行特殊处理,提交的数据是id转化为对象
+        if field.name == 'question':
+            value = question
+        # 对ord 字段进行特殊处理，取当前的问题数量加1
+        if field.name == 'ord':
+            # 这里锁定了question所有branch对象
+            value = question.branch_set.select_for_update().count() + 1
+        # 如果调用者没有显示执行字段值为空，则不增加到data中去，让模型的默认值发挥作用
+        # 字段代码不能早于对createBy和modifyBy的处理
+        if value is None and field.name not in keys:
+            continue
+        # 将校验的数据添加到data，准备为创建数据库用
+        data[field.name] = value
+    branch = Branch(**data)
+
+    # 进行数据校验
+    try:
+        branch.full_clean()
+    except ValidationError as exception:
+        result['errorCode'] = BranchAdd_ErrorCode.error
+        result['errorMessage'] = BranchAdd_ErrorMessage.validation_error
+        result['validationMessage'] = exception.message_dict
+        return HttpResponse(json.dumps(result))
+
+    # 写到数据库
+    branch.save()
+    # 返回成功
+    result['errorCode'] = BranchAdd_ErrorCode.success
+    result['errorMessage'] = BranchAdd_ErrorMessage.success
+    return HttpResponse(json.dumps(result))
+
+
+class BranchModify_ErrorCode:
+    success = 0
+    error = -1
+
+
+class BranchModify_ErrorMessage:
+    success = u'成功'
+    no_login = u'没有登录'
+    no_id = u'需要提供问卷标识'
+    bad_signature = u'数字签名被篡改'
+    branch_not_exist = u'要修改的问题不存在'
+    no_privilege = u'没有权限修该对象'
+    validation_error = u'数据校验错误'
 
 
 def branchModify(request):
-    pass
+    result = {}
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result['errorCode'] = BranchModify_ErrorCode.error
+        result['errorMessage'] = BranchModify_ErrorMessage.no_login
+        return HttpResponse(json.dumps(result))
+    user = request.session[USER_SESSION_NAME]
+
+    # 检查是否提供了id
+    keys = request.REQUEST.keys()
+    if 'id' not in keys:
+        result['errorCode'] = BranchModify_ErrorCode.error
+        result['errorMessage'] = BranchModify_ErrorMessage.no_id
+        return HttpResponse(json.dumps(result))
+    idSigned = request.REQUEST['id']
+
+    # 对id进行数字签名的检查
+    try:
+        signer = Signer()
+        id = signer.unsign(idSigned)
+    except BadSignature:
+        # 篡改发现处理
+        result['errorCode'] = BranchModify_ErrorCode.error
+        result['errorMessage'] = BranchModify_ErrorMessage.bad_signature
+        return HttpResponse(json.dumps(result))
+
+    # 检查对象是否还存在
+    branchList = Branch.objects.filter(id=id).select_for_update()
+    if len(branchList) == 0:
+        result['errorCode'] = BranchModify_ErrorCode.error
+        result['errorMessage'] = BranchModify_ErrorMessage.branch_not_exist
+        return HttpResponse(json.dumps(result))
+    branch = branchList[0]
+
+    # 检查当前用户是否有权限修改
+    if branch.createBy.id != user.id:
+        result['errorCode'] = BranchModify_ErrorCode.error
+        result['errorMessage'] = BranchModify_ErrorMessage.no_privilege
+        return HttpResponse(json.dumps(result))
+
+    # 遍历每一个字段，检查是否提供修改信息，如果有则将器修改
+    fields = zip(*Branch._meta.get_fields_with_model())[0]
+    for field in fields:
+        # 不能修改自动增加字段和id字段
+        if field.auto_created or field.name == 'id':
+            continue
+        # 对应字段没有提供修改信息就跳过。
+        if field.name not in keys:
+            continue
+        # 创建与修改的时间和用户不能由客户端来修改
+        if field.name in [USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME, CREATE_TIME_FIELD_NAME,
+                          MODIFY_TIME_FIELD_NAME]:
+            continue
+        # 读取客户提供的新值
+        value = request.REQUEST.get(field.name, None)
+        # 执行修改
+        exec ('branch.%s = value' % field.name)
+
+    # 特殊处理最近修改时间和最近修改用户
+    branch.modifyBy = user
+    branch.modifyTime = datetime.now()
+
+    # 进行数据校验
+    try:
+        branch.full_clean()
+    except ValidationError as exception:
+        result['errorCode'] = BranchModify_ErrorCode.error
+        result['errorMessage'] = BranchModify_ErrorMessage.validation_error
+        result['validationMessage'] = exception.message_dict
+        return HttpResponse(json.dumps(result))
+
+    # 写到数据库
+    branch.save()
+    # 返回成功
+    result['errorCode'] = BranchModify_ErrorCode.success
+    result['errorMessage'] = BranchModify_ErrorMessage.success
+    return HttpResponse(json.dumps(result))
 
 
 def branchDelete(request):
