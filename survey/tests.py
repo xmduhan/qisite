@@ -15,7 +15,7 @@ from django.test import Client
 from django.core.urlresolvers import reverse
 from services import PaperAdd_ErrorMessage, PaperAdd_ErrorCode, PaperModify_ErrorCode, PaperModify_ErrorMessage, \
     QuestionAdd_ErrorCode, QuestionAdd_ErrorMessage, QuestionModify_ErrorCode, QuestionModify_ErrorMessage, \
-    BranchAdd_ErrorCode, BranchAdd_ErrorMessage
+    BranchAdd_ErrorCode, BranchAdd_ErrorMessage, BranchModify_ErrorCode, BranchModify_ErrorMessage
 
 from account.models import User
 import json, random, string
@@ -502,7 +502,7 @@ class PaperModifyTest(TestCase):
            测试成功修改的情况
         '''
         client = self.client
-        response = client.post(self.serviceUrl, self.data_valid)
+        response = client.post(self.serviceUrl, self.data_valid, format='json')
         result = json.loads(response.content)
         self.assertEquals(result['errorCode'], PaperModify_ErrorCode.success)
         self.assertEquals(result['errorMessage'], PaperModify_ErrorMessage.success)
@@ -860,3 +860,105 @@ class BranchAddTest(TestCase):
         result = json.loads(response.content)
         self.assertEquals(result['errorCode'], BranchAdd_ErrorCode.success)
         self.assertEquals(result['errorMessage'], BranchAdd_ErrorMessage.success)
+
+
+class BranchModifyTest(TestCase):
+    '''
+        题支修改功能
+    '''
+
+    def setUp(self):
+        setup_test_environment()
+        # 创建用户并且用其登陆
+        self.user = User(phone=phoneForTest, password=make_password(passwordForTest))
+        self.user.save()
+        self.client = Client()
+        loginForTest(self.client, phoneForTest, passwordForTest)
+        # 创建一个用于测试的Paper
+        self.paper = Paper(title='paper', createBy=self.user, modifyBy=self.user)
+        self.paper.save()
+        self.question = Question(
+            type='Single', text='question', ord=1, createBy=self.user, modifyBy=self.user, paper=self.paper)
+        self.question.save()
+        self.branch = Branch(text='branch', question=self.question, ord=1, createBy=self.user, modifyBy=self.user)
+        self.branch.save()
+        # 创建另一个测试用户
+        self.user_other = User(phone='123')
+        self.user_other.save()
+        self.paper_other = Paper(title='paper_other', createBy=self.user_other, modifyBy=self.user_other)
+        self.paper_other.save()
+        self.question_other = Question(
+            type='Single', text='question_other', ord=1, createBy=self.user_other, modifyBy=self.user_other,
+            paper=self.paper_other)
+        self.question_other.save()
+        self.branch_other = Branch(
+            text='branch', question=self.question_other, ord=1, createBy=self.user_other, modifyBy=self.user_other)
+        self.branch_other.save()
+        # 设定service url
+        self.serviceUrl = reverse('survey:service.branch.modify')
+        # 准备提交的测试数据
+        signer = Signer()
+        self.data_valid = {'id': signer.sign(self.branch.id), 'text': 'branch1'}
+        self.data_bad_signature = {'id': self.branch.id, 'text': 'branch1'}
+        self.data_no_privilege = {'id': signer.sign(self.branch_other.id), 'text': 'branch1'}
+
+    def test_no_login(self):
+        '''
+            测试没有登陆的情况
+        '''
+        client = Client()
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], BranchModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], BranchModify_ErrorMessage.no_login)
+
+    def test_no_id(self):
+        '''
+            测试没有提供id的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, {})
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], BranchModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], BranchModify_ErrorMessage.no_id)
+
+    def test_bad_signature(self):
+        '''
+            测试没有进行数字签名的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_bad_signature)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], BranchModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], BranchModify_ErrorMessage.bad_signature)
+
+    def test_branch_not_exist(self):
+        '''
+            测试选项不存在的情况
+        '''
+        self.branch.delete()
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], BranchModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], BranchModify_ErrorMessage.branch_not_exist)
+
+    def test_no_privilege(self):
+        '''
+            测试选项不存在的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_no_privilege)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], BranchModify_ErrorCode.error)
+        self.assertEquals(result['errorMessage'], BranchModify_ErrorMessage.no_privilege)
+
+    def test_success(self):
+        '''
+            测试操作成功的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['errorCode'], BranchModify_ErrorCode.success)
+        self.assertEquals(result['errorMessage'], BranchModify_ErrorMessage.success)

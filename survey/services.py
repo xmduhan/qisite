@@ -14,10 +14,18 @@ from models import Paper, Question, Branch
 from qisite.definitions import USER_SESSION_NAME, USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME, \
     CREATE_TIME_FIELD_NAME, MODIFY_TIME_FIELD_NAME
 from datetime import datetime
+from django.db.models.fields import BooleanField
 
 
 def getModelFields(model):
     return zip(*model._meta.get_fields_with_model())[0]
+
+
+def jsonBoolean2Python(jsonStringValue):
+    if jsonStringValue in ('true', 'false'):
+        return jsonStringValue.capitalize()
+    else:
+        return jsonStringValue
 
 
 def surveyAdd(request):
@@ -67,6 +75,11 @@ def paperAdd(request):
             continue
         # 读取request数据
         value = request.REQUEST.get(field.name, None)
+
+        # 特殊处理json的Boolean型的变量
+        if type(field) == BooleanField:
+            value = jsonBoolean2Python(value)
+
         # 对创建人和修改人的信息进行特殊处理
         if field.name in [USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME]:
             value = user
@@ -169,6 +182,9 @@ def paperModify(request):
             continue
         # 读取客户提供的新值
         value = request.REQUEST.get(field.name, None)
+        # 特殊处理json的Boolean型的变量
+        if type(field) == BooleanField:
+            value = jsonBoolean2Python(value)
         # 执行修改
         exec ('paper.%s = value' % field.name)
 
@@ -329,6 +345,9 @@ def questionAdd(request):
             continue
         # 读取request数据
         value = request.REQUEST.get(field.name, None)
+        # 特殊处理json的Boolean型的变量
+        if type(field) == BooleanField:
+            value = jsonBoolean2Python(value)
         # 对创建人和修改人的信息进行特殊处理
         if field.name in [USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME]:
             value = user
@@ -435,6 +454,9 @@ def questionModify(request):
             continue
         # 读取客户提供的新值
         value = request.REQUEST.get(field.name, None)
+        # 特殊处理json的Boolean型的变量
+        if type(field) == BooleanField:
+            value = jsonBoolean2Python(value)
         # 执行修改
         exec ('question.%s = value' % field.name)
 
@@ -518,6 +540,12 @@ def questionDelete(request):
         result['errorMessage'] = QuestionDelete_ErrorMessage.no_privilege
         return HttpResponse(json.dumps(result))
 
+    # 移动之后问题的排序号
+    paper = question.paper
+    questionList = paper.question_set.filter(question__ord__gt=question.ord).orderby('ord').select_for_update()
+    for i, q in enumerate(questionList):
+        q.ord = question.ord + i
+        q.save()
     # 删除数据
     question.delete()
 
@@ -594,6 +622,9 @@ def branchAdd(request):
             continue
         # 读取request数据
         value = request.REQUEST.get(field.name, None)
+        # 特殊处理json的Boolean型的变量
+        if type(field) == BooleanField:
+            value = jsonBoolean2Python(value)
         # 对创建人和修改人的信息进行特殊处理
         if field.name in [USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME]:
             value = user
@@ -700,6 +731,9 @@ def branchModify(request):
             continue
         # 读取客户提供的新值
         value = request.REQUEST.get(field.name, None)
+        # 特殊处理json的Boolean型的变量
+        if type(field) == BooleanField:
+            value = jsonBoolean2Python(value)
         # 执行修改
         exec ('branch.%s = value' % field.name)
 

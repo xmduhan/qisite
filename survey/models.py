@@ -4,6 +4,7 @@ import account.models
 from datetime import datetime
 from numstyle import NumStyle, defaultQuestionNumStyle, defaultBranchNumStyle
 from django.core.exceptions import ValidationError
+from django.core.signing import Signer
 
 
 class TimeModel(models.Model):
@@ -52,6 +53,13 @@ class Paper(TimeModel):
 
     def getQuestionSetInOrder(self):
         return self.question_set.order_by('ord')
+
+    def getNumStyleAvailable(self):
+        return Paper.QUESTION_NUM_STYLE
+
+    def getIdSigned(self):
+        signer = Signer()
+        return signer.sign(self.id)
 
 
 class PaperCatalog(TimeModel):

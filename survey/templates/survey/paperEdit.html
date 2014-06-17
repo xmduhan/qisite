@@ -62,7 +62,10 @@
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">问卷名称</span>
                             <input type="text" class="form-control paper-attr-text" placeholder="请填写问卷名称"
-                                   value="{{ paper.title }}">
+                                   value="{{ paper.title }}"
+                                   data-action="{% url 'survey:service.paper.modify' %}"
+                                   data-id="{{ paper.getIdSigned }}"
+                                   data-field-name="title">
                         </div>
                     </div>
                 </div>
@@ -74,7 +77,10 @@
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">问卷描述</span>
                             <input type="text" class="form-control paper-attr-text" placeholder="请填写问卷描述"
-                                   value="{{ paper.description }}">
+                                   value="{{ paper.description }}"
+                                   data-action="{% url 'survey:service.paper.modify' %}"
+                                   data-id="{{ paper.getIdSigned }}"
+                                   data-field-name="description">
                         </div>
                     </div>
                 </div>
@@ -85,29 +91,19 @@
                     <div class="col-md-3">
                         <div class="btn-group btn-block">
                             <button type="button" class="btn btn-default">标号样式</button>
-                            {% comment %}
-                            <button type="button" class="btn btn-default dropdown-toggle paper-attr-select"
-                                    data-toggle="dropdown">
-                                {{ paper.get_questionNumStyle_display }}
-                                <span class="caret"></span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li class="paper-attr-select-option"><a> 1</a></li>
-                                <li><a> 2</a></li>
-                                <li><a> 3</a></li>
-                            </ul>
-                            {% endcomment %}
-                            <select class="selectpicker paper-attr-select" data-width='auto'>
-                                <optgroup label="Picnic">
-                                    <option value='1'>Mustard</option>
-                                    <option value='2'>Ketchup</option>
-                                    <option value='3'>Relish</option>
-                                </optgroup>
-                                <optgroup label="Camping">
-                                    <option value="4">Tent</option>
-                                    <option value='5'>Flashlight</option>
-                                    <option value='6'>Toilet Paper</option>
-                                </optgroup>
+                            <select class="selectpicker paper-attr-select" data-width='auto'
+                                    value='{{ paper.questionNumStyle }}'
+                                    data-action="{% url 'survey:service.paper.modify' %}"
+                                    data-id="{{ paper.getIdSigned }}"
+                                    data-field-name="questionNumStyle">
+                                {# 列出可选标号样式数据 #}
+                                {% for code,display in  paper.getNumStyleAvailable %}
+                                    <option
+                                            {% if code == paper.questionNumStyle %}
+                                                selected='selected'
+                                            {% endif %}
+                                                value='{{ code }}'>{{ display }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                     </div>
@@ -117,7 +113,10 @@
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">分页显示</span>
                             <input name='test01' class="bootstrap-switch-input paper-attr-switch" type="checkbox"
-                                   {% if paper.paging %}checked{% endif %}/>
+                                   {% if paper.paging %}checked{% endif %}
+                                   data-action="{% url 'survey:service.paper.modify' %}"
+                                   data-id="{{ paper.getIdSigned }}"
+                                   data-field-name="paging"/>
                         </div>
                     </div>
 
@@ -126,7 +125,10 @@
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">顺序答题</span>
                             <input class="bootstrap-switch-input paper-attr-switch" type="checkbox"
-                                   {% if paper.inOrder %}checked{% endif %}/>
+                                   {% if paper.inOrder %}checked{% endif %}
+                                   data-action="{% url 'survey:service.paper.modify' %}"
+                                   data-id="{{ paper.getIdSigned }}"
+                                   data-field-name="inOrder"/>
                         </div>
                     </div>
 
@@ -135,7 +137,10 @@
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">返回修改</span>
                             <input class="bootstrap-switch-input paper-attr-switch" type="checkbox"
-                                   {% if paper.lookBack %}checked{% endif %}/>
+                                   {% if paper.lookBack %}checked{% endif %}
+                                   data-action="{% url 'survey:service.paper.modify' %}"
+                                   data-id="{{ paper.getIdSigned }}"
+                                   data-field-name="lookBack"/>
                         </div>
                     </div>
                 </div>
