@@ -30,6 +30,9 @@ function saveFieldValue(control, value) {
             console.log('save successfully');
             console.log('errorCode:' + result['errorCode']);
             console.log('errorMessage:' + result['errorMessage']);
+            if ($(control).data('reload-page') == true) {
+                console.log('page need reload');
+            }
         },
         // 失败说明网络有问题或者服务器有问题
         error: function (xhr, status, errorThrown) {
@@ -39,19 +42,19 @@ function saveFieldValue(control, value) {
 }
 
 // 俘获文本框修改信息
-$(".paper-attr-text").on("change", function (event) {
+$(".data-binding-field-text").on("change", function (event) {
     console.log('text edit is changed(' + $(this).val() + ')');
     saveFieldValue(this, $(this).val());
 });
 
 // 俘获开关控件的变动信息
-$('.paper-attr-switch').on('switchChange.bootstrapSwitch', function (event, state) {
+$('.data-binding-field-switch').on('switchChange.bootstrapSwitch', function (event, state) {
     console.log('switch is changed(' + state + ')');
     saveFieldValue(this, state);
 });
 
 // 俘获选择控件的变动信息
-$(".paper-attr-select").on("change", function (event) {
+$(".data-binding-field-select").on("change", function (event) {
     console.log('select is changed(' + $(this).val() + ')');
     saveFieldValue(this, $(this).val());
 });

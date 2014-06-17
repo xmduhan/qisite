@@ -61,7 +61,7 @@
                     <div class="col-md-12">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">问卷名称</span>
-                            <input type="text" class="form-control paper-attr-text" placeholder="请填写问卷名称"
+                            <input type="text" class="form-control data-binding-field-text" placeholder="请填写问卷名称"
                                    value="{{ paper.title }}"
                                    data-action="{% url 'survey:service.paper.modify' %}"
                                    data-id="{{ paper.getIdSigned }}"
@@ -76,7 +76,7 @@
                     <div class="col-md-12">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">问卷描述</span>
-                            <input type="text" class="form-control paper-attr-text" placeholder="请填写问卷描述"
+                            <input type="text" class="form-control data-binding-field-text" placeholder="请填写问卷描述"
                                    value="{{ paper.description }}"
                                    data-action="{% url 'survey:service.paper.modify' %}"
                                    data-id="{{ paper.getIdSigned }}"
@@ -91,11 +91,12 @@
                     <div class="col-md-3">
                         <div class="btn-group btn-block">
                             <button type="button" class="btn btn-default">标号样式</button>
-                            <select class="selectpicker paper-attr-select" data-width='auto'
+                            <select class="selectpicker data-binding-field-select" data-width='auto'
                                     value='{{ paper.questionNumStyle }}'
                                     data-action="{% url 'survey:service.paper.modify' %}"
                                     data-id="{{ paper.getIdSigned }}"
-                                    data-field-name="questionNumStyle">
+                                    data-field-name="questionNumStyle"
+                                    data-reload-page=true>
                                 {# 列出可选标号样式数据 #}
                                 {% for code,display in  paper.getNumStyleAvailable %}
                                     <option
@@ -112,7 +113,8 @@
                     <div class="col-md-3">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">分页显示</span>
-                            <input name='test01' class="bootstrap-switch-input paper-attr-switch" type="checkbox"
+                            <input name='test01' class="bootstrap-switch-input data-binding-field-switch"
+                                   type="checkbox"
                                    {% if paper.paging %}checked{% endif %}
                                    data-action="{% url 'survey:service.paper.modify' %}"
                                    data-id="{{ paper.getIdSigned }}"
@@ -124,7 +126,7 @@
                     <div class="col-md-3">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">顺序答题</span>
-                            <input class="bootstrap-switch-input paper-attr-switch" type="checkbox"
+                            <input class="bootstrap-switch-input data-binding-field-switch" type="checkbox"
                                    {% if paper.inOrder %}checked{% endif %}
                                    data-action="{% url 'survey:service.paper.modify' %}"
                                    data-id="{{ paper.getIdSigned }}"
@@ -136,7 +138,7 @@
                     <div class="col-md-3 ">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">返回修改</span>
-                            <input class="bootstrap-switch-input paper-attr-switch" type="checkbox"
+                            <input class="bootstrap-switch-input data-binding-field-switch" type="checkbox"
                                    {% if paper.lookBack %}checked{% endif %}
                                    data-action="{% url 'survey:service.paper.modify' %}"
                                    data-id="{{ paper.getIdSigned }}"

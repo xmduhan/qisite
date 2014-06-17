@@ -147,6 +147,10 @@ class Question(TimeModel):
         verbose_name_plural = "[04].问题"
         ordering = ["ord"]
 
+    def getIdSigned(self):
+        signer = Signer()
+        return signer.sign(self.id)
+
 
 class QuestionCatalog(TimeModel):
     name = models.CharField("目录名称", max_length=100)
@@ -211,9 +215,21 @@ class Branch(TimeModel):
         return numStyle.getNum(self.ord)
 
     def getReachableQuestion(self):
+        # 获取当前选项对应问题的之后的所有问题
         question = self.question
         paper = question.paper
-        return paper.question_set.filter(ord__gt=question.ord)
+        reachableQuestion = list(paper.question_set.filter(ord__gt=question.ord).order_by('ord'))
+        return reachableQuestion
+
+    def getSystemPredefined(self):
+        # 获取预定义的问题
+        systemPredefinedCatalog = QuestionCatalog.objects.filter(code='SystemPredefined')[0]
+        systemPredefined = list(systemPredefinedCatalog.question_set.order_by('ord'))
+        return systemPredefined
+
+    def getIdSigned(self):
+        signer = Signer()
+        return signer.sign(self.id)
 
 
 class Survey(TimeModel):

@@ -15,14 +15,22 @@
             <div class="col-md-10">
                 <div class="input-group input-group-sm">
                     <span class="input-group-addon">{{ question.getNum }}</span>
-                    <input type="text" class="form-control" placeholder="请填写" value="{{ question.getStemText }}">
+                    <input type="text" class="form-control data-binding-field-text"
+                           placeholder="请填写"
+                           value="{{ question.text }}"
+                           data-action="{% url 'survey:service.question.modify' %}"
+                           data-id="{{ question.getIdSigned }}"
+                           data-field-name="text">
                 </div>
             </div>
             {# 是否乱序(switch控件) #}
             <div class="col-md-2">
                 <div class="input-group input-group-sm">
-                    <input class="bootstrap-switch-input-confused" type="checkbox"
-                           {% if question.confused %}checked{% endif %}/>
+                    <input class="bootstrap-switch-input-confused data-binding-field-switch"
+                           type="checkbox" {% if question.confused %}checked{% endif %}
+                           data-action="{% url 'survey:service.question.modify' %}"
+                           data-id="{{ question.getIdSigned }}"
+                           data-field-name="confused"/>
                 </div>
             </div>
         </div>
@@ -39,7 +47,11 @@
                         {# 题支的编号 #}
                         <span class="input-group-addon">{{ branch.getNum }}</span>
                         {# 题支的文字内容 #}
-                        <input type="text" class="form-control" value="{{ branch.text }}">
+                        <input type="text" class="form-control data-binding-field-text"
+                               value="{{ branch.text }}"
+                               data-action="{% url 'survey:service.branch.modify' %}"
+                               data-id="{{ branch.getIdSigned }}"
+                               data-field-name="text">
                         {# 题支的删除按钮 #}
                         <span class="input-group-addon">
                             <span class="glyphicon glyphicon-remove-sign pull-right "></span>
@@ -50,23 +62,35 @@
                 {#  题支的跳转信息  #}
                 <div class="col-md-2">
                     <div class="btn-group btn-block">
-                        {# 显示已选择(或默认的)跳转项 #}
-                        <button type="button" class="btn btn-default dropdown-toggle btn-block"
-                                data-toggle="dropdown">
-                            {% if branch.nextQuestion %}
-                                {{ branch.nextQuestion.getNum }}
-                            {% endif %}
-                            <span class="caret"></span>
-                        </button>
-                        {# 可以跳转到的题目项 #}
-                        <ul class="dropdown-menu">
-                            {% for reachableQuestion in branch.getReachableQuestion %}
-                                <li><a>
-                                    {{ reachableQuestion.getNum }}
-                                    {{ reachableQuestion.getStemText | truncatechars:10 }}
-                                </a></li>
+                        <select class="selectpicker data-binding-field-select" data-width='auto'
+                                value='{{ branch.nextQuestion }}'
+                                data-action="{% url 'survey:service.branch.modify' %}"
+                                data-id="{{ branch.getIdSigned }}"
+                                data-field-name="nextQuestion">
+                            {# 列出所有可达问题 #}
+                            {#  <optgroup>#}
+                            {% for reachableQuestion in  branch.getReachableQuestion %}
+                                <option
+                                        {% if reachableQuestion == branch.nextQuestion %}
+                                            selected='selected'
+                                        {% endif %}
+                                            value='{{ reachableQuestion.id }}'>{{ reachableQuestion.getNum }}
+                                </option>
                             {% endfor %}
-                        </ul>
+                            {#</optgroup> #}
+                            {# 列出所有系统预定义的选项 #}
+                            {#  <optgroup label=""> #}
+                            {% for reachableQuestion in  branch.getSystemPredefined %}
+                                <option
+                                        {% if reachableQuestion == branch.nextQuestion %}
+                                            selected='selected'
+                                        {% endif %}
+                                            value='{{ reachableQuestion.id }}'>{{ reachableQuestion.getNum }}
+                                </option>
+                            {% endfor %}
+                            {#</optgroup> #}
+                        </select>
+
                     </div>
                     {# end <div class="btn-group btn-block"> #}
                 </div>
