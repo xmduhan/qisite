@@ -158,7 +158,7 @@
     {# 问题内容框 #}
     <div class="well">
         {% for question in paper.getQuestionSetInOrder %}
-            {% include "survey/question/question.html" %}
+            {% include "survey/question/question.html" with question=question only %}
         {% endfor %}
     </div>
     <p></p>

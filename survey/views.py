@@ -55,3 +55,18 @@ def custListList(request):
     template = loader.get_template('survey/custListList.html')
     context = RequestContext(request, {'custListList': custListList, 'session': request.session})
     return HttpResponse(template.render(context))
+
+
+def questionEdit(request, questionId):
+    '''
+        生成问题编辑DOM片段的view服务
+    '''
+    user = getCurrent()
+    question = Question.objects.get(id=questionId)
+    if question.createBy != user:
+        raise Http404
+    template = loader.get_template('survey/question/question.html')
+    context = RequestContext(request, {'question': question})
+    return HttpResponse(template.render(context))
+
+
