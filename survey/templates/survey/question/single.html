@@ -74,7 +74,7 @@
                                         {% if reachableQuestion == branch.nextQuestion %}
                                             selected='selected'
                                         {% endif %}
-                                            value='{{ reachableQuestion.id }}'>{{ reachableQuestion.getNum }}
+                                            value='{{ reachableQuestion.getIdSigned }}'>{{ reachableQuestion.getNum }}
                                 </option>
                             {% endfor %}
                             {#</optgroup> #}
@@ -85,7 +85,7 @@
                                         {% if reachableQuestion == branch.nextQuestion %}
                                             selected='selected'
                                         {% endif %}
-                                            value='{{ reachableQuestion.id }}'>{{ reachableQuestion.getNum }}
+                                            value='{{ reachableQuestion.getIdSigned }}'>{{ reachableQuestion.getNum }}
                                 </option>
                             {% endfor %}
                             {#</optgroup> #}

@@ -15,10 +15,15 @@ from qisite.definitions import USER_SESSION_NAME, USER_CREATE_BY_FIELD_NAME, USE
     CREATE_TIME_FIELD_NAME, MODIFY_TIME_FIELD_NAME
 from datetime import datetime
 from django.db.models.fields import BooleanField
+from django.db.models.fields.related import ForeignKey
 
 
 def getModelFields(model):
     return zip(*model._meta.get_fields_with_model())[0]
+
+
+def getForeignObject(field, id):
+    return field.rel.to.objects.get(id=id)
 
 
 def jsonBoolean2Python(jsonStringValue):
@@ -730,11 +735,27 @@ def branchModify(request):
                           MODIFY_TIME_FIELD_NAME]:
             continue
         # 读取客户提供的新值
+
         value = request.REQUEST.get(field.name, None)
         # 特殊处理json的Boolean型的变量
         if type(field) == BooleanField:
             value = jsonBoolean2Python(value)
-        # 执行修改
+
+        # 对外键的特殊处理
+        if type(field) == ForeignKey:
+            # 校验数字签名
+            try:
+                signer = Signer()
+                value = signer.unsign(value)
+            except BadSignature:
+                # 篡改发现处理
+                result['errorCode'] = BranchModify_ErrorCode.error
+                result['errorMessage'] = BranchModify_ErrorMessage.bad_signature
+                return HttpResponse(json.dumps(result))
+            print '--1--'
+            # id转化为对象
+            value = getForeignObject(field, value)
+
         exec ('branch.%s = value' % field.name)
 
     # 特殊处理最近修改时间和最近修改用户
