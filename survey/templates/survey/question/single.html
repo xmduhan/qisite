@@ -88,6 +88,12 @@
                                             value='{{ reachableQuestion.getIdSigned }}'>{{ reachableQuestion.getNum }}
                                 </option>
                             {% endfor %}
+                            <option
+                                    {% if branch.nextQuestion == None %}
+                                        selected='selected'
+                                    {% endif %}
+                                        value=''>下一题
+                            </option>
                             {#</optgroup> #}
                         </select>
 

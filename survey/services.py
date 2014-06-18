@@ -741,20 +741,25 @@ def branchModify(request):
         if type(field) == BooleanField:
             value = jsonBoolean2Python(value)
 
+        print "value=", value
+
         # 对外键的特殊处理
         if type(field) == ForeignKey:
-            # 校验数字签名
-            try:
-                signer = Signer()
-                value = signer.unsign(value)
-            except BadSignature:
-                # 篡改发现处理
-                result['errorCode'] = BranchModify_ErrorCode.error
-                result['errorMessage'] = BranchModify_ErrorMessage.bad_signature
-                return HttpResponse(json.dumps(result))
-            print '--1--'
-            # id转化为对象
-            value = getForeignObject(field, value)
+            if len(value) != 0:
+                # 校验数字签名
+                try:
+                    signer = Signer()
+                    value = signer.unsign(value)
+                except BadSignature:
+                    # 篡改发现处理
+                    result['errorCode'] = BranchModify_ErrorCode.error
+                    result['errorMessage'] = BranchModify_ErrorMessage.bad_signature
+                    return HttpResponse(json.dumps(result))
+                print '--1--'
+                # id转化为对象
+                value = getForeignObject(field, value)
+            else:
+                value = None
 
         exec ('branch.%s = value' % field.name)
 
