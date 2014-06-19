@@ -21,7 +21,7 @@
         完成
     </a>
     {# 新增问题按钮 #}
-    <button class="btn btn-primary ">
+    <button class="btn btn-primary " data-toggle="modal" data-target="#addQuestionDialog">
         <span class="glyphicon glyphicon-plus"></span>
         新增问题
     </button>
@@ -166,18 +166,67 @@
     {# 新增问题的按钮 #}
     <div class="row">
         <div class="col-md-2 col-md-offset-5">
-            <button class="btn btn-primary btn-block ">
+            <button id="addQuestionButton" class="btn btn-primary btn-block " data-toggle="modal"
+                    data-target="#addQuestionDialog">
                 <span class="glyphicon glyphicon-plus"></span>
                 新增问题
             </button>
         </div>
     </div>
-
 </div>
+
+
 {# end <div class="container"> #}
 
-{# 加载Javascript程序 #}
+{# 问题新增对话框 #}
+<div class="modal fade" id="addQuestionDialog" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            {# 对话框标题 #}
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">
+                    <span class="glyphicon glyphicon-plus"></span> 新增问题
+                </h4>
+            </div>
+            {# 对话框内容 #}
+            <div class="modal-body">
+                <div class="row" align="center">
+                    <div class="col-md-3">
+                        <button id="addSingleButton" class="btn btn-default btn-block btn-lg ">
+                            <span class="glyphicon glyphicon-check"></span>
+                            单选题
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-default btn-block btn-lg">
+                            <span class="glyphicon glyphicon-th-list"></span>
+                            多选题
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-default btn-block btn-lg">
+                            <span class="glyphicon glyphicon-pencil"></span>
+                            填空题
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-default btn-block btn-lg">
+                            <span class="glyphicon glyphicon-star"></span>
+                            评分题
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {# 对话框底部 #}
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
 
+{# 加载Javascript程序 #}
 
 {% include "www/commonjs.html" %}
 <script src="/static/survey/js/paperEdit.js"></script>

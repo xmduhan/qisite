@@ -55,13 +55,11 @@ function initDataBinding() {
         console.log('text edit is changed(' + $(this).val() + ')');
         saveFieldValue(this, $(this).val());
     });
-
     // 俘获开关控件的变动信息
     $('.data-binding-field-switch').on('switchChange.bootstrapSwitch', function (event, state) {
         console.log('switch is changed(' + state + ')');
         saveFieldValue(this, state);
     });
-
     // 俘获选择控件的变动信息
     $(".data-binding-field-select").on("change", function (event) {
         console.log('select is changed(' + $(this).val() + ')');
@@ -87,6 +85,15 @@ function getQuestion(id) {
         error: function (xhr, status, errorThrown) {
             console.log('getQuestion:error');
         }
+    });
+}
+
+function test() {
+    ('#addSingleButton').on('click', function (event) {
+        console.log('addSingleButton is push');
+    });
+    ('#addQuestionButton').on('click', function (event) {
+        console.log('addQuestionButton is push');
     });
 }
 
