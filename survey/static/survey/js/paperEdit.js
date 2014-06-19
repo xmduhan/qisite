@@ -88,12 +88,18 @@ function getQuestion(id) {
     });
 }
 
-function test() {
-    ('#addSingleButton').on('click', function (event) {
-        console.log('addSingleButton is push');
-    });
-    ('#addQuestionButton').on('click', function (event) {
-        console.log('addQuestionButton is push');
+/***************************************
+ *          绑定新增按钮事件           *
+ ***************************************/
+function initButtonAddAction() {
+    $('#addSingleButton').on('click', function () {
+        // 调用增加服务（获取新增问题的id
+
+        // 调用选项增加服务，增加两个默认选项
+
+        // 调用后台服务读取html文件的DOM
+
+        //
     });
 }
 
@@ -105,4 +111,6 @@ $(document).ready(function () {
     initBootstrapSwitch();
     // 初始化数据绑定字段
     initDataBinding();
+    // 初始化新增按钮事件
+    initButtonAddAction()
 });
