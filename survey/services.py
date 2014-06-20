@@ -74,13 +74,9 @@ def paperAdd(request):
     '''
         创建问卷的功能服务
     '''
-    result = {}
 
     # 检查用户是否登录，并读取session中的用户信息
     if USER_SESSION_NAME not in request.session.keys():
-        #result['errorCode'] = PaperAdd_ErrorCode.error
-        #result['errorMessage'] = PaperAdd_ErrorMessage.no_login
-        #return HttpResponse(json.dumps(result))
         return packageResult(PaperAdd_ErrorCode.error, PaperAdd_ErrorMessage.no_login)
     user = request.session[USER_SESSION_NAME]
 
@@ -114,10 +110,6 @@ def paperAdd(request):
     try:
         paper.full_clean()
     except ValidationError as exception:
-        #result['errorCode'] = PaperAdd_ErrorCode.error
-        #result['errorMessage'] = PaperAdd_ErrorMessage.validation_error
-        #result['validationMessage'] = exception.message_dict
-        #return HttpResponse(json.dumps(result))
         return packageResult(
             PaperAdd_ErrorCode.error, PaperAdd_ErrorMessage.validation_error,
             {'validationMessage': exception.message_dict}
@@ -126,10 +118,6 @@ def paperAdd(request):
 
     # 保存到数据库
     paper.save()
-    # 返回成功信息
-    #result['errorCode'] = PaperAdd_ErrorCode.success
-    #result['errorMessage'] = PaperAdd_ErrorMessage.success
-    #return HttpResponse(json.dumps(result))
     return packageResult(PaperAdd_ErrorCode.success, PaperAdd_ErrorMessage.success)
 
 
@@ -152,21 +140,15 @@ def paperModify(request):
     '''
         问卷基本信息修改服务
     '''
-    result = {}
+
     # 检查用户是否登录，并读取session中的用户信息
     if USER_SESSION_NAME not in request.session.keys():
-        #result['errorCode'] = PaperModify_ErrorCode.error
-        #result['errorMessage'] = PaperModify_ErrorMessage.no_login
-        #return HttpResponse(json.dumps(result))
         return packageResult(PaperModify_ErrorCode.error, PaperModify_ErrorMessage.no_login)
     user = request.session[USER_SESSION_NAME]
 
     # 检查是否提供了id
     keys = request.REQUEST.keys()
     if 'id' not in keys:
-        #result['errorCode'] = PaperModify_ErrorCode.error
-        #result['errorMessage'] = PaperModify_ErrorMessage.no_id
-        #return HttpResponse(json.dumps(result))
         return packageResult(PaperModify_ErrorCode.error, PaperModify_ErrorMessage.no_id)
     idSigned = request.REQUEST['id']
 
@@ -176,25 +158,16 @@ def paperModify(request):
         id = signer.unsign(idSigned)
     except BadSignature:
         # 篡改发现处理
-        #result['errorCode'] = PaperModify_ErrorCode.error
-        #result['errorMessage'] = PaperModify_ErrorMessage.bad_signature
-        #return HttpResponse(json.dumps(result))
         return packageResult(PaperModify_ErrorCode.error, PaperModify_ErrorMessage.bad_signature)
 
     # 检查对象是否还存在,并将对象锁定
     paperList = Paper.objects.filter(id=id).select_for_update()
     if len(paperList) == 0:
-        #result['errorCode'] = PaperModify_ErrorCode.error
-        #result['errorMessage'] = PaperModify_ErrorMessage.paper_not_exist
-        #return HttpResponse(json.dumps(result))
         return packageResult(PaperModify_ErrorCode.error, PaperModify_ErrorMessage.paper_not_exist)
     paper = paperList[0]
 
     # 检查当前用户是否有权限修改
     if paper.createBy.id != user.id:
-        #result['errorCode'] = PaperModify_ErrorCode.error
-        #result['errorMessage'] = PaperModify_ErrorMessage.no_privilege
-        #return HttpResponse(json.dumps(result))
         return packageResult(PaperModify_ErrorCode.error, PaperModify_ErrorMessage.no_privilege)
 
     # 遍历每一个字段，检查是否提供修改信息，如果有则将器修改
@@ -226,10 +199,6 @@ def paperModify(request):
     try:
         paper.full_clean()
     except ValidationError as exception:
-        #result['errorCode'] = PaperModify_ErrorCode.error
-        #result['errorMessage'] = PaperModify_ErrorMessage.validation_error
-        #result['validationMessage'] = exception.message_dict
-        #return HttpResponse(json.dumps(result))
         return packageResult(
             PaperModify_ErrorCode.error, PaperModify_ErrorMessage.validation_error,
             {'validationMessage': exception.message_dict}
@@ -238,9 +207,6 @@ def paperModify(request):
     # 写到数据库
     paper.save()
     # 返回成功
-    #result['errorCode'] = PaperModify_ErrorCode.success
-    #result['errorMessage'] = PaperModify_ErrorMessage.success
-    #return HttpResponse(json.dumps(result))
     return packageResult(PaperModify_ErrorCode.success, PaperModify_ErrorMessage.success)
 
 
@@ -263,21 +229,15 @@ def paperDelete(request):
     '''
         问卷删除服务
     '''
-    result = {}
+
     # 检查用户是否登录，并读取session中的用户信息
     if USER_SESSION_NAME not in request.session.keys():
-        #result['errorCode'] = PaperDelete_ErrorCode.error
-        #result['errorMessage'] = PaperDelete_ErrorMessage.no_login
-        #return HttpResponse(json.dumps(result))
         return packageResult(PaperDelete_ErrorCode.error, PaperDelete_ErrorMessage.no_login)
     user = request.session[USER_SESSION_NAME]
 
     # 检查是否提供了id
     keys = request.REQUEST.keys()
     if 'id' not in keys:
-        #result['errorCode'] = PaperDelete_ErrorCode.error
-        #result['errorMessage'] = PaperDelete_ErrorMessage.no_id
-        #return HttpResponse(json.dumps(result))
         return packageResult(PaperDelete_ErrorCode.error, PaperDelete_ErrorMessage.no_id)
     idSigned = request.REQUEST['id']
 
@@ -287,34 +247,22 @@ def paperDelete(request):
         id = signer.unsign(idSigned)
     except BadSignature:
         # 篡改发现处理
-        #result['errorCode'] = PaperDelete_ErrorCode.error
-        #result['errorMessage'] = PaperDelete_ErrorMessage.bad_signature
-        #return HttpResponse(json.dumps(result))
         return packageResult(PaperDelete_ErrorCode.error, PaperDelete_ErrorMessage.bad_signature)
 
     # 检查对象是否还存在,并将对象锁定
     paperList = Paper.objects.filter(id=id).select_for_update()
     if len(paperList) == 0:
-        #result['errorCode'] = PaperDelete_ErrorCode.error
-        #result['errorMessage'] = PaperDelete_ErrorMessage.paper_not_exist
-        #return HttpResponse(json.dumps(result))
         return packageResult(PaperDelete_ErrorCode.error, PaperDelete_ErrorMessage.paper_not_exist)
     paper = paperList[0]
 
     # 检查当前用户是否有权限修改
     if paper.createBy.id != user.id:
-        #result['errorCode'] = PaperDelete_ErrorCode.error
-        #result['errorMessage'] = PaperDelete_ErrorMessage.no_privilege
-        #return HttpResponse(json.dumps(result))
         return packageResult(PaperDelete_ErrorCode.error, PaperDelete_ErrorMessage.no_privilege)
 
     # 执行删除
     paper.delete()
 
     # 返回成功
-    #result['errorCode'] = PaperDelete_ErrorCode.success
-    #result['errorMessage'] = PaperDelete_ErrorMessage.success
-    #return HttpResponse(json.dumps(result))
     return packageResult(PaperDelete_ErrorCode.success, PaperDelete_ErrorMessage.success)
 
 
@@ -337,22 +285,15 @@ def questionAdd(request):
     '''
         为已有问卷增加一个问题的服务
     '''
-    result = {}
 
     # 检查用户是否登录，并读取session中的用户信息
     if USER_SESSION_NAME not in request.session.keys():
-        #result['errorCode'] = QuestionAdd_ErrorCode.error
-        #result['errorMessage'] = QuestionAdd_ErrorMessage.no_login
-        #return HttpResponse(json.dumps(result))
         return packageResult(QuestionAdd_ErrorCode.error, QuestionAdd_ErrorMessage.no_login)
     user = request.session[USER_SESSION_NAME]
 
     # 检查是否有提供paper
     keys = request.REQUEST.keys()
     if 'paper' not in keys:
-        #result['errorCode'] = QuestionAdd_ErrorCode.error
-        #result['errorMessage'] = QuestionAdd_ErrorMessage.no_paper
-        #return HttpResponse(json.dumps(result))
         return packageResult(QuestionAdd_ErrorCode.error, QuestionAdd_ErrorMessage.no_paper)
     paperIdSigned = request.REQUEST['paper']
 
@@ -362,25 +303,16 @@ def questionAdd(request):
         paperId = signer.unsign(paperIdSigned)
     except BadSignature:
         # 篡改发现处理
-        #result['errorCode'] = QuestionAdd_ErrorCode.error
-        #result['errorMessage'] = QuestionAdd_ErrorMessage.bad_signature
-        #return HttpResponse(json.dumps(result))
         return packageResult(QuestionAdd_ErrorCode.error, QuestionAdd_ErrorMessage.bad_signature)
 
     # 尝试读取paper信息
     paperList = Paper.objects.filter(id=paperId)
     if len(paperList) == 0:
-        #result['errorCode'] = QuestionAdd_ErrorCode.error
-        #result['errorMessage'] = QuestionAdd_ErrorMessage.paper_no_exist
-        #return HttpResponse(json.dumps(result))
         return packageResult(QuestionAdd_ErrorCode.error, QuestionAdd_ErrorMessage.paper_no_exist)
     paper = paperList[0]
 
     # 检查是否有权限修改
     if paper.createBy.id != user.id:
-        #result['errorCode'] = QuestionAdd_ErrorCode.error
-        #result['errorMessage'] = QuestionAdd_ErrorMessage.no_privilege
-        #return HttpResponse(json.dumps(result))
         return packageResult(QuestionAdd_ErrorCode.error, QuestionAdd_ErrorMessage.no_privilege)
 
     # 遍历Question的所有Field，并尝试在request中寻找是否提供了对应的数据
@@ -416,10 +348,6 @@ def questionAdd(request):
     try:
         question.full_clean()
     except ValidationError as exception:
-        #result['errorCode'] = QuestionAdd_ErrorCode.error
-        #result['errorMessage'] = QuestionAdd_ErrorMessage.validation_error
-        #result['validationMessage'] = exception.message_dict
-        #return HttpResponse(json.dumps(result))
         return packageResult(
             QuestionAdd_ErrorCode.error, QuestionAdd_ErrorMessage.validation_error,
             {'validationMessage': exception.message_dict}
@@ -428,9 +356,6 @@ def questionAdd(request):
     # 写到数据库
     question.save()
     # 返回成功
-    #result['errorCode'] = QuestionAdd_ErrorCode.success
-    #result['errorMessage'] = QuestionAdd_ErrorMessage.success
-    #return HttpResponse(json.dumps(result))
     return packageResult(QuestionAdd_ErrorCode.success, QuestionAdd_ErrorMessage.success)
 
 
@@ -450,21 +375,14 @@ class QuestionModify_ErrorMessage:
 
 
 def questionModify(request):
-    result = {}
     # 检查用户是否登录，并读取session中的用户信息
     if USER_SESSION_NAME not in request.session.keys():
-        #result['errorCode'] = QuestionModify_ErrorCode.error
-        #result['errorMessage'] = QuestionModify_ErrorMessage.no_login
-        #return HttpResponse(json.dumps(result))
         return packageResult(QuestionModify_ErrorCode.error, QuestionModify_ErrorMessage.no_login)
     user = request.session[USER_SESSION_NAME]
 
     # 检查是否提供了id
     keys = request.REQUEST.keys()
     if 'id' not in keys:
-        #result['errorCode'] = QuestionModify_ErrorCode.error
-        #result['errorMessage'] = QuestionModify_ErrorMessage.no_id
-        #return HttpResponse(json.dumps(result))
         return packageResult(QuestionModify_ErrorCode.error, QuestionModify_ErrorMessage.no_id)
     idSigned = request.REQUEST['id']
 
@@ -474,25 +392,16 @@ def questionModify(request):
         id = signer.unsign(idSigned)
     except BadSignature:
         # 篡改发现处理
-        #result['errorCode'] = QuestionModify_ErrorCode.error
-        #result['errorMessage'] = QuestionModify_ErrorMessage.bad_signature
-        #return HttpResponse(json.dumps(result))
         return packageResult(QuestionModify_ErrorCode.error, QuestionModify_ErrorMessage.bad_signature)
 
     # 检查对象是否还存在
     questionList = Question.objects.filter(id=id).select_for_update()
     if len(questionList) == 0:
-        #result['errorCode'] = QuestionModify_ErrorCode.error
-        #result['errorMessage'] = QuestionModify_ErrorMessage.question_not_exist
-        #return HttpResponse(json.dumps(result))
         return packageResult(QuestionModify_ErrorCode.error, QuestionModify_ErrorMessage.question_not_exist)
     question = questionList[0]
 
     # 检查当前用户是否有权限修改
     if question.createBy.id != user.id:
-        #result['errorCode'] = QuestionModify_ErrorCode.error
-        #result['errorMessage'] = QuestionModify_ErrorMessage.no_privilege
-        #return HttpResponse(json.dumps(result))
         return packageResult(QuestionModify_ErrorCode.error, QuestionModify_ErrorMessage.no_privilege)
 
     # 遍历每一个字段，检查是否提供修改信息，如果有则将器修改
@@ -524,10 +433,6 @@ def questionModify(request):
     try:
         question.full_clean()
     except ValidationError as exception:
-        #result['errorCode'] = QuestionModify_ErrorCode.error
-        #result['errorMessage'] = QuestionModify_ErrorMessage.validation_error
-        #result['validationMessage'] = exception.message_dict
-        #return HttpResponse(json.dumps(result))
         return packageResult(
             QuestionModify_ErrorCode.error, QuestionModify_ErrorMessage.validation_error,
             {'validationMessage': exception.message_dict})
@@ -535,9 +440,6 @@ def questionModify(request):
     # 写到数据库
     question.save()
     # 返回成功
-    #result['errorCode'] = QuestionModify_ErrorCode.success
-    #result['errorMessage'] = QuestionModify_ErrorMessage.success
-    #return HttpResponse(json.dumps(result))
     return packageResult(QuestionModify_ErrorCode.success, QuestionModify_ErrorMessage.success)
 
 
@@ -560,21 +462,15 @@ def questionDelete(request):
     '''
         问题删除服务
     '''
-    result = {}
+
     # 检查用户是否登录，并读取session中的用户信息
     if USER_SESSION_NAME not in request.session.keys():
-        #result['errorCode'] = QuestionDelete_ErrorCode.error
-        #result['errorMessage'] = QuestionDelete_ErrorMessage.no_login
-        #return HttpResponse(json.dumps(result))
         return packageResult(QuestionDelete_ErrorCode.error, QuestionDelete_ErrorMessage.no_login)
     user = request.session[USER_SESSION_NAME]
 
     # 检查是否提供了id
     keys = request.REQUEST.keys()
     if 'id' not in keys:
-        #result['errorCode'] = QuestionDelete_ErrorCode.error
-        #result['errorMessage'] = QuestionDelete_ErrorMessage.no_id
-        #return HttpResponse(json.dumps(result))
         return packageResult(QuestionDelete_ErrorCode.error, QuestionDelete_ErrorMessage.no_id)
     idSigned = request.REQUEST['id']
 
@@ -584,25 +480,16 @@ def questionDelete(request):
         id = signer.unsign(idSigned)
     except BadSignature:
         # 篡改发现处理
-        #result['errorCode'] = QuestionDelete_ErrorCode.error
-        #result['errorMessage'] = QuestionDelete_ErrorMessage.bad_signature
-        #return HttpResponse(json.dumps(result))
         return packageResult(QuestionDelete_ErrorCode.error, QuestionDelete_ErrorMessage.bad_signature)
 
     # 检查对象是否还存在
     questionList = Question.objects.filter(id=id).select_for_update()
     if len(questionList) == 0:
-        #result['errorCode'] = QuestionDelete_ErrorCode.error
-        #result['errorMessage'] = QuestionDelete_ErrorMessage.question_not_exist
-        #return HttpResponse(json.dumps(result))
         return packageResult(QuestionDelete_ErrorCode.error, QuestionDelete_ErrorMessage.question_not_exist)
     question = questionList[0]
 
     # 检查当前用户是否有权限修改
     if question.createBy.id != user.id:
-        #result['errorCode'] = QuestionDelete_ErrorCode.error
-        #result['errorMessage'] = QuestionDelete_ErrorMessage.no_privilege
-        #return HttpResponse(json.dumps(result))
         return packageResult(QuestionDelete_ErrorCode.error, QuestionDelete_ErrorMessage.no_privilege)
 
     # 移动之后问题的排序号
@@ -615,9 +502,6 @@ def questionDelete(request):
     question.delete()
 
     # 返回成功
-    #result['errorCode'] = QuestionDelete_ErrorCode.success
-    #result['errorMessage'] = QuestionDelete_ErrorMessage.success
-    #return HttpResponse(json.dumps(result))
     return packageResult(QuestionDelete_ErrorCode.success, QuestionDelete_ErrorMessage.success)
 
 
@@ -640,21 +524,15 @@ def branchAdd(request):
     '''
         为问题添加一个题支(选项）的服务
     '''
-    result = {}
+
     # 检查用户是否登录，并读取session中的用户信息
     if USER_SESSION_NAME not in request.session.keys():
-        #result['errorCode'] = BranchAdd_ErrorCode.error
-        #result['errorMessage'] = BranchAdd_ErrorMessage.no_login
-        #return HttpResponse(json.dumps(result))
         return packageResult(BranchAdd_ErrorCode.error, BranchAdd_ErrorMessage.no_login)
     user = request.session[USER_SESSION_NAME]
 
     # 检查是否有提供Question
     keys = request.REQUEST.keys()
     if 'question' not in keys:
-        #result['errorCode'] = BranchAdd_ErrorCode.error
-        #result['errorMessage'] = BranchAdd_ErrorMessage.no_question
-        #return HttpResponse(json.dumps(result))
         return packageResult(BranchAdd_ErrorCode.error, BranchAdd_ErrorMessage.no_question)
     questionIdSigned = request.REQUEST['question']
 
@@ -664,25 +542,16 @@ def branchAdd(request):
         questionId = signer.unsign(questionIdSigned)
     except BadSignature:
         # 篡改发现处理
-        #result['errorCode'] = BranchAdd_ErrorCode.error
-        #result['errorMessage'] = BranchAdd_ErrorMessage.bad_signature
-        #return HttpResponse(json.dumps(result))
         return packageResult(BranchAdd_ErrorCode.error, BranchAdd_ErrorMessage.bad_signature)
 
     # 尝试读取question信息
     questionList = Question.objects.filter(id=questionId)
     if len(questionList) == 0:
-        #result['errorCode'] = BranchAdd_ErrorCode.error
-        #result['errorMessage'] = BranchAdd_ErrorMessage.question_no_exist
-        #return HttpResponse(json.dumps(result))
         return packageResult(BranchAdd_ErrorCode.error, BranchAdd_ErrorMessage.question_no_exist)
     question = questionList[0]
 
     # 检查是否有权限做新增
     if question.createBy.id != user.id:
-        #result['errorCode'] = BranchAdd_ErrorCode.error
-        #result['errorMessage'] = BranchAdd_ErrorMessage.no_privilege
-        #return HttpResponse(json.dumps(result))
         return packageResult(BranchAdd_ErrorCode.error, BranchAdd_ErrorMessage.no_privilege)
 
     # 遍历Branch的所有Field，并尝试在request中寻找是否提供了对应的数据
@@ -718,10 +587,6 @@ def branchAdd(request):
     try:
         branch.full_clean()
     except ValidationError as exception:
-        #result['errorCode'] = BranchAdd_ErrorCode.error
-        #result['errorMessage'] = BranchAdd_ErrorMessage.validation_error
-        #result['validationMessage'] = exception.message_dict
-        #return HttpResponse(json.dumps(result))
         return packageResult(
             BranchAdd_ErrorCode.error, BranchAdd_ErrorMessage.validation_error,
             {'validationMessage': exception.message_dict})
@@ -729,9 +594,6 @@ def branchAdd(request):
     # 写到数据库
     branch.save()
     # 返回成功
-    #result['errorCode'] = BranchAdd_ErrorCode.success
-    #result['errorMessage'] = BranchAdd_ErrorMessage.success
-    #return HttpResponse(json.dumps(result))
     return packageResult(BranchAdd_ErrorCode.success, BranchAdd_ErrorMessage.success)
 
 
@@ -751,21 +613,14 @@ class BranchModify_ErrorMessage:
 
 
 def branchModify(request):
-    result = {}
     # 检查用户是否登录，并读取session中的用户信息
     if USER_SESSION_NAME not in request.session.keys():
-        #result['errorCode'] = BranchModify_ErrorCode.error
-        #result['errorMessage'] = BranchModify_ErrorMessage.no_login
-        #return HttpResponse(json.dumps(result))
         return packageResult(BranchModify_ErrorCode.error, BranchModify_ErrorMessage.no_login)
     user = request.session[USER_SESSION_NAME]
 
     # 检查是否提供了id
     keys = request.REQUEST.keys()
     if 'id' not in keys:
-        #result['errorCode'] = BranchModify_ErrorCode.error
-        #result['errorMessage'] = BranchModify_ErrorMessage.no_id
-        #return HttpResponse(json.dumps(result))
         return packageResult(BranchModify_ErrorCode.error, BranchModify_ErrorMessage.no_id)
     idSigned = request.REQUEST['id']
 
@@ -775,25 +630,16 @@ def branchModify(request):
         id = signer.unsign(idSigned)
     except BadSignature:
         # 篡改发现处理
-        #result['errorCode'] = BranchModify_ErrorCode.error
-        #result['errorMessage'] = BranchModify_ErrorMessage.bad_signature
-        #return HttpResponse(json.dumps(result))
         return packageResult(BranchModify_ErrorCode.error, BranchModify_ErrorMessage.bad_signature)
 
     # 检查对象是否还存在
     branchList = Branch.objects.filter(id=id).select_for_update()
     if len(branchList) == 0:
-        #result['errorCode'] = BranchModify_ErrorCode.error
-        #result['errorMessage'] = BranchModify_ErrorMessage.branch_not_exist
-        #return HttpResponse(json.dumps(result))
         return packageResult(BranchModify_ErrorCode.error, BranchModify_ErrorMessage.branch_not_exist)
     branch = branchList[0]
 
     # 检查当前用户是否有权限修改
     if branch.createBy.id != user.id:
-        #result['errorCode'] = BranchModify_ErrorCode.error
-        #result['errorMessage'] = BranchModify_ErrorMessage.no_privilege
-        #return HttpResponse(json.dumps(result))
         return packageResult(BranchModify_ErrorCode.error, BranchModify_ErrorMessage.no_privilege)
 
     # 遍历每一个字段，检查是否提供修改信息，如果有则将器修改
@@ -827,9 +673,6 @@ def branchModify(request):
                     value = signer.unsign(value)
                 except BadSignature:
                     # 篡改发现处理
-                    #result['errorCode'] = BranchModify_ErrorCode.error
-                    #result['errorMessage'] = BranchModify_ErrorMessage.bad_signature
-                    #return HttpResponse(json.dumps(result))
                     return packageResult(BranchModify_ErrorCode.error, BranchModify_ErrorMessage.bad_signature)
                 print '--1--'
                 # id转化为对象
@@ -847,10 +690,6 @@ def branchModify(request):
     try:
         branch.full_clean()
     except ValidationError as exception:
-        #result['errorCode'] = BranchModify_ErrorCode.error
-        #result['errorMessage'] = BranchModify_ErrorMessage.validation_error
-        #result['validationMessage'] = exception.message_dict
-        #return HttpResponse(json.dumps(result))
         return packageResult(
             BranchModify_ErrorCode.error, BranchModify_ErrorMessage.validation_error,
             {'validationMessage': exception.message_dict})
@@ -859,9 +698,6 @@ def branchModify(request):
     # 写到数据库
     branch.save()
     # 返回成功
-    #result['errorCode'] = BranchModify_ErrorCode.success
-    #result['errorMessage'] = BranchModify_ErrorMessage.success
-    #return HttpResponse(json.dumps(result))
     return packageResult(BranchModify_ErrorCode.success, BranchModify_ErrorMessage.success)
 
 
@@ -882,21 +718,14 @@ class BranchDelete_ErrorMessage:
 
 @transaction.atomic
 def branchDelete(request):
-    result = {}
     # 检查用户是否登录，并读取session中的用户信息
     if USER_SESSION_NAME not in request.session.keys():
-        #result['errorCode'] = BranchDelete_ErrorCode.error
-        #result['errorMessage'] = BranchDelete_ErrorMessage.no_login
-        #return HttpResponse(json.dumps(result))
         return packageResult(BranchDelete_ErrorCode.error, BranchDelete_ErrorMessage.no_login)
     user = request.session[USER_SESSION_NAME]
 
     # 检查是否提供了id
     keys = request.REQUEST.keys()
     if 'id' not in keys:
-        #result['errorCode'] = BranchDelete_ErrorCode.error
-        #result['errorMessage'] = BranchDelete_ErrorMessage.no_id
-        #return HttpResponse(json.dumps(result))
         return packageResult(BranchDelete_ErrorCode.error, BranchDelete_ErrorMessage.no_id)
     idSigned = request.REQUEST['id']
 
@@ -906,34 +735,22 @@ def branchDelete(request):
         id = signer.unsign(idSigned)
     except BadSignature:
         # 篡改发现处理
-        #result['errorCode'] = BranchDelete_ErrorCode.error
-        #result['errorMessage'] = BranchDelete_ErrorMessage.bad_signature
-        #return HttpResponse(json.dumps(result))
         return packageResult(BranchDelete_ErrorCode.error, BranchDelete_ErrorMessage.bad_signature)
 
     # 检查对象是否还存在
     branchList = Branch.objects.filter(id=id).select_for_update()
     if len(branchList) == 0:
-        #result['errorCode'] = BranchDelete_ErrorCode.error
-        #result['errorMessage'] = BranchDelete_ErrorMessage.branch_not_exist
-        #return HttpResponse(json.dumps(result))
         return packageResult(BranchDelete_ErrorCode.error, BranchDelete_ErrorMessage.branch_not_exist)
     branch = branchList[0]
 
     # 检查当前用户是否有权限修改
     if branch.createBy.id != user.id:
-        #result['errorCode'] = BranchDelete_ErrorCode.error
-        #result['errorMessage'] = BranchDelete_ErrorMessage.no_privilege
-        #return HttpResponse(json.dumps(result))
         return packageResult(BranchDelete_ErrorCode.error, BranchDelete_ErrorMessage.no_privilege)
 
     # 执行删除
     branch.delete()
 
     # 返回成功
-    #result['errorCode'] = BranchDelete_ErrorCode.success
-    #result['errorMessage'] = BranchDelete_ErrorMessage.success
-    #return HttpResponse(json.dumps(result))
     return packageResult(BranchDelete_ErrorCode.success, BranchDelete_ErrorMessage.success)
 
 
