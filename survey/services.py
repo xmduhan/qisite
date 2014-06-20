@@ -1,12 +1,17 @@
 #-*- coding: utf-8 -*-
 '''
+    设计原则：
+    1、最小管辖范围原则，
+
+    2、请求接受和处理分来
+        使得具体处理过程可以被其他服务直接通过调用访问，而不是直接向服务器发起请求。
+
     存在问题：
     1、对字段的处理，没有考虑外键、多对多关系、一对一关系。
 
+
 '''
-
 import json
-
 from django.http import HttpResponse
 from django.forms import ValidationError
 from django.core.signing import Signer, BadSignature
@@ -16,26 +21,51 @@ from qisite.definitions import USER_SESSION_NAME, USER_CREATE_BY_FIELD_NAME, USE
 from datetime import datetime
 from django.db.models.fields import BooleanField
 from django.db.models.fields.related import ForeignKey
-from django.db import transaction
+#from django.db import transaction
 
+class ERROR_CODE:
+    SUCCESS = 0
+    ERROR = -1
+
+class ERROR_MESSAGE:
+    pass
 
 def getModelFields(model):
+    '''
+        通过一个模型获取其内部定义的所有字段(Field)
+    '''
     return zip(*model._meta.get_fields_with_model())[0]
 
 
 def getForeignObject(field, id):
+    '''
+        根据一个外键定义和一个对象id找到对应的对象实例
+    '''
     return field.rel.to.objects.get(id=id)
 
 
 def packageResult(errorCode, errorMessage, others={}):
+    '''
+        将错误信息打包成为一个字典
+    '''
     result = {}
     result['errorCode'] = errorCode
     result['errorMessage'] = errorMessage
     result = dict(result.items() + others.items())
+    return result
+
+
+def dictToJsonResponse(result):
+    '''
+        将一个字典转化为json结构的http返回数据
+    '''
     return HttpResponse(json.dumps(result))
 
 
 def jsonBoolean2Python(jsonStringValue):
+    '''
+        将json的布尔字串表达转化为json结构
+    '''
     if jsonStringValue in ('true', 'false'):
         return jsonStringValue.capitalize()
     else:
@@ -70,18 +100,12 @@ def _paperAdd(data, user):
     pass
 
 
-def paperAdd(request):
+def _paperAdd(requestData, user):
     '''
-        创建问卷的功能服务
+        新增一个问卷的具体处理过程
     '''
-
-    # 检查用户是否登录，并读取session中的用户信息
-    if USER_SESSION_NAME not in request.session.keys():
-        return packageResult(PaperAdd_ErrorCode.error, PaperAdd_ErrorMessage.no_login)
-    user = request.session[USER_SESSION_NAME]
-
     # 获取Paper模型中的所有属性
-    keys = request.REQUEST.keys()
+    keys = requestData.keys()
     data = {}
     #fields = zip(*Paper._meta.get_fields_with_model())[0]
     for field in getModelFields(Paper):
@@ -89,7 +113,7 @@ def paperAdd(request):
         if field.auto_created:
             continue
         # 读取request数据
-        value = request.REQUEST.get(field.name, None)
+        value = requestData.get(field.name, None)
 
         # 特殊处理json的Boolean型的变量
         if type(field) == BooleanField:
@@ -114,11 +138,24 @@ def paperAdd(request):
             PaperAdd_ErrorCode.error, PaperAdd_ErrorMessage.validation_error,
             {'validationMessage': exception.message_dict}
         )
-
-
     # 保存到数据库
     paper.save()
     return packageResult(PaperAdd_ErrorCode.success, PaperAdd_ErrorMessage.success)
+
+
+def paperAdd(request):
+    '''
+        创建问卷的功能服务
+    '''
+
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result = packageResult(PaperAdd_ErrorCode.error, PaperAdd_ErrorMessage.no_login)
+        return dictToJsonResponse(result)
+    user = request.session[USER_SESSION_NAME]
+    requestData = request.REQUEST
+    result = _paperAdd(requestData, user)
+    return dictToJsonResponse(result)
 
 
 class PaperModify_ErrorCode:
@@ -136,21 +173,15 @@ class PaperModify_ErrorMessage:
     success = u'成功'
 
 
-def paperModify(request):
+def _paperModify(requestData, user):
     '''
-        问卷基本信息修改服务
+      处理问卷修改的具体过程
     '''
-
-    # 检查用户是否登录，并读取session中的用户信息
-    if USER_SESSION_NAME not in request.session.keys():
-        return packageResult(PaperModify_ErrorCode.error, PaperModify_ErrorMessage.no_login)
-    user = request.session[USER_SESSION_NAME]
-
     # 检查是否提供了id
-    keys = request.REQUEST.keys()
+    keys = requestData.keys()
     if 'id' not in keys:
         return packageResult(PaperModify_ErrorCode.error, PaperModify_ErrorMessage.no_id)
-    idSigned = request.REQUEST['id']
+    idSigned = requestData['id']
 
     # 对id进行数字签名的检查
     try:
@@ -184,7 +215,7 @@ def paperModify(request):
                           MODIFY_TIME_FIELD_NAME]:
             continue
         # 读取客户提供的新值
-        value = request.REQUEST.get(field.name, None)
+        value = requestData.get(field.name, None)
         # 特殊处理json的Boolean型的变量
         if type(field) == BooleanField:
             value = jsonBoolean2Python(value)
@@ -210,6 +241,20 @@ def paperModify(request):
     return packageResult(PaperModify_ErrorCode.success, PaperModify_ErrorMessage.success)
 
 
+def paperModify(request):
+    '''
+        问卷基本信息修改服务
+    '''
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result = packageResult(PaperModify_ErrorCode.error, PaperModify_ErrorMessage.no_login)
+        return dictToJsonResponse(result)
+    user = request.session[USER_SESSION_NAME]
+    requestData = request.REQUEST
+    result = _paperModify(requestData, user)
+    return dictToJsonResponse(result)
+
+
 class PaperDelete_ErrorCode:
     success = 0
     error = -1
@@ -225,21 +270,12 @@ class PaperDelete_ErrorMessage:
     success = u'成功'
 
 
-def paperDelete(request):
-    '''
-        问卷删除服务
-    '''
-
-    # 检查用户是否登录，并读取session中的用户信息
-    if USER_SESSION_NAME not in request.session.keys():
-        return packageResult(PaperDelete_ErrorCode.error, PaperDelete_ErrorMessage.no_login)
-    user = request.session[USER_SESSION_NAME]
-
+def _paperDelete(requestData, user):
     # 检查是否提供了id
-    keys = request.REQUEST.keys()
+    keys = requestData.keys()
     if 'id' not in keys:
         return packageResult(PaperDelete_ErrorCode.error, PaperDelete_ErrorMessage.no_id)
-    idSigned = request.REQUEST['id']
+    idSigned = requestData['id']
 
     # 对id进行数字签名的检查
     try:
@@ -266,6 +302,20 @@ def paperDelete(request):
     return packageResult(PaperDelete_ErrorCode.success, PaperDelete_ErrorMessage.success)
 
 
+def paperDelete(request):
+    '''
+        问卷删除服务
+    '''
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result = packageResult(PaperDelete_ErrorCode.error, PaperDelete_ErrorMessage.no_login)
+        return dictToJsonResponse(result)
+    user = request.session[USER_SESSION_NAME]
+    requestData = request.REQUEST
+    result = _paperDelete(requestData, user)
+    return dictToJsonResponse(result)
+
+
 class QuestionAdd_ErrorCode:
     success = 0
     error = -1
@@ -281,21 +331,15 @@ class QuestionAdd_ErrorMessage:
     validation_error = u'数据校验错误'
 
 
-def questionAdd(request):
+def _questionAdd(requestData, user):
     '''
-        为已有问卷增加一个问题的服务
+        为已有文件增加一个问题的处理过程
     '''
-
-    # 检查用户是否登录，并读取session中的用户信息
-    if USER_SESSION_NAME not in request.session.keys():
-        return packageResult(QuestionAdd_ErrorCode.error, QuestionAdd_ErrorMessage.no_login)
-    user = request.session[USER_SESSION_NAME]
-
     # 检查是否有提供paper
-    keys = request.REQUEST.keys()
+    keys = requestData.keys()
     if 'paper' not in keys:
         return packageResult(QuestionAdd_ErrorCode.error, QuestionAdd_ErrorMessage.no_paper)
-    paperIdSigned = request.REQUEST['paper']
+    paperIdSigned = requestData['paper']
 
     # 对id进行数字签名的检查
     try:
@@ -322,7 +366,7 @@ def questionAdd(request):
         if field.auto_created:
             continue
         # 读取request数据
-        value = request.REQUEST.get(field.name, None)
+        value = requestData.get(field.name, None)
         # 特殊处理json的Boolean型的变量
         if type(field) == BooleanField:
             value = jsonBoolean2Python(value)
@@ -352,11 +396,25 @@ def questionAdd(request):
             QuestionAdd_ErrorCode.error, QuestionAdd_ErrorMessage.validation_error,
             {'validationMessage': exception.message_dict}
         )
-
     # 写到数据库
     question.save()
     # 返回成功
     return packageResult(QuestionAdd_ErrorCode.success, QuestionAdd_ErrorMessage.success)
+
+
+def questionAdd(request):
+    '''
+        为已有问卷增加一个问题的服务
+    '''
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result = packageResult(QuestionAdd_ErrorCode.error, QuestionAdd_ErrorMessage.no_login)
+        return dictToJsonResponse(result)
+    user = request.session[USER_SESSION_NAME]
+    requestData = request.REQUEST
+    # 调用过程具体处理过程
+    result = _questionAdd(requestData, user)
+    return dictToJsonResponse(result)
 
 
 class QuestionModify_ErrorCode:
@@ -374,17 +432,12 @@ class QuestionModify_ErrorMessage:
     success = u'成功'
 
 
-def questionModify(request):
-    # 检查用户是否登录，并读取session中的用户信息
-    if USER_SESSION_NAME not in request.session.keys():
-        return packageResult(QuestionModify_ErrorCode.error, QuestionModify_ErrorMessage.no_login)
-    user = request.session[USER_SESSION_NAME]
-
+def _questionModify(requestData, user):
     # 检查是否提供了id
-    keys = request.REQUEST.keys()
+    keys = requestData.keys()
     if 'id' not in keys:
         return packageResult(QuestionModify_ErrorCode.error, QuestionModify_ErrorMessage.no_id)
-    idSigned = request.REQUEST['id']
+    idSigned = requestData['id']
 
     # 对id进行数字签名的检查
     try:
@@ -418,7 +471,7 @@ def questionModify(request):
                           MODIFY_TIME_FIELD_NAME]:
             continue
         # 读取客户提供的新值
-        value = request.REQUEST.get(field.name, None)
+        value = requestData.get(field.name, None)
         # 特殊处理json的Boolean型的变量
         if type(field) == BooleanField:
             value = jsonBoolean2Python(value)
@@ -443,6 +496,20 @@ def questionModify(request):
     return packageResult(QuestionModify_ErrorCode.success, QuestionModify_ErrorMessage.success)
 
 
+def questionModify(request):
+    '''
+        问题修改的后台服务
+    '''
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result = packageResult(QuestionModify_ErrorCode.error, QuestionModify_ErrorMessage.no_login)
+        return dictToJsonResponse(result)
+    user = request.session[USER_SESSION_NAME]
+    requestData = request.REQUEST
+    result = _questionModify(requestData, user)
+    return dictToJsonResponse(result)
+
+
 class QuestionDelete_ErrorCode:
     success = 0
     error = -1
@@ -458,21 +525,15 @@ class QuestionDelete_ErrorMessage:
     success = u'成功'
 
 
-def questionDelete(request):
+def _questionDelete(requestData, user):
     '''
-        问题删除服务
+        问题删除的具体处理过程
     '''
-
-    # 检查用户是否登录，并读取session中的用户信息
-    if USER_SESSION_NAME not in request.session.keys():
-        return packageResult(QuestionDelete_ErrorCode.error, QuestionDelete_ErrorMessage.no_login)
-    user = request.session[USER_SESSION_NAME]
-
     # 检查是否提供了id
-    keys = request.REQUEST.keys()
+    keys = requestData.keys()
     if 'id' not in keys:
         return packageResult(QuestionDelete_ErrorCode.error, QuestionDelete_ErrorMessage.no_id)
-    idSigned = request.REQUEST['id']
+    idSigned = requestData['id']
 
     # 对id进行数字签名的检查
     try:
@@ -505,6 +566,20 @@ def questionDelete(request):
     return packageResult(QuestionDelete_ErrorCode.success, QuestionDelete_ErrorMessage.success)
 
 
+def questionDelete(request):
+    '''
+        问题删除服务
+    '''
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result = packageResult(QuestionDelete_ErrorCode.error, QuestionDelete_ErrorMessage.no_login)
+        return dictToJsonResponse(result)
+    user = request.session[USER_SESSION_NAME]
+    requestData = request.REQUEST
+    result = _questionDelete(requestData, user)
+    return dictToJsonResponse(result)
+
+
 class BranchAdd_ErrorCode:
     error = -1
     success = 0
@@ -520,21 +595,15 @@ class BranchAdd_ErrorMessage:
     validation_error = u'数据校验错误'
 
 
-def branchAdd(request):
+def _branchAdd(requestData, user):
     '''
-        为问题添加一个题支(选项）的服务
+        增加一个选项的具体处理过程
     '''
-
-    # 检查用户是否登录，并读取session中的用户信息
-    if USER_SESSION_NAME not in request.session.keys():
-        return packageResult(BranchAdd_ErrorCode.error, BranchAdd_ErrorMessage.no_login)
-    user = request.session[USER_SESSION_NAME]
-
     # 检查是否有提供Question
-    keys = request.REQUEST.keys()
+    keys = requestData.keys()
     if 'question' not in keys:
         return packageResult(BranchAdd_ErrorCode.error, BranchAdd_ErrorMessage.no_question)
-    questionIdSigned = request.REQUEST['question']
+    questionIdSigned = requestData['question']
 
     # 对id进行数字签名的检查
     try:
@@ -561,7 +630,7 @@ def branchAdd(request):
         if field.auto_created:
             continue
         # 读取request数据
-        value = request.REQUEST.get(field.name, None)
+        value = requestData.get(field.name, None)
         # 特殊处理json的Boolean型的变量
         if type(field) == BooleanField:
             value = jsonBoolean2Python(value)
@@ -597,6 +666,20 @@ def branchAdd(request):
     return packageResult(BranchAdd_ErrorCode.success, BranchAdd_ErrorMessage.success)
 
 
+def branchAdd(request):
+    '''
+        为问题添加一个题支(选项）的服务
+    '''
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result = packageResult(BranchAdd_ErrorCode.error, BranchAdd_ErrorMessage.no_login)
+        return dictToJsonResponse(result)
+    user = request.session[USER_SESSION_NAME]
+    requestData = request.REQUEST
+    result = _branchAdd(requestData, user)
+    return dictToJsonResponse(result)
+
+
 class BranchModify_ErrorCode:
     success = 0
     error = -1
@@ -612,17 +695,15 @@ class BranchModify_ErrorMessage:
     validation_error = u'数据校验错误'
 
 
-def branchModify(request):
-    # 检查用户是否登录，并读取session中的用户信息
-    if USER_SESSION_NAME not in request.session.keys():
-        return packageResult(BranchModify_ErrorCode.error, BranchModify_ErrorMessage.no_login)
-    user = request.session[USER_SESSION_NAME]
-
+def _branchModify(requestData, user):
+    '''
+        选项修改具体处理过程
+    '''
     # 检查是否提供了id
-    keys = request.REQUEST.keys()
+    keys = requestData.keys()
     if 'id' not in keys:
         return packageResult(BranchModify_ErrorCode.error, BranchModify_ErrorMessage.no_id)
-    idSigned = request.REQUEST['id']
+    idSigned = requestData['id']
 
     # 对id进行数字签名的检查
     try:
@@ -657,12 +738,10 @@ def branchModify(request):
             continue
         # 读取客户提供的新值
 
-        value = request.REQUEST.get(field.name, None)
+        value = requestData.get(field.name, None)
         # 特殊处理json的Boolean型的变量
         if type(field) == BooleanField:
             value = jsonBoolean2Python(value)
-
-        print "value=", value
 
         # 对外键的特殊处理
         if type(field) == ForeignKey:
@@ -674,7 +753,6 @@ def branchModify(request):
                 except BadSignature:
                     # 篡改发现处理
                     return packageResult(BranchModify_ErrorCode.error, BranchModify_ErrorMessage.bad_signature)
-                print '--1--'
                 # id转化为对象
                 value = getForeignObject(field, value)
             else:
@@ -701,6 +779,20 @@ def branchModify(request):
     return packageResult(BranchModify_ErrorCode.success, BranchModify_ErrorMessage.success)
 
 
+def branchModify(request):
+    '''
+        选项修改的服务
+    '''
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result = packageResult(BranchModify_ErrorCode.error, BranchModify_ErrorMessage.no_login)
+        return dictToJsonResponse(result)
+    user = request.session[USER_SESSION_NAME]
+    requestData = request.REQUEST
+    result = _branchModify(requestData, user)
+    return dictToJsonResponse(result)
+
+
 class BranchDelete_ErrorCode:
     success = 0
     error = -1
@@ -716,18 +808,15 @@ class BranchDelete_ErrorMessage:
     validation_error = u'数据校验错误'
 
 
-@transaction.atomic
-def branchDelete(request):
-    # 检查用户是否登录，并读取session中的用户信息
-    if USER_SESSION_NAME not in request.session.keys():
-        return packageResult(BranchDelete_ErrorCode.error, BranchDelete_ErrorMessage.no_login)
-    user = request.session[USER_SESSION_NAME]
-
+def _branchDelete(requestData, user):
+    '''
+        选项删除的具体处理过程
+    '''
     # 检查是否提供了id
-    keys = request.REQUEST.keys()
+    keys = requestData.keys()
     if 'id' not in keys:
         return packageResult(BranchDelete_ErrorCode.error, BranchDelete_ErrorMessage.no_id)
-    idSigned = request.REQUEST['id']
+    idSigned = requestData['id']
 
     # 对id进行数字签名的检查
     try:
@@ -753,4 +842,38 @@ def branchDelete(request):
     # 返回成功
     return packageResult(BranchDelete_ErrorCode.success, BranchDelete_ErrorMessage.success)
 
+
+def branchDelete(request):
+    '''
+        选项删除的具体处理过程
+    '''
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        return packageResult(BranchDelete_ErrorCode.error, BranchDelete_ErrorMessage.no_login)
+    user = request.session[USER_SESSION_NAME]
+    requestData = request.REQUEST
+    _branchDelete(requestData, user)
+
+
+class addDefaultSingleQuestion_ErrorCode:
+    success = 0
+    error = -1
+
+
+class addDefaultSingleQuestion_ErrorMessage:
+    success = u'成功'
+    no_login = u'没有登录'
+
+
+def addDefaultSingleQuestion(request):
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        return packageResult(addDefaultSingleQuestion_ErrorCode.error, addDefaultSingleQuestion_ErrorMessage.no_login)
+    user = request.session[USER_SESSION_NAME]
+    requestData = request.REQUEST
+    if 'text' not in requestData.keys:
+        requestData['text'] = u'新增问题'
+    errorInfo = _questionAdd(requestData, user)
+    if errorInfo['errorCode'] != 0:
+        return errorInfo
 
