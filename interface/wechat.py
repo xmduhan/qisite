@@ -1,3 +1,4 @@
+#-*- coding: utf-8 -*-
 # Create your views here.
 
 from django.http import HttpResponse
@@ -14,5 +15,4 @@ def service(request):
     print '------2--------'
     print request.POST
     print '------3--------'
-    return HttpResponse('')
-
+    return HttpResponse('ok')
