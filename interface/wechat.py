@@ -10,6 +10,6 @@ def service(request):
         微信服务的中转器
     '''
     print request.REQUEST
-    print request.raw_post_data
+    print request.POST
     return HttpResponse('')
 
