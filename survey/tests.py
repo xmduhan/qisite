@@ -30,7 +30,7 @@ class TransactionTest(TestCase):
         try:
             Paper(title=title).save()
             step = 1
-            raise
+            raise Exception()
         except:
             pass
         paperList = Paper.objects.filter(title=title)
@@ -44,7 +44,7 @@ class TransactionTest(TestCase):
             with transaction.atomic():
                 Paper(title=title).save()
                 step = 1
-                raise
+                raise Exception()
         except Exception as e:
             print e
             pass
@@ -373,8 +373,8 @@ class PaperAddTest(TestCase):
         client = Client()
         response = client.post(self.serviceUrl, {'title': 'test'})
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)  # 出错
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.NO_LOGIN)  # 没有登录错误
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)  # 没有登录错误
 
 
     def test_add_paper_no_title(self):
@@ -385,8 +385,8 @@ class PaperAddTest(TestCase):
         # 调用问卷添加服务
         response = client.post(self.serviceUrl, {'test': '123'})
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)  # 出错
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.VALIDATION_ERROR)  # 数据校验错
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.VALIDATION_ERROR)  # 数据校验错
         self.assertIn('title', result['validationMessage'])  # 校验错误信息中含title
 
     def test_add_paper_success(self):
@@ -396,8 +396,8 @@ class PaperAddTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, {'title': 'test'})
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.SUCCESS)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.SUCCESS)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
 
 
 class PaperModifyTest(TestCase):
@@ -439,8 +439,8 @@ class PaperModifyTest(TestCase):
         client = Client()
         response = client.post(self.serviceUrl, self.data_valid)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.NO_LOGIN)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)
 
     def test_no_id(self):
         '''
@@ -449,8 +449,8 @@ class PaperModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, {})
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.NO_ID)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_ID)
 
     def test_bad_signature(self):
         '''
@@ -459,8 +459,8 @@ class PaperModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_bad_signature)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
 
     def test_paper_not_exist(self):
         '''
@@ -472,8 +472,8 @@ class PaperModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_valid)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.OBJECT_NOT_EXIST)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.OBJECT_NOT_EXIST)
 
     def test_no_privilege(self):
         '''
@@ -482,8 +482,8 @@ class PaperModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_no_privilege)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
 
     def test_validation_error(self):
         '''
@@ -492,8 +492,8 @@ class PaperModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_validation_error)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.VALIDATION_ERROR)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.VALIDATION_ERROR)
 
     def test_success(self):
         '''
@@ -502,8 +502,8 @@ class PaperModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_valid, format='json')
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.SUCCESS)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.SUCCESS)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
         # 确认数据已经被修改
         paper = Paper.objects.filter(id=self.paper.id)[0]
         self.assertNotEquals(paper.inOrder, self.paper.inOrder)
@@ -515,8 +515,8 @@ class PaperModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_tamper)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.SUCCESS)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.SUCCESS)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
         # 确认数据不会被篡改
         paper = Paper.objects.filter(id=self.paper.id)[0]
         self.assertEquals(paper.createBy, self.paper.createBy)
@@ -563,8 +563,8 @@ class QuestionAddTest(TestCase):
         client = Client()
         response = client.post(self.serviceUrl, self.data_valid)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.NO_LOGIN)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)
 
     def test_no_paper(self):
         '''
@@ -573,8 +573,8 @@ class QuestionAddTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, {})
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.NO_ID)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_ID)
 
     def test_bad_signature(self):
         '''
@@ -583,8 +583,8 @@ class QuestionAddTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_bad_signature)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
 
     def test_paper_no_exist(self):
         '''
@@ -594,8 +594,8 @@ class QuestionAddTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_valid)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.OBJECT_NOT_EXIST)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.OBJECT_NOT_EXIST)
 
     def test_no_privilege(self):
         '''
@@ -604,8 +604,8 @@ class QuestionAddTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_no_privilege)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
 
     def test_invalid_type(self):
         '''
@@ -614,8 +614,8 @@ class QuestionAddTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_invalid_type)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.VALIDATION_ERROR)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.VALIDATION_ERROR)
 
     def test_invalid_length(self):
         '''
@@ -624,8 +624,8 @@ class QuestionAddTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_invalid_length)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.VALIDATION_ERROR)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.VALIDATION_ERROR)
 
     def test_sucess(self):
         '''
@@ -634,8 +634,8 @@ class QuestionAddTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_valid)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.SUCCESS)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.SUCCESS)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
 
 
 class QuestionModifyTest(TestCase):
@@ -684,8 +684,8 @@ class QuestionModifyTest(TestCase):
         client = Client()
         response = client.post(self.serviceUrl, self.data_valid)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.NO_LOGIN)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)
 
     def test_no_id(self):
         '''
@@ -694,8 +694,8 @@ class QuestionModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, {})
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.NO_ID)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_ID)
 
     def test_bad_signature(self):
         '''
@@ -704,8 +704,8 @@ class QuestionModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_bad_signature)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
 
     def test_question_not_exist(self):
         '''
@@ -715,8 +715,8 @@ class QuestionModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_valid)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.OBJECT_NOT_EXIST)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.OBJECT_NOT_EXIST)
 
     def test_no_privilege(self):
         '''
@@ -725,8 +725,8 @@ class QuestionModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_no_privilege)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
 
     def test_validation_error(self):
         '''
@@ -735,8 +735,8 @@ class QuestionModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_validation_error)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.VALIDATION_ERROR)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.VALIDATION_ERROR)
 
     def test_success(self):
         '''
@@ -745,8 +745,8 @@ class QuestionModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_valid)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.SUCCESS)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.SUCCESS)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
         # 确认数据已经被修改
         question = Question.objects.filter(id=self.question.id)[0]
         self.assertNotEquals(question.confused, self.question.confused)
@@ -755,8 +755,8 @@ class QuestionModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_tamper)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.SUCCESS)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.SUCCESS)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
         # 确定数据不会被篡改
         question = Question.objects.filter(id=self.question.id)[0]
         self.assertEquals(question.createBy, self.question.createBy)
@@ -804,8 +804,8 @@ class BranchAddTest(TestCase):
         client = Client()
         response = client.post(self.serviceUrl, self.data_valid)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.NO_LOGIN)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)
 
 
     def test_no_question(self):
@@ -815,8 +815,8 @@ class BranchAddTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, {})
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.NO_ID)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_ID)
 
     def test_bad_signature(self):
         '''
@@ -825,8 +825,8 @@ class BranchAddTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_bad_signature)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
 
     def test_question_no_exist(self):
         '''
@@ -836,8 +836,8 @@ class BranchAddTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_valid)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.OBJECT_NOT_EXIST)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.OBJECT_NOT_EXIST)
 
     def test_no_privilege(self):
         '''
@@ -846,8 +846,8 @@ class BranchAddTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_no_privilege)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
 
     def test_success(self):
         '''
@@ -856,8 +856,8 @@ class BranchAddTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_valid)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.SUCCESS)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.SUCCESS)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
 
 
 class BranchModifyTest(TestCase):
@@ -907,8 +907,8 @@ class BranchModifyTest(TestCase):
         client = Client()
         response = client.post(self.serviceUrl, self.data_valid)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.NO_LOGIN)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)
 
     def test_no_id(self):
         '''
@@ -917,8 +917,8 @@ class BranchModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, {})
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.NO_ID)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_ID)
 
     def test_bad_signature(self):
         '''
@@ -927,8 +927,8 @@ class BranchModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_bad_signature)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
 
     def test_branch_not_exist(self):
         '''
@@ -938,8 +938,8 @@ class BranchModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_valid)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.OBJECT_NOT_EXIST)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.OBJECT_NOT_EXIST)
 
     def test_no_privilege(self):
         '''
@@ -948,8 +948,8 @@ class BranchModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_no_privilege)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.ERROR)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
 
     def test_success(self):
         '''
@@ -958,5 +958,86 @@ class BranchModifyTest(TestCase):
         client = self.client
         response = client.post(self.serviceUrl, self.data_valid)
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], RESULT_CODE.SUCCESS)
-        self.assertEquals(result['errorMessage'], RESULT_MESSAGE.SUCCESS)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
+
+
+class AddDefaultSingleQuestionTest(TestCase):
+    '''
+        新增默认单选题服务的测试用例
+    '''
+
+    def setUp(self):
+        setup_test_environment()
+        # 创建用户并且用其登陆
+        self.user = User(phone=phoneForTest, password=make_password(passwordForTest))
+        self.user.save()
+        self.client = Client()
+        loginForTest(self.client, phoneForTest, passwordForTest)
+        # 创建一个用于测试的Paper
+        self.paper = Paper(title='paper_123', createBy=self.user, modifyBy=self.user)
+        self.paper.save()
+        # 创建另一个测试用户
+        self.user_other = User(phone='123')
+        self.user_other.save()
+        self.paper_other = Paper(title='paper_other', createBy=self.user_other, modifyBy=self.user_other)
+        self.paper_other.save()
+        # 设定service url
+        self.serviceUrl = reverse('survey:service.question.addDefaultSingleQuestion')
+        # 准备提交的测试数据
+        signer = Signer()
+        self.data_valid = {'paper': signer.sign(self.paper.id)}
+        self.data_bad_signature = {'paper': self.paper.id}
+        self.data_no_privilege = {'paper': signer.sign(self.paper_other.id)}
+        self.data_invalid_type = {'paper': signer.sign(self.paper.id)}
+
+    def test_no_login(self):
+        '''
+            测试没有登录的情况
+        '''
+        client = Client()
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)
+
+    def test_no_id(self):
+        '''
+            测试没有提供paper的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, {})
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_ID)
+
+    def test_bad_signature(self):
+        '''
+            测试篡改数字签名的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_bad_signature)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
+
+
+    def test_no_privilege(self):
+        '''
+            测试没有权限的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_no_privilege)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
+
+    def test_success(self):
+        '''
+            测试成功的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)

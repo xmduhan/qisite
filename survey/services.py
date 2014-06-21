@@ -9,6 +9,10 @@
     存在问题：
     1、对字段的处理，没有考虑外键、多对多关系、一对一关系。
 
+    重构队列：
+    1、检查用户是否登录部分
+    2、数字前签名的检查部分
+    3、errorCode改成resultCode
 
 '''
 import json
@@ -29,13 +33,13 @@ class RESULT_CODE:
 
 
 class RESULT_MESSAGE:
-    NO_LOGIN = u'1没有登录'
-    VALIDATION_ERROR = u'1数据有效性校验失败'
-    NO_ID = u'1需要执行对象标识'
-    BAD_SAGNATURE = u'1数字签名无效'
-    OBJECT_NOT_EXIST = u'1对象不存在'
-    NO_PRIVILEGE = u'1没有权限操作该对象'
-    SUCCESS = u'1成功'
+    NO_LOGIN = u'没有登录'
+    VALIDATION_ERROR = u'数据有效性校验失败'
+    NO_ID = u'需要执行对象标识'
+    BAD_SAGNATURE = u'数字签名无效'
+    OBJECT_NOT_EXIST = u'对象不存在'
+    NO_PRIVILEGE = u'没有权限操作该对象'
+    SUCCESS = u'成功'
 
 
 def getModelFields(model):
@@ -52,13 +56,13 @@ def getForeignObject(field, id):
     return field.rel.to.objects.get(id=id)
 
 
-def packageResult(errorCode, errorMessage, others={}):
+def packageResult(resultCode, resultMessage, others={}):
     '''
         将错误信息打包成为一个字典
     '''
     result = {}
-    result['errorCode'] = errorCode
-    result['errorMessage'] = errorMessage
+    result['resultCode'] = resultCode
+    result['resultMessage'] = resultMessage
     result = dict(result.items() + others.items())
     return result
 
@@ -68,6 +72,10 @@ def dictToJsonResponse(result):
         将一个字典转化为json结构的http返回数据
     '''
     return HttpResponse(json.dumps(result))
+
+
+def packageResponse(resultCode, resultMessage, others={}):
+    return dictToJsonResponse(packageResult(resultCode, resultMessage, others))
 
 
 def jsonBoolean2Python(jsonStringValue):
@@ -134,7 +142,7 @@ def _paperAdd(requestData, user):
             RESULT_CODE.ERROR, RESULT_MESSAGE.VALIDATION_ERROR, {'validationMessage': exception.message_dict})
     # 保存到数据库
     paper.save()
-    return packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS)
+    return packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'paperId': paper.id})
 
 
 def paperAdd(request):
@@ -347,7 +355,7 @@ def _questionAdd(requestData, user):
     # 写到数据库
     question.save()
     # 返回成功
-    return packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS)
+    return packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'questionId': question.id})
 
 
 def questionAdd(request):
@@ -566,7 +574,7 @@ def _branchAdd(requestData, user):
     # 写到数据库
     branch.save()
     # 返回成功
-    return packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS)
+    return packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'branchId': branch.id})
 
 
 def branchAdd(request):
@@ -721,31 +729,51 @@ def branchDelete(request):
     '''
     # 检查用户是否登录，并读取session中的用户信息
     if USER_SESSION_NAME not in request.session.keys():
-        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
+        return packageResponse(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
     user = request.session[USER_SESSION_NAME]
     requestData = request.REQUEST
-    _branchDelete(requestData, user)
-
-
-class addDefaultSingleQuestion_ErrorCode:
-    success = 0
-    error = -1
-
-
-class addDefaultSingleQuestion_ErrorMessage:
-    success = u'成功'
-    no_login = u'没有登录'
+    result = _branchDelete(requestData, user)
+    return dictToJsonResponse(result)
 
 
 def addDefaultSingleQuestion(request):
+    '''
+        增加一个默认结构的单选题，提供给前台的新增问题按钮使用。
+    '''
     # 检查用户是否登录，并读取session中的用户信息
     if USER_SESSION_NAME not in request.session.keys():
-        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
+        return packageResponse(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
     user = request.session[USER_SESSION_NAME]
-    requestData = request.REQUEST
-    if 'text' not in requestData.keys:
-        requestData['text'] = u'新增问题'
-    errorInfo = _questionAdd(requestData, user)
-    if errorInfo['errorCode'] != 0:
-        return errorInfo
+
+    #
+    print request.REQUEST
+
+    # 检查是否提供了paper
+    if 'paper' not in request.REQUEST.keys():
+        return packageResponse(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_ID)
+    paperId = request.REQUEST['paper']
+
+    # 调用问题新增处理过程
+    requestData = {'paper': paperId, 'text': u'新增问题', 'type': 'Single'}
+    result = _questionAdd(requestData, user)
+    if result['resultCode'] != 0:
+        return dictToJsonResponse(result)
+    questionId = result['questionId']
+
+
+    # 对id进行数字签名
+    signer = Signer()
+    questionId = signer.sign(questionId)
+
+    # 增加两个默认选项
+    for i in [1, 2]:
+        requestData = {'question': questionId, 'text': u'选项%d' % i}
+        result = _branchAdd(requestData, user)
+        if result['resultCode'] != 0:
+            return dictToJsonResponse(result)
+
+    # 返回成功
+    return packageResponse(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS)
+
+
 

@@ -18,9 +18,9 @@
                     <input type="text" class="form-control data-binding-field-text"
                            placeholder="请填写"
                            value="{{ question.text }}"
-                           data-action="{% url 'survey:service.question.modify' %}"
-                           data-id="{{ question.getIdSigned }}"
-                           data-field-name="text">
+                           data-binding-action="{% url 'survey:service.question.modify' %}"
+                           data-binding-id="{{ question.getIdSigned }}"
+                           data-binding-field-name="text">
                 </div>
             </div>
             {# 是否乱序(switch控件) #}
@@ -28,9 +28,9 @@
                 <div class="input-group input-group-sm">
                     <input class="bootstrap-switch-input-confused data-binding-field-switch"
                            type="checkbox" {% if question.confused %}checked{% endif %}
-                           data-action="{% url 'survey:service.question.modify' %}"
-                           data-id="{{ question.getIdSigned }}"
-                           data-field-name="confused"/>
+                           data-binding-action="{% url 'survey:service.question.modify' %}"
+                           data-binding-id="{{ question.getIdSigned }}"
+                           data-binding-field-name="confused"/>
                 </div>
             </div>
         </div>
@@ -49,9 +49,9 @@
                         {# 题支的文字内容 #}
                         <input type="text" class="form-control data-binding-field-text"
                                value="{{ branch.text }}"
-                               data-action="{% url 'survey:service.branch.modify' %}"
-                               data-id="{{ branch.getIdSigned }}"
-                               data-field-name="text">
+                               data-binding-action="{% url 'survey:service.branch.modify' %}"
+                               data-binding-id="{{ branch.getIdSigned }}"
+                               data-binding-field-name="text">
                         {# 题支的删除按钮 #}
                         <span class="input-group-addon">
                             <span class="glyphicon glyphicon-remove-sign pull-right "></span>
@@ -64,9 +64,9 @@
                     <div class="btn-group btn-block">
                         <select class="selectpicker data-binding-field-select" data-width='auto'
                                 value='{{ branch.nextQuestion }}'
-                                data-action="{% url 'survey:service.branch.modify' %}"
-                                data-id="{{ branch.getIdSigned }}"
-                                data-field-name="nextQuestion">
+                                data-binding-action="{% url 'survey:service.branch.modify' %}"
+                                data-binding-id="{{ branch.getIdSigned }}"
+                                data-binding-field-name="nextQuestion">
                             {# 列出所有可达问题 #}
                             {#  <optgroup>#}
                             {% for reachableQuestion in  branch.getReachableQuestion %}

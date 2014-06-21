@@ -63,9 +63,9 @@
                             <span class="input-group-addon">问卷名称</span>
                             <input type="text" class="form-control data-binding-field-text" placeholder="请填写问卷名称"
                                    value="{{ paper.title }}"
-                                   data-action="{% url 'survey:service.paper.modify' %}"
-                                   data-id="{{ paper.getIdSigned }}"
-                                   data-field-name="title">
+                                   data-binding-action="{% url 'survey:service.paper.modify' %}"
+                                   data-binding-id="{{ paper.getIdSigned }}"
+                                   data-binding-field-name="title">
                         </div>
                     </div>
                 </div>
@@ -78,9 +78,9 @@
                             <span class="input-group-addon">问卷描述</span>
                             <input type="text" class="form-control data-binding-field-text" placeholder="请填写问卷描述"
                                    value="{{ paper.description }}"
-                                   data-action="{% url 'survey:service.paper.modify' %}"
-                                   data-id="{{ paper.getIdSigned }}"
-                                   data-field-name="description">
+                                   data-binding-action="{% url 'survey:service.paper.modify' %}"
+                                   data-binding-id="{{ paper.getIdSigned }}"
+                                   data-binding-field-name="description">
                         </div>
                     </div>
                 </div>
@@ -93,10 +93,9 @@
                             <button type="button" class="btn btn-default">标号样式</button>
                             <select class="selectpicker data-binding-field-select" data-width='auto'
                                     value='{{ paper.questionNumStyle }}'
-                                    data-action="{% url 'survey:service.paper.modify' %}"
-                                    data-id="{{ paper.getIdSigned }}"
-                                    data-field-name="questionNumStyle"
-                                    data-reload-page=true>
+                                    data-binding-action="{% url 'survey:service.paper.modify' %}"
+                                    data-binding-id="{{ paper.getIdSigned }}"
+                                    data-binding-field-name="questionNumStyle">
                                 {# 列出可选标号样式数据 #}
                                 {% for code,display in  paper.getNumStyleAvailable %}
                                     <option
@@ -116,9 +115,9 @@
                             <input name='test01' class="bootstrap-switch-input data-binding-field-switch"
                                    type="checkbox"
                                    {% if paper.paging %}checked{% endif %}
-                                   data-action="{% url 'survey:service.paper.modify' %}"
-                                   data-id="{{ paper.getIdSigned }}"
-                                   data-field-name="paging"/>
+                                   data-binding-action="{% url 'survey:service.paper.modify' %}"
+                                   data-binding-id="{{ paper.getIdSigned }}"
+                                   data-binding-field-name="paging"/>
                         </div>
                     </div>
 
@@ -128,9 +127,9 @@
                             <span class="input-group-addon">顺序答题</span>
                             <input class="bootstrap-switch-input data-binding-field-switch" type="checkbox"
                                    {% if paper.inOrder %}checked{% endif %}
-                                   data-action="{% url 'survey:service.paper.modify' %}"
-                                   data-id="{{ paper.getIdSigned }}"
-                                   data-field-name="inOrder"/>
+                                   data-binding-action="{% url 'survey:service.paper.modify' %}"
+                                   data-binding-id="{{ paper.getIdSigned }}"
+                                   data-binding-field-name="inOrder"/>
                         </div>
                     </div>
 
@@ -140,9 +139,9 @@
                             <span class="input-group-addon">返回修改</span>
                             <input class="bootstrap-switch-input data-binding-field-switch" type="checkbox"
                                    {% if paper.lookBack %}checked{% endif %}
-                                   data-action="{% url 'survey:service.paper.modify' %}"
-                                   data-id="{{ paper.getIdSigned }}"
-                                   data-field-name="lookBack"/>
+                                   data-binding-action="{% url 'survey:service.paper.modify' %}"
+                                   data-binding-id="{{ paper.getIdSigned }}"
+                                   data-binding-field-name="lookBack"/>
                         </div>
                     </div>
                 </div>
@@ -193,25 +192,27 @@
             <div class="modal-body">
                 <div class="row" align="center">
                     <div class="col-md-3">
-                        <button id="addSingleButton" class="btn btn-default btn-block btn-lg ">
-                            <span class="glyphicon glyphicon-check"></span>
+                        <button id="addSingleButton" class="btn btn-default btn-block btn-lg "
+                                data-binding-action="{% url 'survey:service.question.addDefaultSingleQuestion' %}"
+                                data-binding-paper-id="{{ paper.getIdSigned }}">
+                            <span class="glyphicon glyphicon-check btn-paper-add-question"></span>
                             单选题
                         </button>
                     </div>
                     <div class="col-md-3">
-                        <button class="btn btn-default btn-block btn-lg">
+                        <button class="btn btn-default btn-block btn-lg btn-paper-add-question">
                             <span class="glyphicon glyphicon-th-list"></span>
                             多选题
                         </button>
                     </div>
                     <div class="col-md-3">
-                        <button class="btn btn-default btn-block btn-lg">
+                        <button class="btn btn-default btn-block btn-lg btn-paper-add-question">
                             <span class="glyphicon glyphicon-pencil"></span>
                             填空题
                         </button>
                     </div>
                     <div class="col-md-3">
-                        <button class="btn btn-default btn-block btn-lg">
+                        <button class="btn btn-default btn-block btn-lg btn-paper-add-question">
                             <span class="glyphicon glyphicon-star"></span>
                             评分题
                         </button>

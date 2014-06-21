@@ -17,9 +17,9 @@ function initBootstrapSwitch() {
  ***************************************/
 function saveFieldValue(control, value) {
     // 从控件中读取数据
-    id = $(control).data('id')
-    field_name = $(control).data('field-name')
-    action = $(control).data('action')
+    id = $(control).data('binding-id')
+    field_name = $(control).data('binding-field-name')
+    action = $(control).data('binding-action')
     data = {}
     data['id'] = id;
     data[field_name] = value;
@@ -33,11 +33,8 @@ function saveFieldValue(control, value) {
         // 通讯成功，解析返回结果做进一步处理
         success: function (result) {
             console.log('save successfully');
-            console.log('errorCode:' + result['errorCode']);
-            console.log('errorMessage:' + result['errorMessage']);
-            if ($(control).data('reload-page') == true) {
-                console.log('page need reload');
-            }
+            console.log('resultCode:' + result['resultCode']);
+            console.log('resultMessage:' + result['resultMessage']);
         },
         // 失败说明网络有问题或者服务器有问题
         error: function (xhr, status, errorThrown) {
@@ -94,12 +91,35 @@ function getQuestion(id) {
 function initButtonAddAction() {
     $('#addSingleButton').on('click', function () {
         // 调用增加服务（获取新增问题的id
-
         // 调用选项增加服务，增加两个默认选项
-
         // 调用后台服务读取html文件的DOM
-
         //
+        paperId = $(this).data('binding-paperId')
+        action = $(this).data('binding-action')
+        data = {}
+        data['paper'] = paperId;
+        console.log('paper=' + paperId);
+        // 向服务器提交数据
+        $.ajax({
+            url: action,
+            data: data,
+            type: "post",
+            dataType: "json",
+            async: true,
+            // 通讯成功，解析返回结果做进一步处理
+            success: function (result) {
+                console.log('save successfully');
+                console.log('resultCode:' + result['resultCode']);
+                console.log('resultMessage:' + result['resultMessage']);
+            },
+            // 失败说明网络有问题或者服务器有问题
+            error: function (xhr, status, errorThrown) {
+                console.log('save error');
+            },
+            complete: function (xhr, status) {
+                console.log("The request is complete!");
+            }
+        });
     });
 }
 

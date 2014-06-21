@@ -27,6 +27,8 @@ urlpatterns = patterns(
     url(r'^service/question/add$', services.questionAdd, name='service.question.add'),
     url(r'^service/question/modify$', services.questionModify, name='service.question.modify'),
     url(r'^service/question/delete$', services.questionDelete, name='service.question.delete'),
+    url(r'^service/question/addDefaultSingleQuestion$', services.addDefaultSingleQuestion,
+        name='service.question.addDefaultSingleQuestion'),
     ## branch
     url(r'^service/branch/add$', services.branchAdd, name='service.branch.add'),
     url(r'^service/branch/modify$', services.branchModify, name='service.branch.modify'),
