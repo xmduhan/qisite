@@ -6,6 +6,6 @@ import wechat
 urlpatterns = patterns(
     '',
     # 列表页面
-    url(r'^wechat$', wechat.service, name='wechat.service'),
+    url(r'^wechat$', wechat.service, name='wechat'),
 
 )
