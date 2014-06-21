@@ -25,7 +25,9 @@ class TestWeChat(TestCase):
         echostr = 'hello'
         nonce = "".join(random.sample(string.letters, 10))
         timestamp = str(datetime.now())
-        signature = hashlib.sha1(''.join([TOKEN, timestamp, nonce])).hexdigest()
+        keys = [TOKEN, timestamp, nonce]
+        keys.sort()
+        signature = hashlib.sha1(''.join(keys)).hexdigest()
         data = {'signature': signature, 'timestamp': timestamp, 'nonce': nonce, 'echostr': echostr}
         client = self.client
         response = client.get(self.url, data)

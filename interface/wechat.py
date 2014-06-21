@@ -21,7 +21,9 @@ def developerConfirm(request):
     print 'signature =', signature
     echostr = request.REQUEST.get('echostr', None)
     print 'echostr =', echostr
-    calculated = hashlib.sha1(''.join([TOKEN, timestamp, nonce])).hexdigest()
+    keys = [TOKEN, timestamp, nonce]
+    keys.sort()
+    calculated = hashlib.sha1(''.join(keys)).hexdigest()
     if signature == calculated:
         print '----- success ------'
         return HttpResponse(echostr)
