@@ -23,8 +23,10 @@ def developerConfirm(request):
     print 'echostr =', echostr
     calculated = hashlib.sha1(''.join([TOKEN, timestamp, nonce])).hexdigest()
     if signature == calculated:
+        print '----- success ------'
         return HttpResponse(echostr)
     else:
+        print '----- error ------'
         return HttpResponse('no match!')
 
 
