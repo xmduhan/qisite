@@ -155,7 +155,7 @@
     {# end panel #}
 
     {# 问题内容框 #}
-    <div class="well">
+    <div class="well" id="questionBox">
         {% for question in paper.getQuestionSetInOrder %}
             {% include "survey/question/question.html" with question=question only %}
         {% endfor %}
@@ -192,10 +192,11 @@
             <div class="modal-body">
                 <div class="row" align="center">
                     <div class="col-md-3">
-                        <button id="addSingleButton" class="btn btn-default btn-block btn-lg "
+                        <button id="addSingleButton"
+                                class="btn btn-default btn-block btn-lg btn-paper-add-question"
                                 data-binding-action="{% url 'survey:service.question.addDefaultSingleQuestion' %}"
                                 data-binding-paper-id="{{ paper.getIdSigned }}">
-                            <span class="glyphicon glyphicon-check btn-paper-add-question"></span>
+                            <span class="glyphicon glyphicon-check"></span>
                             单选题
                         </button>
                     </div>

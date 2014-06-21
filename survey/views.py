@@ -5,6 +5,7 @@ from django.http import HttpResponse, Http404
 from django.template import Context, loader, RequestContext
 from account.models import User
 from models import *
+from django.core.signing import Signer, BadSignature
 
 
 def getCurrent():
@@ -62,9 +63,22 @@ def questionEdit(request, questionId):
         生成问题编辑DOM片段的view服务
     '''
     user = getCurrent()
-    question = Question.objects.get(id=questionId)
+
+    # 检查数字签名
+    try:
+        sign = Signer()
+        questionIdUnsigned = sign.unsign(questionId)
+    except BadSignature as bs:
+        raise Http404
+
+    # 根据id查询问题对象
+    question = Question.objects.get(id=questionIdUnsigned)
+
+    # 检查用户是否权限查看该对象
     if question.createBy != user:
         raise Http404
+
+    # 返回数据
     template = loader.get_template('survey/question/question.html')
     context = RequestContext(request, {'question': question})
     return HttpResponse(template.render(context))

@@ -12,7 +12,6 @@
     重构队列：
     1、检查用户是否登录部分
     2、数字前签名的检查部分
-    3、errorCode改成resultCode
 
 '''
 import json
@@ -745,9 +744,6 @@ def addDefaultSingleQuestion(request):
         return packageResponse(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
     user = request.session[USER_SESSION_NAME]
 
-    #
-    print request.REQUEST
-
     # 检查是否提供了paper
     if 'paper' not in request.REQUEST.keys():
         return packageResponse(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_ID)
@@ -773,7 +769,7 @@ def addDefaultSingleQuestion(request):
             return dictToJsonResponse(result)
 
     # 返回成功
-    return packageResponse(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS)
+    return packageResponse(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'id': questionId})
 
 
 

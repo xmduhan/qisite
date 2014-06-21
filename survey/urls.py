@@ -13,7 +13,7 @@ urlpatterns = patterns(
     url(r'^view/survey/edit$', views.surveyEdit, name='view.survey.edit'),
     url(r'^view/paper/edit/(?P<paperId>\d+)$', views.paperEdit, name='view.paper.edit'),
     # 获取问题编辑
-    url(r'^view/question/edit/(?P<questionId>\d+)$', views.questionEdit, name='view.question.edit'),
+    url(r'^view/question/edit/(?P<questionId>\S+)$', views.questionEdit, name='view.question.edit'),
     # 增删改服务
     ## survey
     url(r'^service/survey/add$', services.surveyAdd, name='service.survey.add'),
