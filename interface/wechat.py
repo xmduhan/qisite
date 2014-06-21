@@ -14,21 +14,15 @@ def developerConfirm(request):
         微信公众平台的开发者认证服务
     '''
     timestamp = request.REQUEST.get('timestamp', None)
-    print 'timestamp =', timestamp
     nonce = request.REQUEST.get('nonce', None)
-    print 'nonce =', nonce
     signature = request.REQUEST.get('signature', None)
-    print 'signature =', signature
     echostr = request.REQUEST.get('echostr', None)
-    print 'echostr =', echostr
     keys = [TOKEN, timestamp, nonce]
     keys.sort()
     calculated = hashlib.sha1(''.join(keys)).hexdigest()
     if signature == calculated:
-        print '----- success ------'
         return HttpResponse(echostr)
     else:
-        print '----- error ------'
         return HttpResponse('no match!')
 
 
@@ -41,4 +35,5 @@ def service(request):
     if request.method == 'GET':
         return developerConfirm(request)
 
-    return HttpResponse('ok')
+    # 返回空字串，表示对此类型不处理
+    return HttpResponse('')
