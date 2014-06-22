@@ -12,9 +12,17 @@ import hashlib
 
 class TestWeChat(TestCase):
     def setUp(self):
+        #
         setup_test_environment()
         self.url = reverse('interface:wechat')
         self.client = Client()
+
+        # 构造安全验证数据
+        self.nonce = "".join(random.sample(string.letters, 10))
+        self.timestamp = str(datetime.now())
+        keys = [TOKEN, self.timestamp, self.nonce]
+        keys.sort()
+        self.signature = hashlib.sha1(''.join(keys)).hexdigest()
 
 
     def test_interface_create(self):
@@ -23,15 +31,25 @@ class TestWeChat(TestCase):
             具体参见:http://mp.weixin.qq.com/wiki/index.php?title=接入指南
         '''
         echostr = 'hello'
-        nonce = "".join(random.sample(string.letters, 10))
-        timestamp = str(datetime.now())
-        keys = [TOKEN, timestamp, nonce]
-        keys.sort()
-        signature = hashlib.sha1(''.join(keys)).hexdigest()
-        data = {'signature': signature, 'timestamp': timestamp, 'nonce': nonce, 'echostr': echostr}
+        data = {'signature': self.signature, 'timestamp': self.timestamp, 'nonce': self.nonce, 'echostr': echostr}
         client = self.client
         response = client.get(self.url, data)
         self.assertEquals(echostr, response.content)
+
+    def test_processTextMessage(self):
+        '''
+            测试从微信公众平台中接收文本消息
+        '''
+        security = {'signature': self.signature, 'timestamp': self.timestamp, 'nonce': self.nonce}
+        message = {'ToUserName': 'ToUserName', 'FromUserName': 'FromUserName', 'CreateTime': 1, 'MsgType': 'text',
+                   'Content': 'hello', 'MsgId': 1}
+        client = self.client
+        client.post(self.url, security, extra=message)
+
+
+    def test_cheater_request(self):
+        pass
+
 
 
 
