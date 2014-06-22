@@ -85,6 +85,7 @@ def service(request):
             if len(result) == 0:
                 return HttpResponse('')
             else:
+                print dicttoxml(result)
                 return HttpResponse(dicttoxml(result))
 
     # 对于所有不处理的类型返回空字符串
