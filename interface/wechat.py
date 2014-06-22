@@ -11,11 +11,12 @@ from datetime import datetime
 TOKEN = 'ZBAVckmvP9nyoxQ6bnUdXswahpU'  # 微信开发模式需要的加密参数
 
 
-#def dictToXmlResponse(data):
-#    #xml = '<?xml version="1.0" encoding="UTF-8" ?>%s</xml>' % dicttoxml(data, root=False)
-#    xml = dicttoxml(data)
-#    print xml
-#    return HttpResponse(xml)
+def dictToXmlResponse2(data):
+    #xml = '<?xml version="1.0" encoding="UTF-8" ?>%s</xml>' % dicttoxml(data, root=False)
+    xml = '<xml>%s</xml>' % dicttoxml(data, root=False)
+    #xml = dicttoxml(data)
+    print xml
+    return HttpResponse(xml)
 
 def dictToXmlResponse(data):
     toUserName = data.get('ToUserName', '')  ##开发者微信号
@@ -121,7 +122,7 @@ def service(request):
             if len(result) == 0:
                 return HttpResponse('')
             else:
-                return dictToXmlResponse(result)
+                return dictToXmlResponse2(result)
 
     # 对于所有不处理的类型返回空字符串
     return HttpResponse('')
