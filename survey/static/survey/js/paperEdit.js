@@ -233,6 +233,22 @@ function initBranchAddAction(scope) {
     });
 }
 
+/***************************************
+ *          绑定问题删除事件           *
+ ***************************************/
+function initQuestionDeleteAction(scope) {
+    scope.find('.btn-paper-delete-question').on('click', function () {
+        console.log('initQuestionDeleteAction() is called');
+    });
+}
+/***************************************
+ *          绑定选项删除事件           *
+ ***************************************/
+function initBranchDeleteAction(scope) {
+    scope.find('.btn-question-delete-branch').on('click', function () {
+        console.log('initBranchDeleteAction() is called');
+    });
+}
 
 /***************************************
  *        所有空间初始化操作工作       *
@@ -249,6 +265,10 @@ function initial(scope) {
     initQuestionAddAction(scope);
     // 初始化新增选项事件
     initBranchAddAction(scope);
+    // 初始化问题删除事件
+    initQuestionDeleteAction(scope)
+    // 初始化分支删除事件
+    initBranchDeleteAction(scope);
 }
 /***************************************
  *          全局初始化加载操作         *

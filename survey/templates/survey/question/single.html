@@ -4,7 +4,10 @@
     <div class="panel-heading">
         <span class="glyphicon glyphicon-collapse-up " style="font-size:1.3em;"></span>
         Q1
-        <span class="glyphicon glyphicon-remove-sign pull-right " style="font-size:1.3em;"></span>
+        <span class="glyphicon glyphicon-remove-sign pull-right btn-paper-delete-question"
+              data-binding-action="{% url 'survey:service.question.delete' %}"
+              data-binding-id="{{ question.getIdSigned }}"
+              style="font-size:1.3em;"></span>
     </div>
 
     {# panel 内容 #}
@@ -38,7 +41,7 @@
 
         {# 题支 #}
         {% for  branch in question.getBranchSetInOrder %}
-            <div class="row" id="branchBox">
+            <div class="row" id="branch-{{ branch.getIdSigned | cut:':' }}">
                 {# 题支的基本信息 #}
                 <div class="col-md-10">
                     <div class="input-group">
@@ -53,8 +56,11 @@
                                data-binding-id="{{ branch.getIdSigned }}"
                                data-binding-field-name="text">
                         {# 题支的删除按钮 #}
-                        <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-remove-sign pull-right "></span>
+                        <span class="input-group-addon ">
+                            <span class="glyphicon glyphicon-remove-sign pull-right btn-question-delete-branch"
+                                  data-binding-action="{% url 'survey:service.branch.delete' %}"
+                                  data-binding-id="{{ branch.getIdSigned }}">
+                            </span>
                         </span>
                     </div>
                 </div>

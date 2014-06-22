@@ -522,6 +522,100 @@ class PaperModifyTest(TestCase):
         self.assertEquals(paper.createBy, self.paper.createBy)
 
 
+class PaperDeleteTest(TestCase):
+    '''
+        问卷删除服务的测试用例
+    '''
+
+    def setUp(self):
+        setup_test_environment()
+        # 创建用户并且用其登陆
+        self.user = User(phone=phoneForTest, password=make_password(passwordForTest))
+        self.user.save()
+        self.client = Client()
+        loginForTest(self.client, phoneForTest, passwordForTest)
+        # 创建一个用于测试的Paper
+        self.paper = Paper(title='paper_123', createBy=self.user, modifyBy=self.user)
+        self.paper.save()
+        # 创建另一个测试用户
+        self.user_other = User(phone='123')
+        self.user_other.save()
+        self.paper_other = Paper(title='paper_other', createBy=self.user_other, modifyBy=self.user_other)
+        self.paper_other.save()
+        # 设定service url
+        self.serviceUrl = reverse('survey:service.paper.delete')
+
+        # 准备提交的测试数据
+        signer = Signer()
+        self.data_valid = {'id': signer.sign(self.paper.id)}
+        self.data_bad_signature = {'id': self.paper.id, }
+        self.data_no_privilege = {'id': signer.sign(self.paper_other.id)}
+
+    def test_no_login(self):
+        '''
+            测试没有登录的情况
+        '''
+        client = Client()
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)
+
+    def test_no_id(self):
+        '''
+            测试没有提供id的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, {})
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_ID)
+
+    def test_bad_signature(self):
+        '''
+            测试没有进行数字签名的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_bad_signature)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
+
+    def test_not_exist(self):
+        '''
+            测试对象不存在的情况
+        '''
+        self.paper.delete()
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.OBJECT_NOT_EXIST)
+
+    def test_no_no_privilege(self):
+        '''
+            测试没有权限修改的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_no_privilege)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
+
+    def test_success(self):
+        '''
+            成功删除
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
+        # 确认数据已经不能存在了
+        paperList = Paper.objects.filter(id=self.paper.id)
+        self.assertEquals(len(paperList), 0)
+
+
 class QuestionAddTest(TestCase):
     '''
         问题添加服务(questionAdd)测试
@@ -762,6 +856,106 @@ class QuestionModifyTest(TestCase):
         self.assertEquals(question.createBy, self.question.createBy)
 
 
+class QuestionDeleteTest(TestCase):
+    '''
+        问题删除服务的测试用例
+    '''
+
+    def setUp(self):
+        setup_test_environment()
+        # 创建用户并且用其登陆
+        self.user = User(phone=phoneForTest, password=make_password(passwordForTest))
+        self.user.save()
+        self.client = Client()
+        loginForTest(self.client, phoneForTest, passwordForTest)
+        # 创建一个用于测试的Paper
+        self.paper = Paper(title='paper', createBy=self.user, modifyBy=self.user)
+        self.paper.save()
+        self.question = Question(
+            type='Single', text='question', ord=1, createBy=self.user, modifyBy=self.user, paper=self.paper)
+        self.question.save()
+        # 创建另一个测试用户
+        self.user_other = User(phone='123')
+        self.user_other.save()
+        self.paper_other = Paper(title='paper_other', createBy=self.user_other, modifyBy=self.user_other)
+        self.paper_other.save()
+        self.question_other = Question(
+            type='Single', text='question_other', ord=1, createBy=self.user_other, modifyBy=self.user_other,
+            paper=self.paper_other)
+        self.question_other.save()
+        # 设定service url
+        self.serviceUrl = reverse('survey:service.question.delete')
+        # 准备提交的测试数据
+        signer = Signer()
+        self.data_valid = {'id': signer.sign(self.question.id)}
+        self.data_bad_signature = {'id': self.question.id}
+        self.data_no_privilege = {'id': signer.sign(self.question_other.id)}
+
+    def test_no_login(self):
+        '''
+            测试没有登录的情况
+        '''
+        client = Client()
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)
+
+    def test_no_id(self):
+        '''
+            测试没有提供id的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, {})
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_ID)
+
+    def test_bad_signature(self):
+        '''
+            测试没有进行数字签名的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_bad_signature)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
+
+    def test_not_exist(self):
+        '''
+            测试对象不存在的情况
+        '''
+        self.question.delete()
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.OBJECT_NOT_EXIST)
+
+    def test_no_no_privilege(self):
+        '''
+            测试没有权限修改的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_no_privilege)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
+
+    def test_success(self):
+        '''
+            成功删除
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
+        # 确认数据已经不能存在了
+        questionList = Question.objects.filter(id=self.question.id)
+        self.assertEquals(len(questionList), 0)
+
+
 class BranchAddTest(TestCase):
     '''
         题支新增测试
@@ -862,7 +1056,7 @@ class BranchAddTest(TestCase):
 
 class BranchModifyTest(TestCase):
     '''
-        题支修改功能
+        题支修改服务的测试用例
     '''
 
     def setUp(self):
@@ -960,6 +1154,111 @@ class BranchModifyTest(TestCase):
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
         self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
+
+
+class BranchDeleteTest(TestCase):
+    '''
+        选项删除服务的测试用例
+    '''
+
+    def setUp(self):
+        setup_test_environment()
+        # 创建用户并且用其登陆
+        self.user = User(phone=phoneForTest, password=make_password(passwordForTest))
+        self.user.save()
+        self.client = Client()
+        loginForTest(self.client, phoneForTest, passwordForTest)
+        # 创建一个用于测试的Paper
+        self.paper = Paper(title='paper', createBy=self.user, modifyBy=self.user)
+        self.paper.save()
+        self.question = Question(
+            type='Single', text='question', ord=1, createBy=self.user, modifyBy=self.user, paper=self.paper)
+        self.question.save()
+        self.branch = Branch(text='branch', question=self.question, ord=1, createBy=self.user, modifyBy=self.user)
+        self.branch.save()
+        # 创建另一个测试用户
+        self.user_other = User(phone='123')
+        self.user_other.save()
+        self.paper_other = Paper(title='paper_other', createBy=self.user_other, modifyBy=self.user_other)
+        self.paper_other.save()
+        self.question_other = Question(
+            type='Single', text='question_other', ord=1, createBy=self.user_other, modifyBy=self.user_other,
+            paper=self.paper_other)
+        self.question_other.save()
+        self.branch_other = Branch(
+            text='branch', question=self.question_other, ord=1, createBy=self.user_other, modifyBy=self.user_other)
+        self.branch_other.save()
+        # 设定service url
+        self.serviceUrl = reverse('survey:service.branch.delete')
+        # 准备提交的测试数据
+        signer = Signer()
+        self.data_valid = {'id': signer.sign(self.branch.id)}
+        self.data_bad_signature = {'id': self.branch.id}
+        self.data_no_privilege = {'id': signer.sign(self.branch_other.id)}
+
+    def test_no_login(self):
+        '''
+            测试没有登录的情况
+        '''
+        client = Client()
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)
+
+    def test_no_id(self):
+        '''
+            测试没有提供id的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, {})
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_ID)
+
+    def test_bad_signature(self):
+        '''
+            测试没有进行数字签名的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_bad_signature)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
+
+    def test_not_exist(self):
+        '''
+            测试对象不存在的情况
+        '''
+        self.branch.delete()
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.OBJECT_NOT_EXIST)
+
+    def test_no_no_privilege(self):
+        '''
+            测试没有权限修改的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_no_privilege)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
+
+    def test_success(self):
+        '''
+            成功删除
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
+        # 确认数据已经不能存在了
+        branchList = Branch.objects.filter(id=self.branch.id)
+        self.assertEquals(len(branchList), 0)
 
 
 class AddDefaultSingleQuestionTest(TestCase):

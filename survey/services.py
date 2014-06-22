@@ -278,7 +278,7 @@ def paperDelete(request):
     '''
     # 检查用户是否登录，并读取session中的用户信息
     if USER_SESSION_NAME not in request.session.keys():
-        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.SUCCESS)
+        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
         return dictToJsonResponse(result)
     user = request.session[USER_SESSION_NAME]
     requestData = request.REQUEST
@@ -480,7 +480,7 @@ def _questionDelete(requestData, user):
 
     # 移动之后问题的排序号
     paper = question.paper
-    questionList = paper.question_set.filter(question__ord__gt=question.ord).orderby('ord').select_for_update()
+    questionList = paper.question_set.filter(question__ord__gt=question.ord).order_by('ord').select_for_update()
     for i, q in enumerate(questionList):
         q.ord = question.ord + i
         q.save()
