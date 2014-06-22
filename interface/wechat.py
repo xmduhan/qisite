@@ -24,14 +24,24 @@ def dictToXmlResponse(data):
     msgType = data.get('MsgType', '')  #text
     content = data.get('Content', '')  #文本消息内容
 
+#    xml = \
+#        '''
+#<xml>
+#<ToUserName><![CDATA[%s]]></ToUserName>
+#<FromUserName><![CDATA[%s]]></FromUserName>
+#<CreateTime>%s</CreateTime>
+#<MsgType><![CDATA[%s]]></MsgType>
+#<Content><![CDATA[%s]]></Content>
+#</xml>
+#        ''' % (toUserName, fromUserName, createTime, msgType, content)
     xml = \
         '''
 <xml>
-<ToUserName><![CDATA[%s]]></ToUserName>
-<FromUserName><![CDATA[%s]]></FromUserName>
+<ToUserName>%s</ToUserName>
+<FromUserName>%s</FromUserName>
 <CreateTime>%s</CreateTime>
-<MsgType><![CDATA[%s]]></MsgType>
-<Content><![CDATA[%s]]></Content>
+<MsgType>%s</MsgType>
+<Content>%s</Content>
 </xml>
         ''' % (toUserName, fromUserName, createTime, msgType, content)
     return HttpResponse(xml)
