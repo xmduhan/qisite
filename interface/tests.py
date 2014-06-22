@@ -8,6 +8,9 @@ import random
 import string
 from datetime import datetime
 import hashlib
+from dicttoxml import dicttoxml
+import urllib
+from xml.etree import ElementTree
 
 
 class TestWeChat(TestCase):
@@ -43,8 +46,13 @@ class TestWeChat(TestCase):
         security = {'signature': self.signature, 'timestamp': self.timestamp, 'nonce': self.nonce}
         message = {'ToUserName': 'ToUserName', 'FromUserName': 'FromUserName', 'CreateTime': 1, 'MsgType': 'text',
                    'Content': 'hello', 'MsgId': 1}
+        posturl = self.url + '?' + urllib.urlencode(security)
         client = self.client
-        client.post(self.url, security, extra=message)
+        response = client.post(posturl, dicttoxml(message), content_type='text/xml')
+        xmltree = ElementTree.fromstring(response.content)
+        data = {node.tag: node.text for node in xmltree}
+        for i in data:
+            self.assertIn(i, message)
 
 
     def test_cheater_request(self):
