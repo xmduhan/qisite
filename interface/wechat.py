@@ -11,8 +11,15 @@ from datetime import datetime
 TOKEN = 'ZBAVckmvP9nyoxQ6bnUdXswahpU'  # 微信开发模式需要的加密参数
 
 
+def dictToXmlResponse(data):
+    #xml = '<?xml version="1.0" encoding="UTF-8" ?>%s</xml>' % dicttoxml(data, root=False)
+    xml = dicttoxml(data)
+    print xml
+    return HttpResponse(xml)
+
+
 def datetimeToInt(date):
-    return (date - datetime(1970, 1, 1)).total_seconds()
+    return int((date - datetime(1970, 1, 1)).total_seconds())
 
 
 def securityCheck(request):
@@ -85,8 +92,7 @@ def service(request):
             if len(result) == 0:
                 return HttpResponse('')
             else:
-                print dicttoxml(result)
-                return HttpResponse(dicttoxml(result))
+                return dictToXmlResponse(result)
 
     # 对于所有不处理的类型返回空字符串
     return HttpResponse('')
