@@ -334,8 +334,8 @@ def _questionAdd(requestData, user):
         # 对ord 字段进行特殊处理，取当前的问题数量加1
         if field.name == 'ord':
             # 这里锁定了paper所有question对象
-            value = paper.question_set.select_for_update().count() + 1
-        # 如果调用者没有显示执行字段值为空，则不增加到data中去，让模型的默认值发挥作用
+            value = paper.question_set.select_for_update().count()
+            # 如果调用者没有显示执行字段值为空，则不增加到data中去，让模型的默认值发挥作用
         # 字段代码不能早于对createBy和modifyBy的处理
         if value is None and field.name not in keys:
             continue
@@ -553,8 +553,8 @@ def _branchAdd(requestData, user):
         # 对ord 字段进行特殊处理，取当前的问题数量加1
         if field.name == 'ord':
             # 这里锁定了question所有branch对象
-            value = question.branch_set.select_for_update().count() + 1
-        # 如果调用者没有显示执行字段值为空，则不增加到data中去，让模型的默认值发挥作用
+            value = question.branch_set.select_for_update().count()
+            # 如果调用者没有显示执行字段值为空，则不增加到data中去，让模型的默认值发挥作用
         # 字段代码不能早于对createBy和modifyBy的处理
         if value is None and field.name not in keys:
             continue

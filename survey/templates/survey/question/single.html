@@ -1,4 +1,4 @@
-<div class="panel panel-default">
+<div class="panel panel-default" id='question-{{ question.getIdSigned | cut:':' }}'>
 
     {# panel标题 #}
     <div class="panel-heading">
@@ -38,7 +38,7 @@
 
         {# 题支 #}
         {% for  branch in question.getBranchSetInOrder %}
-            <div class="row">
+            <div class="row" id="branchBox">
                 {# 题支的基本信息 #}
                 <div class="col-md-10">
                     <div class="input-group">
@@ -106,7 +106,9 @@
         {% endfor %}
 
         {# 新增题支的按钮 #}
-        <button class="btn btn-primary btn-sm">
+        <button class="btn btn-primary btn-sm btn-question-add-branch"
+                data-binding-action="{% url 'survey:service.branch.addDefaultBranch' %}"
+                data-binding-question-id="{{ question.getIdSigned }}">
             <span class="glyphicon glyphicon-plus"></span>
         </button>
 
