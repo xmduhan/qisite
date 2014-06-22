@@ -12,7 +12,7 @@ TOKEN = 'ZBAVckmvP9nyoxQ6bnUdXswahpU'  # 微信开发模式需要的加密参数
 
 
 def datetimeToInt(date):
-    return (date - datetime.datetime(1970, 1, 1)).total_seconds()
+    return (date - datetime(1970, 1, 1)).total_seconds()
 
 
 def securityCheck(request):
