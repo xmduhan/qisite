@@ -12,12 +12,17 @@ TOKEN = 'ZBAVckmvP9nyoxQ6bnUdXswahpU'  # 微信开发模式需要的加密参数
 
 
 def dictToXmlResponse(data):
+    '''
+        将一个python字段转化为xml的Response
+    '''
     xml = dicttoxml(data, custom_root='xml', attr_type=False)
-    print xml
     return HttpResponse(xml)
 
 
 def datetimeToInt(date):
+    '''
+        将一个python的日期格式转化为标准的整型时间表示
+    '''
     return int((date - datetime(1970, 1, 1)).total_seconds())
 
 
@@ -45,6 +50,9 @@ def developConfirm(request):
 
 
 def processTextMessage(data):
+    '''
+        处理接收的文本消息
+    '''
     # 读取消息信息
     toUserName = data.get('ToUserName', '')  ##开发者微信号
     fromUserName = data.get('FromUserName', '')  #发送方帐号（一个OpenID）
