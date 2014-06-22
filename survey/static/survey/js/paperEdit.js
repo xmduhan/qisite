@@ -161,7 +161,6 @@ function initQuestionAddAction(scope) {
 /***************************************
  *         更新修改问题的DOM信息       *
  ***************************************/
-
 function refreshQuestionDocument(questionId) {
     console.log('refreshQuestionDocument is call id=' + questionId);
     action = "/survey/view/question/edit/" + encodeURIComponent(questionId);
@@ -239,6 +238,37 @@ function initBranchAddAction(scope) {
 function initQuestionDeleteAction(scope) {
     scope.find('.btn-paper-delete-question').on('click', function () {
         console.log('initQuestionDeleteAction() is called');
+        $(this).attr('disabled', true);
+        // 准备提交到服务器的数据
+        id = $(this).data('binding-id')
+        action = $(this).data('binding-action')
+        data = {}
+        data['id'] = id
+        $.ajax({
+            url: action,
+            data: data,
+            type: "post",
+            dataType: "json",
+            async: true,
+            // 通讯成功，解析返回结果做进一步处理
+            success: function (result) {
+                console.log('save successfully');
+                console.log('resultCode:' + result['resultCode']);
+                console.log('resultMessage:' + result['resultMessage']);
+                //
+                if (result['resultCode'] == 0) {
+                    // 删除问题对应的DOM对象
+                    getQuestionDocument(id).remove();
+                } else {
+                    // 出错处理(暂缺)
+                }
+            },
+            // 失败说明网络有问题或者服务器有问题
+            error: function (xhr, status, errorThrown) {
+                console.log('network error!');
+                // 出错处理(暂缺)
+            }
+        });
     });
 }
 /***************************************
@@ -247,6 +277,38 @@ function initQuestionDeleteAction(scope) {
 function initBranchDeleteAction(scope) {
     scope.find('.btn-question-delete-branch').on('click', function () {
         console.log('initBranchDeleteAction() is called');
+        $(this).attr('disabled', true);
+        // 准备提交到服务器的数据
+        id = $(this).data('binding-id')
+        action = $(this).data('binding-action')
+        questionId = $(this).data('binding-question-id')
+        data = {}
+        data['id'] = id
+        $.ajax({
+            url: action,
+            data: data,
+            type: "post",
+            dataType: "json",
+            async: true,
+            // 通讯成功，解析返回结果做进一步处理
+            success: function (result) {
+                console.log('save successfully');
+                console.log('resultCode:' + result['resultCode']);
+                console.log('resultMessage:' + result['resultMessage']);
+                //
+                if (result['resultCode'] == 0) {
+                    // 删除问题对应的DOM对象
+                    refreshQuestionDocument(questionId);
+                } else {
+                    // 出错处理(暂缺)
+                }
+            },
+            // 失败说明网络有问题或者服务器有问题
+            error: function (xhr, status, errorThrown) {
+                console.log('network error!');
+                // 出错处理(暂缺)
+            }
+        });
     });
 }
 

@@ -59,7 +59,8 @@
                         <span class="input-group-addon ">
                             <span class="glyphicon glyphicon-remove-sign pull-right btn-question-delete-branch"
                                   data-binding-action="{% url 'survey:service.branch.delete' %}"
-                                  data-binding-id="{{ branch.getIdSigned }}">
+                                  data-binding-id="{{ branch.getIdSigned }}"
+                                  data-binding-question-id="{{ question.getIdSigned }}">
                             </span>
                         </span>
                     </div>
