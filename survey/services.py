@@ -480,7 +480,7 @@ def _questionDelete(requestData, user):
 
     # 移动之后问题的排序号
     paper = question.paper
-    questionList = paper.question_set.filter(question__ord__gt=question.ord).order_by('ord').select_for_update()
+    questionList = paper.question_set.filter(ord__gt=question.ord).order_by('ord').select_for_update()
     for i, q in enumerate(questionList):
         q.ord = question.ord + i
         q.save()
@@ -715,6 +715,12 @@ def _branchDelete(requestData, user):
     if branch.createBy.id != user.id:
         return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_PRIVILEGE)
 
+    # 处理之后的选项编号向前移动
+    question = branch.question
+    branchList = question.branch_set.filter(ord__gt=branch.ord).order_by('ord').select_for_update()
+    for i, b in enumerate(branchList):
+        b.ord = branch.ord + i
+        b.save()
     # 执行删除
     branch.delete()
 
