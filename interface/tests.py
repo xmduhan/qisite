@@ -49,7 +49,6 @@ class TestWeChat(TestCase):
         posturl = self.url + '?' + urllib.urlencode(security)
         client = self.client
         response = client.post(posturl, dicttoxml(message), content_type='text/xml')
-        print response.content
         xmltree = ElementTree.fromstring(response.content)
         data = {node.tag: node.text for node in xmltree}
         for i in data:

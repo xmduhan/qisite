@@ -11,40 +11,9 @@ from datetime import datetime
 TOKEN = 'ZBAVckmvP9nyoxQ6bnUdXswahpU'  # 微信开发模式需要的加密参数
 
 
-def dictToXmlResponse2(data):
-    #xml = '<?xml version="1.0" encoding="UTF-8" ?>%s</xml>' % dicttoxml(data, root=False)
-    xml = '<xml>%s</xml>' % dicttoxml(data, root=False)
-    #xml = dicttoxml(data)
-    print xml
-    return HttpResponse(xml)
-
 def dictToXmlResponse(data):
-    toUserName = data.get('ToUserName', '')  ##开发者微信号
-    fromUserName = data.get('FromUserName', '')  #发送方帐号（一个OpenID）
-    createTime = data.get('CreateTime', '')  #消息创建时间 （整型）
-    msgType = data.get('MsgType', '')  #text
-    content = data.get('Content', '')  #文本消息内容
-
-#    xml = \
-#        '''
-#<xml>
-#<ToUserName><![CDATA[%s]]></ToUserName>
-#<FromUserName><![CDATA[%s]]></FromUserName>
-#<CreateTime>%s</CreateTime>
-#<MsgType><![CDATA[%s]]></MsgType>
-#<Content><![CDATA[%s]]></Content>
-#</xml>
-#        ''' % (toUserName, fromUserName, createTime, msgType, content)
-    xml = \
-        '''
-<xml>
-<ToUserName>%s</ToUserName>
-<FromUserName>%s</FromUserName>
-<CreateTime>%s</CreateTime>
-<MsgType>%s</MsgType>
-<Content>%s</Content>
-</xml>
-        ''' % (toUserName, fromUserName, createTime, msgType, content)
+    xml = dicttoxml(data, custom_root='xml', attr_type=False)
+    print xml
     return HttpResponse(xml)
 
 
@@ -122,7 +91,7 @@ def service(request):
             if len(result) == 0:
                 return HttpResponse('')
             else:
-                return dictToXmlResponse2(result)
+                return dictToXmlResponse(result)
 
     # 对于所有不处理的类型返回空字符串
     return HttpResponse('')
