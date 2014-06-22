@@ -756,7 +756,6 @@ def addDefaultSingleQuestion(request):
         return dictToJsonResponse(result)
     questionId = result['questionId']
 
-
     # 对id进行数字签名
     signer = Signer()
     questionId = signer.sign(questionId)
@@ -772,4 +771,21 @@ def addDefaultSingleQuestion(request):
     return packageResponse(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'id': questionId})
 
 
+def addDefaultBranch(request):
+    '''
+        增加一个默认选项的服务，提供给界面的新增选项按钮用
+    '''
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        return packageResponse(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
+    user = request.session[USER_SESSION_NAME]
 
+    # 检查是否提供了question
+    if 'question' not in request.REQUEST.keys():
+        return packageResponse(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_ID)
+    questionId = request.REQUEST['question']
+
+    # 调用新增选项的处理过程
+    requestData = {'question': questionId, 'text': u'新增选项'}
+    result = _branchAdd(requestData, user)
+    return dictToJsonResponse(result)

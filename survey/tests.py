@@ -1041,3 +1041,89 @@ class AddDefaultSingleQuestionTest(TestCase):
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
         self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
+
+
+class AddDefaultBranchTest(TestCase):
+    '''
+        新增默认选项服务的测试用例
+    '''
+
+    def setUp(self):
+        setup_test_environment()
+        # 创建用户并且用其登陆
+        self.user = User(phone=phoneForTest, password=make_password(passwordForTest))
+        self.user.save()
+        self.client = Client()
+        loginForTest(self.client, phoneForTest, passwordForTest)
+        # 创建一个用于测试的Paper
+        self.paper = Paper(title='paper', createBy=self.user, modifyBy=self.user)
+        self.paper.save()
+        self.question = Question(
+            type='Single', text='question', ord=1, createBy=self.user, modifyBy=self.user, paper=self.paper)
+        self.question.save()
+        # 创建另一个测试用户
+        self.user_other = User(phone='123')
+        self.user_other.save()
+        self.paper_other = Paper(title='paper_other', createBy=self.user_other, modifyBy=self.user_other)
+        self.paper_other.save()
+        self.question_other = Question(
+            type='Single', text='question_other', ord=1, createBy=self.user_other, modifyBy=self.user_other,
+            paper=self.paper_other)
+        self.question_other.save()
+        # 设定service url
+        self.serviceUrl = reverse('survey:service.branch.addDefaultBranch')
+        # 准备提交的测试数据
+        signer = Signer()
+        self.data_valid = {'question': signer.sign(self.question.id)}
+        self.data_bad_signature = {'question': self.question.id}
+        self.data_no_privilege = {'question': signer.sign(self.question_other.id)}
+
+    def test_no_login(self):
+        '''
+            测试没有登录的情况
+        '''
+        client = Client()
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)
+
+    def test_no_question(self):
+        '''
+            测试没有提供问题的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, {})
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_ID)
+
+    def test_no_privilege(self):
+        '''
+            测试没有权限的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_no_privilege)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
+
+    def test_bad_signature(self):
+        '''
+            没有进行数字签名的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_bad_signature)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
+
+    def test_success(self):
+        '''
+            测试添加成功的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
