@@ -15,7 +15,7 @@ def dictToXmlResponse(data):
     '''
         将一个python字段转化为xml的Response
     '''
-    xml = dicttoxml(data, custom_root='xml', attr_type=False)
+    xml = HttpResponse(dicttoxml(data, custom_root='xml', attr_type=False))
     return HttpResponse(xml)
 
 
