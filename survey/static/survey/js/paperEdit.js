@@ -175,9 +175,9 @@ function refreshQuestionDocument(questionId) {
             //console.log("#question:" + questionId);
             // 替换question的document内容
             questionDocument = getQuestionDocument(questionId);
-            questionDocument.html(result);
-            // 重新绑定初始化的操作
-            initial(questionDocument);
+            questionDocument.replaceWith(result);
+            // 重新绑定初始化的操作(注意：这里需要重新查询jQuery对象，因为replaceWith后原来jQuery对象失效了)
+            initial(getQuestionDocument(questionId));
         },
         // 失败说明网络有问题或者服务器有问题
         error: function (xhr, status, errorThrown) {

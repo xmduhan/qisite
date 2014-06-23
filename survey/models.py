@@ -201,7 +201,7 @@ class Branch(TimeModel):
     ord = models.IntegerField('排序号')
     nextQuestion = models.ForeignKey(
         # 如何包含结果信息呢？(结束无效问卷,结束有效问卷)
-        'Question', verbose_name='下个问题', related_name='fromBranch', null=True, blank=True)
+        'Question', verbose_name='下个问题', related_name='fromBranch', null=True, blank=True, on_delete=models.SET_NULL)
     question = models.ForeignKey(Question, verbose_name="问题")
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='branchCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='branchModified_set')
