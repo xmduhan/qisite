@@ -274,6 +274,7 @@ function initQuestionDeleteAction(scope) {
 /***************************************
  *          绑定选项删除事件           *
  ***************************************/
+/*
 function initBranchDeleteAction(scope) {
     scope.find('.btn-question-delete-branch').on('click', function () {
         console.log('initBranchDeleteAction() is called');
@@ -309,6 +310,13 @@ function initBranchDeleteAction(scope) {
                 // 出错处理(暂缺)
             }
         });
+    });
+}
+*/
+
+function initBranchDeleteAction(scope) {
+    scope.find('.btn-question-delete-branch').on('click', function () {
+        $('#deleteBranchDialog').modal('show');
     });
 }
 

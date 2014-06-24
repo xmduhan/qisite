@@ -1,9 +1,12 @@
 .well {
-   background-color: rgba(245, 245, 245, 0.2);
+    background-color: rgba(245, 245, 245, 0.2);
 }
-.input-group-addon{
-   background-color: rgba(255, 255, 255, 1);
+
+.input-group-addon {
+    background-color: rgba(255, 255, 255, 1);
 }
+
 span.glyphicon-link {
     font-size: 1.2em;
 }
+
