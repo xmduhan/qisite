@@ -235,13 +235,14 @@ function initBranchAddAction(scope) {
 /***************************************
  *          绑定问题删除事件           *
  ***************************************/
-function initQuestionDeleteAction(scope) {
-    scope.find('.btn-paper-delete-question').on('click', function () {
+function initQuestionDeleteConfirmButtonAction() {
+    $('#questionDeleteConfirmButton').on('click', function () {
         console.log('initQuestionDeleteAction() is called');
-        $(this).attr('disabled', true);
+        confirmButton = $(this);
+        confirmButton.attr('disabled', true);
         // 准备提交到服务器的数据
-        id = $(this).data('binding-id')
-        action = $(this).data('binding-action')
+        id = confirmButton.data('binding-id');
+        action = confirmButton.data('binding-action');
         data = {}
         data['id'] = id
         $.ajax({
@@ -267,22 +268,42 @@ function initQuestionDeleteAction(scope) {
             error: function (xhr, status, errorThrown) {
                 console.log('network error!');
                 // 出错处理(暂缺)
+            },
+            complete: function (xhr, status) {
+                console.log('initQuestionDeleteConfirmButtonAction:complete');
+                confirmButton.attr('disabled', false);
+                $('#questionDeleteConfirmDialog').modal('hide');
             }
         });
     });
 }
+
 /***************************************
- *          绑定选项删除事件           *
+ *          绑定问题删除事件           *
  ***************************************/
-/*
-function initBranchDeleteAction(scope) {
-    scope.find('.btn-question-delete-branch').on('click', function () {
-        console.log('initBranchDeleteAction() is called');
-        $(this).attr('disabled', true);
+function initQuestionDeleteAction(scope) {
+    scope.find('.btn-paper-delete-question').on('click', function () {
+        // 要删除的选项信息放到确定按钮的data中,以便在点确定按钮的时间函数中可以直接用$(this).data来访问
+        $('#questionDeleteConfirmButton').data('binding-id', $(this).data('binding-id'));
+        $('#questionDeleteConfirmButton').data('binding-action', $(this).data('binding-action'));
+        // 将对象框显示出来
+        $('#questionDeleteConfirmDialog').modal('show');
+    });
+}
+
+/***************************************
+ *     选项删除确认按钮的事件处理      *
+ ***************************************/
+
+function initBranchDeleteConfirmButtonAction() {
+    $('#branchDeleteConfirmButton').on('click', function () {
+        console.log('initBranchDeleteConfirmButtonAction() is called');
+        confirmButton = $(this);
+        confirmButton.attr('disabled', true);
         // 准备提交到服务器的数据
-        id = $(this).data('binding-id')
-        action = $(this).data('binding-action')
-        questionId = $(this).data('binding-question-id')
+        id = confirmButton.data('binding-id')
+        action = confirmButton.data('binding-action')
+        questionId = confirmButton.data('binding-question-id')
         data = {}
         data['id'] = id
         $.ajax({
@@ -308,15 +329,27 @@ function initBranchDeleteAction(scope) {
             error: function (xhr, status, errorThrown) {
                 console.log('network error!');
                 // 出错处理(暂缺)
+            },
+            complete: function (xhr, status) {
+                console.log('initBranchDeleteConfirmButtonAction:complete');
+                confirmButton.attr('disabled', false);
+                $('#branchDeleteConfirmDialog').modal('hide');
             }
         });
     });
 }
-*/
 
+/***************************************
+ *          绑定选项删除事件           *
+ ***************************************/
 function initBranchDeleteAction(scope) {
     scope.find('.btn-question-delete-branch').on('click', function () {
-        $('#deleteBranchDialog').modal('show');
+        // 要删除的选项信息放到确定按钮的data中,以便在点确定按钮的时间函数中可以直接用$(this).data来访问
+        $('#branchDeleteConfirmButton').data('binding-id', $(this).data('binding-id'));
+        $('#branchDeleteConfirmButton').data('binding-action', $(this).data('binding-action'));
+        $('#branchDeleteConfirmButton').data('binding-question-id', $(this).data('binding-question-id'));
+        // 将对象框显示出来
+        $('#branchDeleteConfirmDialog').modal('show');
     });
 }
 
@@ -336,7 +369,7 @@ function initial(scope) {
     // 初始化新增选项事件
     initBranchAddAction(scope);
     // 初始化问题删除事件
-    initQuestionDeleteAction(scope)
+    initQuestionDeleteAction(scope);
     // 初始化分支删除事件
     initBranchDeleteAction(scope);
 }
@@ -344,6 +377,12 @@ function initial(scope) {
  *          全局初始化加载操作         *
  ***************************************/
 $(document).ready(function () {
-    // 初始化bootstrap switch控件
+    // 绑定body中的所有相关控件的事件
+    // 并初始化switch和selec
     initial($('body'));
+
+    // 初始问题确认删除按钮事件
+    initQuestionDeleteConfirmButtonAction();
+    // 初始化选项确认删除按钮事件
+    initBranchDeleteConfirmButtonAction();
 });
