@@ -304,6 +304,19 @@
 </div>
 
 
+<div align="center">
+    <button id='test01' type="button" class="btn btn-default"
+            data-container="body"
+            data-toggle="popover"
+            data-placement="left"
+            data-content="这里是提示的内容"
+            data-original-title='<span class="glyphicon glyphicon-hand-right"></span> 提示'>
+        左侧弹框
+    </button>
+</div>
+<script>
+    $('#test01').popover({trigger: 'hover', delay: { show: 1000, hide: 100 }, html: true})
+</script>
 {# 加载Javascript程序 #}
 
 {% include "www/commonjs.html" %}
