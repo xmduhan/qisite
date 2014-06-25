@@ -360,38 +360,63 @@ function initBranchDeleteAction(scope) {
 // 而新生成的div显示div是不包含data-*元素的拷贝，这样无法显示提示信息，所以如果是这种情况就要尝试的找到那个原始定义的
 // select元素，这个元素的位置是新生成div元素的前一个同级的元素。
 function findPopoverDataElement(e) {
-    if ($(e).data('data-placement') == undefined) {
-        // 特殊处理
-        return $(e).prev();
-    } else {
+    // 普通的bootstrap元素
+    if ($(e).data('placement') != undefined) {
         return $(e);
     }
+    //尝试将元素当成一个bootstrap-select元素寻找其popover数据节点
+    if ($(e).prev().data('placement') != undefined) {
+        return $(e).prev();
+    }
+    // 尝试将元素当成一个bootstrap-switch元素寻找其popover数据节点
+    if ($(e).find('.with-popover').data('placement') != undefined) {
+        return $(e).find('.with-popover');
+    }
+    return undefined;
+
+    //console.log('$(e).prev().data("placement")=' + $(e).prev().data('placement'));
+    //if ($(e).data('data-placement') == undefined) {
+    // 特殊处理
+    //    return $(e).prev();
+    //} else {
+    //    return $(e);
+    //}
 }
+// 鼠标进入事件
+function popoverOnMouseOver() {
+    console.log('mouseover is call');
+    dataElement = findPopoverDataElement(this);
+    $(this).popover('destroy');
+    $(this).popover({
+        trigger: 'manual',
+        container: 'body',
+        title: "<span class='glyphicon glyphicon-hand-right'></span> 提示",
+        placement: dataElement.data('placement'),
+        content: dataElement.data('content'),
+        html: true
+    });
+    $(this).popover('show');
+}
+
+// 鼠标移出事件
+function popoverOnMouseLeave(e) {
+    console.log('mouseleave is call');
+    $(this).popover('destroy');
+}
+
+// 绑定弹出事件
 function initPopover(scope) {
-    scope.find(".with-popover").on('mouseover', function (e) {
-        console.log('mouseover is call');
-        dataElement = findPopoverDataElement(this);
-        $(this).popover('destroy');
-        $(this).popover({
-            trigger: 'manual',
-            container: 'body',
-            placement: dataElement.data('placement'),
-            title: dataElement.data('original-title'),
-            content: dataElement.data('content'),
-            html: true
-        });
-        $(this).popover('show');
-    });
-    scope.find(".with-popover").on('mouseleave', function (e) {
-        console.log('mouseleave is call');
-        $(this).popover('destroy');
-    });
+    scope.find(".with-popover").on('mouseover', popoverOnMouseOver);
+    scope.find(".with-popover").on('mouseleave', popoverOnMouseLeave);
+    scope.find(".with-popover").on('click', popoverOnMouseLeave);
+    scope.find('.with-popover').parent('.bootstrap-switch-container').on('mouseover', popoverOnMouseOver);
+    scope.find('.with-popover').parent('.bootstrap-switch-container').on('mouseleave', popoverOnMouseLeave);
+    scope.find('.with-popover').parent('.bootstrap-switch-container').on('click', popoverOnMouseLeave);
 }
 
 // 找到switch控件
 // $('.with-popover').parent('.bootstrap-switch-container')
 // $('.with-popover').parent('.bootstrap-switch-container').find('.with-popover')
-
 /***************************************
  *        所有空间初始化操作工作       *
  ***************************************/

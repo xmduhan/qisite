@@ -2,11 +2,19 @@
 
     {# panel标题 #}
     <div class="panel-heading">
-        <span class="glyphicon glyphicon-collapse-up " style="font-size:1.3em;"></span>
+        <span class="glyphicon glyphicon-collapse-up with-popover"
+                {# 弹出框提示信息 #}
+              data-placement="right"
+              data-content="将这个问题折叠起来"
+              style="font-size:1.3em;"></span>
         Q1
-        <span class="glyphicon glyphicon-remove-sign pull-right btn-paper-delete-question"
+        <span class="glyphicon glyphicon-remove-sign pull-right btn-paper-delete-question with-popover"
+                {# 数据绑定信息 #}
               data-binding-action="{% url 'survey:service.question.delete' %}"
               data-binding-id="{{ question.getIdSigned }}"
+                {# 弹出框提示信息 #}
+              data-placement="left"
+              data-content="删除这个问题"
               style="font-size:1.3em;"></span>
     </div>
 
@@ -29,11 +37,15 @@
             {# 是否乱序(switch控件) #}
             <div class="col-md-2">
                 <div class="input-group input-group-sm">
-                    <input class="bootstrap-switch-input-confused data-binding-field-switch"
+                    <input class="bootstrap-switch-input-confused data-binding-field-switch with-popover"
                            type="checkbox" {% if question.confused %}checked{% endif %}
+                            {# 数据绑定信息 #}
                            data-binding-action="{% url 'survey:service.question.modify' %}"
                            data-binding-id="{{ question.getIdSigned }}"
-                           data-binding-field-name="confused"/>
+                           data-binding-field-name="confused"
+                            {# 弹出框提示信息 #}
+                           data-placement="top"
+                           data-content="这里是提示的内容"/>
                 </div>
             </div>
         </div>
@@ -57,10 +69,14 @@
                                data-binding-field-name="text">
                         {# 题支的删除按钮 #}
                         <span class="input-group-addon ">
-                            <span class="glyphicon glyphicon-remove-sign pull-right btn-question-delete-branch"
+                            <span class="glyphicon glyphicon-remove-sign pull-right btn-question-delete-branch with-popover"
+                                    {# 数据绑定信息 #}
                                   data-binding-action="{% url 'survey:service.branch.delete' %}"
                                   data-binding-id="{{ branch.getIdSigned }}"
-                                  data-binding-question-id="{{ question.getIdSigned }}">
+                                  data-binding-question-id="{{ question.getIdSigned }}"
+                                    {# 弹出框提示信息 #}
+                                  data-placement="left"
+                                  data-content="删除这个选项">
                             </span>
                         </span>
                     </div>
@@ -69,11 +85,15 @@
                 {#  题支的跳转信息  #}
                 <div class="col-md-2">
                     <div class="btn-group btn-block">
-                        <select class="selectpicker data-binding-field-select" data-width='auto'
+                        <select class="selectpicker data-binding-field-select with-popover" data-width='auto'
                                 value='{{ branch.nextQuestion }}'
+                                {# 数据字段的绑定信息 #}
                                 data-binding-action="{% url 'survey:service.branch.modify' %}"
                                 data-binding-id="{{ branch.getIdSigned }}"
-                                data-binding-field-name="nextQuestion">
+                                data-binding-field-name="nextQuestion"
+                                {# 弹出框提示信息 #}
+                                data-placement="left"
+                                data-content="这里是提示的内容">
                             {# 列出所有可达问题 #}
                             {#  <optgroup>#}
                             {% for reachableQuestion in  branch.getReachableQuestion %}
@@ -113,9 +133,13 @@
         {% endfor %}
 
         {# 新增题支的按钮 #}
-        <button class="btn btn-primary btn-sm btn-question-add-branch"
+        <button class="btn btn-primary btn-sm btn-question-add-branch with-popover"
+                {# 数据字段的绑定信息 #}
                 data-binding-action="{% url 'survey:service.branch.addDefaultBranch' %}"
-                data-binding-question-id="{{ question.getIdSigned }}">
+                data-binding-question-id="{{ question.getIdSigned }}"
+                {# 弹出框提示信息 #}
+                data-placement="right"
+                data-content="新增一个选项">
             <span class="glyphicon glyphicon-plus"></span>
         </button>
 

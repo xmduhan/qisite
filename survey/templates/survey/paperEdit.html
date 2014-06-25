@@ -94,7 +94,6 @@
                                     {# 弹出框提示信息 #}
                                     data-placement="bottom"
                                     data-content="这里是提示的内容"
-                                    data-original-title='<span class="glyphicon glyphicon-hand-right"></span> 提示'
                                     >
                                 标号样式
                             </button>
@@ -108,7 +107,6 @@
                                     {# 弹出框提示信息 #}
                                     data-placement="right"
                                     data-content="这里是提示的内容"
-                                    data-original-title='<span class="glyphicon glyphicon-hand-right"></span> 提示'
                                     >
                                 {# 列出可选标号样式数据 #}
                                 {% for code,display in  paper.getNumStyleAvailable %}
@@ -125,13 +123,10 @@
                     {# 分页显示(switch控件) #}
                     <div class="col-md-3">
                         <div class="input-group input-group-sm ">
-                            <span class="input-group-addon"
+                            <span class="input-group-addon  with-popover"
                                     {# 弹出框提示信息 #}
-                                  data-container="body"
-                                  data-toggle="popover"
                                   data-placement="bottom"
-                                  data-content="这里是提示的内容"
-                                  data-original-title='<span class="glyphicon glyphicon-hand-right"></span> 提示'>
+                                  data-content="这里是提示的内容">
                                 分页显示
                             </span>
                             <input class="bootstrap-switch-input data-binding-field-switch with-popover"
@@ -141,10 +136,8 @@
                                    data-binding-id="{{ paper.getIdSigned }}"
                                    data-binding-field-name="paging"
                                     {# 弹出框提示信息 #}
-                                   data-placement="right"
-                                   data-content="这里是提示的内容"
-                                   data-original-title='<span class="glyphicon glyphicon-hand-right"></span> 提示'
-                                    />
+                                   data-placement="bottom"
+                                   data-content="这里是提示的内容"/>
                         </div>
                     </div>
 
