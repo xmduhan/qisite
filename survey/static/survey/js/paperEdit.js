@@ -1,4 +1,4 @@
-/***************************************
+﻿/***************************************
  *      将问题id转为dom对象中的id      *
  ***************************************/
 function getQuestionDocument(questionId) {
@@ -354,6 +354,45 @@ function initBranchDeleteAction(scope) {
 }
 
 /***************************************
+ *          绑定弹出提示事件           *
+ ***************************************/
+// 由于bootstrap这样的控件会自己生成一个显示的div元素，并截取消息，原本的select对象实际是收不到mouseover这样的校园的。
+// 而新生成的div显示div是不包含data-*元素的拷贝，这样无法显示提示信息，所以如果是这种情况就要尝试的找到那个原始定义的
+// select元素，这个元素的位置是新生成div元素的前一个同级的元素。
+function findPopoverDataElement(e) {
+    if ($(e).data('data-placement') == undefined) {
+        // 特殊处理
+        return $(e).prev();
+    } else {
+        return $(e);
+    }
+}
+function initPopover(scope) {
+    scope.find(".with-popover").on('mouseover', function (e) {
+        console.log('mouseover is call');
+        dataElement = findPopoverDataElement(this);
+        $(this).popover('destroy');
+        $(this).popover({
+            trigger: 'manual',
+            container: 'body',
+            placement: dataElement.data('placement'),
+            title: dataElement.data('original-title'),
+            content: dataElement.data('content'),
+            html: true
+        });
+        $(this).popover('show');
+    });
+    scope.find(".with-popover").on('mouseleave', function (e) {
+        console.log('mouseleave is call');
+        $(this).popover('destroy');
+    });
+}
+
+// 找到switch控件
+// $('.with-popover').parent('.bootstrap-switch-container')
+// $('.with-popover').parent('.bootstrap-switch-container').find('.with-popover')
+
+/***************************************
  *        所有空间初始化操作工作       *
  ***************************************/
 // ***** 要考虑一下这个函数如果重复调用是否会出现问题 ******
@@ -372,6 +411,8 @@ function initial(scope) {
     initQuestionDeleteAction(scope);
     // 初始化分支删除事件
     initBranchDeleteAction(scope);
+    // 初始化弹出框信息
+    initPopover(scope);
 }
 /***************************************
  *          全局初始化加载操作         *
