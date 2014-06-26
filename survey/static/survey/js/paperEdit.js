@@ -409,19 +409,17 @@ function initPopover(scope) {
 /***************************************
  *       绑定问题折叠按钮的事件        *
  ***************************************/
-function initQuestionCollapse() {
-    $('#collapse-all-question-hide').on('click', function (e) {
+function initQuestionCollapse(scope) {
+    scope.find('#collapse-all-question-hide').on('click', function (e) {
         $('.question-body').collapse('hide');
     });
-    $('#collapse-all-question-show').on('click', function (e) {
+    scope.find('#collapse-all-question-show').on('click', function (e) {
         $('.question-body').collapse('show');
     });
-    //$('.question-body').collapse();collapse-this-question
-    $('.collapse-this-question').on('dblclick', function (e) {
+    scope.find('.collapse-this-question').on('dblclick', function (e) {
         $(this).parent().find('.question-body').collapse('toggle');
     });
 }
-
 
 /***************************************
  *        所有空间初始化操作工作       *
@@ -444,10 +442,48 @@ function initial(scope) {
     initBranchDeleteAction(scope);
     // 初始化弹出框信息
     initPopover(scope);
+    // 初始化折叠按钮
+    initQuestionCollapse(scope);
 }
 /***************************************
  *          全局初始化加载操作         *
  ***************************************/
+
+function test01() {
+
+    $('.test-select-class').find('button').on('mousedown', function (e) {
+        console.log('test01 is call');
+        console.log('---1---');
+        $('#test-select-id').html('<option>Mustard</option><option>Ketchup</option> <option>Relish</option>');
+        console.log('---2---');
+        $('#test-select-id').selectpicker('refresh');
+        console.log('---3---');
+    })
+}
+
+// 看来ajax的同步调用还是生效的
+function test02() {
+    $.ajax({
+        url: '/survey/view/paper/list',
+        //data: '',
+        type: "post",
+        dataType: "json",
+        async: false,
+        // 通讯成功，解析返回结果做进一步处理
+        success: function (result) {
+            console.log(';test02:-----1-----')
+        },
+        // 失败说明网络有问题或者服务器有问题
+        error: function (xhr, status, errorThrown) {
+            console.log('test02:-----2-----')
+        },
+        complete: function (xhr, status) {
+            console.log('test02:-----3-----')
+        }
+    });
+    console.log('test02:-----4-----');
+}
+
 $(document).ready(function () {
     // 绑定body中的所有相关控件的事件
     // 并初始化switch和selec
@@ -457,6 +493,7 @@ $(document).ready(function () {
     initQuestionDeleteConfirmButtonAction();
     // 初始化选项确认删除按钮事件
     initBranchDeleteConfirmButtonAction();
-    // 初始化折叠按钮
-    initQuestionCollapse();
+
+    test01();
+    test02();
 });
