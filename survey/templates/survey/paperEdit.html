@@ -28,18 +28,23 @@
 
     {# 右侧按钮组 #}
     <div class="btn-group pull-right">
+        {# 帮助按钮 #}
+        <button class="btn btn-default ">
+            <span class="glyphicon glyphicon-question-sign"></span>
+            帮助
+        </button>
         {# 预览按钮 #}
         <button class="btn btn-default ">
             <span class="glyphicon glyphicon-eye-open"></span>
             预览
         </button>
         {# 折叠按钮 #}
-        <button class="btn btn-default ">
+        <button id='collapse-all-question-hide' class="btn btn-default">
             <span class="glyphicon glyphicon-collapse-up"></span>
             折叠
         </button>
         {# 展开按钮 #}
-        <button class="btn btn-default ">
+        <button id='collapse-all-question-show' class="btn btn-default ">
             <span class="glyphicon glyphicon-collapse-down"></span>
             展开
         </button>
@@ -132,6 +137,7 @@
                             <input class="bootstrap-switch-input data-binding-field-switch with-popover"
                                    type="checkbox"
                                    {% if paper.paging %}checked{% endif %}
+                                    {# 数据绑定信息 #}
                                    data-binding-action="{% url 'survey:service.paper.modify' %}"
                                    data-binding-id="{{ paper.getIdSigned }}"
                                    data-binding-field-name="paging"

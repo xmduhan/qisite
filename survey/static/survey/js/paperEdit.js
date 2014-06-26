@@ -373,14 +373,6 @@ function findPopoverDataElement(e) {
         return $(e).find('.with-popover');
     }
     return undefined;
-
-    //console.log('$(e).prev().data("placement")=' + $(e).prev().data('placement'));
-    //if ($(e).data('data-placement') == undefined) {
-    // 特殊处理
-    //    return $(e).prev();
-    //} else {
-    //    return $(e);
-    //}
 }
 // 鼠标进入事件
 function popoverOnMouseOver() {
@@ -414,9 +406,23 @@ function initPopover(scope) {
     scope.find('.with-popover').parent('.bootstrap-switch-container').on('click', popoverOnMouseLeave);
 }
 
-// 找到switch控件
-// $('.with-popover').parent('.bootstrap-switch-container')
-// $('.with-popover').parent('.bootstrap-switch-container').find('.with-popover')
+/***************************************
+ *       绑定问题折叠按钮的事件        *
+ ***************************************/
+function initQuestionCollapse() {
+    $('#collapse-all-question-hide').on('click', function (e) {
+        $('.question-body').collapse('hide');
+    });
+    $('#collapse-all-question-show').on('click', function (e) {
+        $('.question-body').collapse('show');
+    });
+    //$('.question-body').collapse();collapse-this-question
+    $('.collapse-this-question').on('dblclick', function (e) {
+        $(this).parent().find('.question-body').collapse('toggle');
+    });
+}
+
+
 /***************************************
  *        所有空间初始化操作工作       *
  ***************************************/
@@ -451,4 +457,6 @@ $(document).ready(function () {
     initQuestionDeleteConfirmButtonAction();
     // 初始化选项确认删除按钮事件
     initBranchDeleteConfirmButtonAction();
+    // 初始化折叠按钮
+    initQuestionCollapse();
 });
