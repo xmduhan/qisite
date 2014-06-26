@@ -102,7 +102,7 @@
                                     >
                                 标号样式
                             </button>
-                            <select class="selectpicker data-binding-field-select with-popover"
+                            <select class="selectpicker data-binding-field-select bootstrap-select-with-popover"
                                     data-width='auto'
                                     value='{{ paper.questionNumStyle }}'
                                     {# 数据绑定信息 #}
@@ -134,7 +134,7 @@
                                   data-content="这里是提示的内容">
                                 分页显示
                             </span>
-                            <input class="bootstrap-switch-input data-binding-field-switch with-popover"
+                            <input class="bootstrap-switch-input data-binding-field-switch bootstrap-switch-with-popover"
                                    type="checkbox"
                                    {% if paper.paging %}checked{% endif %}
                                     {# 数据绑定信息 #}
@@ -330,8 +330,7 @@
 </div>
 
 
-<select id = 'test-select-id' class="selectpicker test-select-class" data-style="btn-primary">
-
+<select id='test-select-id' class="selectpicker test-select-class" data-style="btn-primary">
 </select>
 
 {# 加载Javascript程序 #}

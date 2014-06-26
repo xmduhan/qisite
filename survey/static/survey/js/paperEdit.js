@@ -356,21 +356,34 @@ function initBranchDeleteAction(scope) {
 /***************************************
  *          绑定弹出提示事件           *
  ***************************************/
-// 由于bootstrap这样的控件会自己生成一个显示的div元素，并截取消息，原本的select对象实际是收不到mouseover这样的校园的。
-// 而新生成的div显示div是不包含data-*元素的拷贝，这样无法显示提示信息，所以如果是这种情况就要尝试的找到那个原始定义的
-// select元素，这个元素的位置是新生成div元素的前一个同级的元素。
+// 由于bootstrap-select bootstrap-switch这样的控件会自己生成一个显示的div元素，并截取消息，原本的select对象实际是收不到
+// mouseover这样的校园的。而新生成的div显示div是不包含data-*元素的拷贝，这样无法显示提示信息，所以如果是这种情况就要尝试
+// 的找到那个原始定义的select元素，这个元素的位置是新生成div元素的前一个同级的元素。
 function findPopoverDataElement(e) {
     // 普通的bootstrap元素
     if ($(e).data('placement') != undefined) {
         return $(e);
     }
     //尝试将元素当成一个bootstrap-select元素寻找其popover数据节点
-    if ($(e).prev().data('placement') != undefined) {
-        return $(e).prev();
+    // 处理bootstrap-select如此复杂，源于其dom结构，其结构大体如下：
+    // <select class='selectpicker ...' data-placement='...' data-content='..' ></select>   // 代码中定义的
+    // <div ...>                                  // 以下都是由bootstrap-select初始化函数添加的
+    //    <button ... data-original-title >
+    //        <span class='filter-option ...'></span>
+    //        <span class = 'caret'>...</span>
+    //    </button>
+    //    <div class='dropdown-menu'>...</div>
+    // </div>
+    // 1、不能使用顶级的div来绑定消息，这样导致鼠标在选择下拉菜单时也会出现提示，因为顶级div是下来菜单的父节点。
+    // 2、本来button是最好选择，但是由于在data-original-title在此button中的含义有预定，而该属性是提示框的默认标题参数名
+    // 称，而且该参数如果在DOM中指定了，无法在javascript重新指定。
+    // 3、所以才被迫使用button下的一个span来绑定事件和弹出提示。
+    if ($(e).parent().parent().prev().data('placement') != undefined) {
+        return $(e).parent().parent().prev();
     }
     // 尝试将元素当成一个bootstrap-switch元素寻找其popover数据节点
-    if ($(e).find('.with-popover').data('placement') != undefined) {
-        return $(e).find('.with-popover');
+    if ($(e).find('.bootstrap-switch-with-popover').data('placement') != undefined) {
+        return $(e).find('.bootstrap-switch-with-popover');
     }
     return undefined;
 }
@@ -378,6 +391,7 @@ function findPopoverDataElement(e) {
 function popoverOnMouseOver() {
     console.log('mouseover is call');
     dataElement = findPopoverDataElement(this);
+    //console.log(dataElement);
     $(this).popover('destroy');
     $(this).popover({
         trigger: 'manual',
@@ -398,12 +412,18 @@ function popoverOnMouseLeave(e) {
 
 // 绑定弹出事件
 function initPopover(scope) {
+    // 绑定普通的bootstrap控件
     scope.find(".with-popover").on('mouseover', popoverOnMouseOver);
     scope.find(".with-popover").on('mouseleave', popoverOnMouseLeave);
     scope.find(".with-popover").on('click', popoverOnMouseLeave);
-    scope.find('.with-popover').parent('.bootstrap-switch-container').on('mouseover', popoverOnMouseOver);
-    scope.find('.with-popover').parent('.bootstrap-switch-container').on('mouseleave', popoverOnMouseLeave);
-    scope.find('.with-popover').parent('.bootstrap-switch-container').on('click', popoverOnMouseLeave);
+    // 绑定bootstrap-switch控件
+    scope.find('.bootstrap-switch-with-popover').parent('.bootstrap-switch-container').on('mouseover', popoverOnMouseOver);
+    scope.find('.bootstrap-switch-with-popover').parent('.bootstrap-switch-container').on('mouseleave', popoverOnMouseLeave);
+    scope.find('.bootstrap-switch-with-popover').parent('.bootstrap-switch-container').on('click', popoverOnMouseLeave);
+    // 绑定bootstrap-select控件(如此复杂处理，原因具体见findPopoverDataElement中的说明)
+    scope.find(".bootstrap-select-with-popover").find('button').find('.filter-option').on('mouseover', popoverOnMouseOver);
+    scope.find(".bootstrap-select-with-popover").find('button').find('.filter-option').on('mouseleave', popoverOnMouseLeave);
+    scope.find(".bootstrap-select-with-popover").find('button').find('.filter-option').on('click', popoverOnMouseLeave);
 }
 
 /***************************************
@@ -419,6 +439,52 @@ function initQuestionCollapse(scope) {
     scope.find('.collapse-this-question').on('dblclick', function (e) {
         $(this).parent().find('.question-body').collapse('toggle');
     });
+}
+
+/***************************************
+ *       下来框的可选数据的绑定        *
+ ***************************************/
+// 看来ajax的同步调用还是生效的
+function test02() {
+    $.ajax({
+        url: '/survey/view/paper/list',
+        //data: '',
+        type: "post",
+        dataType: "json",
+        async: false,
+        // 通讯成功，解析返回结果做进一步处理
+        success: function (result) {
+            console.log(';test02:-----1-----')
+        },
+        // 失败说明网络有问题或者服务器有问题
+        error: function (xhr, status, errorThrown) {
+            console.log('test02:-----2-----')
+        },
+        complete: function (xhr, status) {
+            console.log('test02:-----3-----')
+        }
+    });
+    console.log('test02:-----4-----');
+}
+function getDropdownListHtml(action, parameters, selected) {
+    return '<option>Mustard</option><option>Ketchup</option><option>Relish</option>';
+}
+
+function initBindingDropdown(scope) {
+    scope.find('.bootstrap-select-binding-dropdown').find('button').on('mousedown', function (e) {
+        console.log('---1---');
+        dataElement = $(this).parent().prev();
+        action = dataElement.data('binding-dropdown-action');
+        parameters = dataElement.data('binding-dropdown-parameters');
+        selected = dataElement.val()
+        console.log('action=' + action);
+        console.log('parameters=' + parameters);
+        console.log('selected=' + selected);
+        // 获取数据并填写到select的html中
+        // ... ... ...
+        dataElement.html(getDropdownListHtml(action, parameters, selected));
+        dataElement.selectpicker('refresh');
+    })
 }
 
 /***************************************
@@ -444,56 +510,19 @@ function initial(scope) {
     initPopover(scope);
     // 初始化折叠按钮
     initQuestionCollapse(scope);
+    // 初始化下拉框可选项数据绑定
+    initBindingDropdown(scope);
 }
 /***************************************
  *          全局初始化加载操作         *
  ***************************************/
 
-function test01() {
-
-    $('.test-select-class').find('button').on('mousedown', function (e) {
-        console.log('test01 is call');
-        console.log('---1---');
-        $('#test-select-id').html('<option>Mustard</option><option>Ketchup</option> <option>Relish</option>');
-        console.log('---2---');
-        $('#test-select-id').selectpicker('refresh');
-        console.log('---3---');
-    })
-}
-
-// 看来ajax的同步调用还是生效的
-function test02() {
-    $.ajax({
-        url: '/survey/view/paper/list',
-        //data: '',
-        type: "post",
-        dataType: "json",
-        async: false,
-        // 通讯成功，解析返回结果做进一步处理
-        success: function (result) {
-            console.log(';test02:-----1-----')
-        },
-        // 失败说明网络有问题或者服务器有问题
-        error: function (xhr, status, errorThrown) {
-            console.log('test02:-----2-----')
-        },
-        complete: function (xhr, status) {
-            console.log('test02:-----3-----')
-        }
-    });
-    console.log('test02:-----4-----');
-}
-
 $(document).ready(function () {
     // 绑定body中的所有相关控件的事件
     // 并初始化switch和selec
     initial($('body'));
-
     // 初始问题确认删除按钮事件
     initQuestionDeleteConfirmButtonAction();
     // 初始化选项确认删除按钮事件
     initBranchDeleteConfirmButtonAction();
-
-    test01();
-    test02();
 });
