@@ -97,14 +97,14 @@
                                 data-binding-id="{{ branch.getIdSigned }}"
                                 data-binding-field-name="nextQuestion"
                                 {# 下拉框可选数据绑定 #}
-                                data-binding-dropdown-action="dropdown-action"
-                                data-binding-dropdown-parameters='dropdown-parameters'
+                                data-binding-dropdown-action="{% url 'survey:service.branch.getReachableQuestionListForSelect' %}"
+                                data-binding-dropdown-parameters='branchId={{ branch.getIdSigned }}'
                                 {# 弹出框提示信息 #}
                                 data-placement="left"
                                 data-content="这里是提示的内容">
                             {# 列出所有可达问题 #}
                             {#  <optgroup>#}
-                            {% for reachableQuestion in  branch.getReachableQuestion %}
+                            {% for reachableQuestion in  branch.getReachableQuestionList %}
                                 <option
                                         {% if reachableQuestion == branch.nextQuestion %}
                                             selected='selected'

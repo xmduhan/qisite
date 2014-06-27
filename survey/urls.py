@@ -40,4 +40,6 @@ urlpatterns = patterns(
     url(r'^service/branch/modify$', services.branchModify, name='service.branch.modify'),
     url(r'^service/branch/delete$', services.branchDelete, name='service.branch.delete'),
     url(r'^service/branch/addDefaultBranch$', services.addDefaultBranch, name='service.branch.addDefaultBranch'),
+    url(r'^service/branch/getReachableQuestionListForSelect$', services.getReachableQuestionListForSelect,
+        name='service.branch.getReachableQuestionListForSelect'),
 )

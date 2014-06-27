@@ -444,47 +444,59 @@ function initQuestionCollapse(scope) {
 /***************************************
  *       下来框的可选数据的绑定        *
  ***************************************/
-// 看来ajax的同步调用还是生效的
-function test02() {
+// 通过链接和参数获取select的option列表的函数，提供给initBindingDropdown是用
+function getSelectOptionsHtml(action, parameters) {
+    serviceUrl = action + '?' + parameters;
+    ajaxSuccess = false;
+    questionList = null;
     $.ajax({
-        url: '/survey/view/paper/list',
-        //data: '',
+        url: serviceUrl,
         type: "post",
         dataType: "json",
         async: false,
         // 通讯成功，解析返回结果做进一步处理
         success: function (result) {
-            console.log(';test02:-----1-----')
+            ajaxSuccess = true;
+            questionList = result['questionList'];
         },
         // 失败说明网络有问题或者服务器有问题
         error: function (xhr, status, errorThrown) {
-            console.log('test02:-----2-----')
-        },
-        complete: function (xhr, status) {
-            console.log('test02:-----3-----')
+            // 出错处理(暂缺)
         }
     });
-    console.log('test02:-----4-----');
-}
-function getDropdownListHtml(action, parameters, selected) {
-    return '<option>Mustard</option><option>Ketchup</option><option>Relish</option>';
+    // 如果失败返回空串
+    if (!ajaxSuccess) {
+        return undefined;
+    }
+    // 将返回结果转化html的select选项格式
+    selectOptionsHtml = '';
+    for (i in questionList) {
+        question = questionList[i];
+        selected = '';
+        if (question['selected']) {
+            selected = 'selected = "selected"'
+        }
+        option = '<option ' + selected + ' value="' + question['id'] + '">' + question['num'] + '</option>';
+        selectOptionsHtml += option;
+        console.log(option);
+    }
+    return selectOptionsHtml;
 }
 
 function initBindingDropdown(scope) {
+    // 锁定鼠标的mousedown事件，这个时间比click要来的早，所以在这个是用先把select的信息更新，并且refresh
     scope.find('.bootstrap-select-binding-dropdown').find('button').on('mousedown', function (e) {
-        console.log('---1---');
         dataElement = $(this).parent().prev();
         action = dataElement.data('binding-dropdown-action');
         parameters = dataElement.data('binding-dropdown-parameters');
-        selected = dataElement.val()
-        console.log('action=' + action);
-        console.log('parameters=' + parameters);
-        console.log('selected=' + selected);
-        // 获取数据并填写到select的html中
-        // ... ... ...
-        dataElement.html(getDropdownListHtml(action, parameters, selected));
-        dataElement.selectpicker('refresh');
-    })
+        // 请求可跳转到的问题列表
+        selectOptionsHtml = getSelectOptionsHtml(action, parameters);
+        // 如果请求列表失败，则让select控件保持原来的状态，不做处理。
+        if (selectOptionsHtml != undefined) {
+            dataElement.html(selectOptionsHtml);
+            dataElement.selectpicker('refresh');
+        }
+    });
 }
 
 /***************************************

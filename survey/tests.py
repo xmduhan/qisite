@@ -1426,3 +1426,6 @@ class AddDefaultBranchTest(TestCase):
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
         self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
+
+
+

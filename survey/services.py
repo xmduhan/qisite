@@ -34,7 +34,7 @@ class RESULT_CODE:
 class RESULT_MESSAGE:
     NO_LOGIN = u'没有登录'
     VALIDATION_ERROR = u'数据有效性校验失败'
-    NO_ID = u'需要执行对象标识'
+    NO_ID = u'需要提供对象标识'
     BAD_SAGNATURE = u'数字签名无效'
     OBJECT_NOT_EXIST = u'对象不存在'
     NO_PRIVILEGE = u'没有权限操作该对象'
@@ -795,3 +795,48 @@ def addDefaultBranch(request):
     requestData = {'question': questionId, 'text': u'新增选项'}
     result = _branchAdd(requestData, user)
     return dictToJsonResponse(result)
+
+
+def getReachableQuestionListForSelect(request):
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        return packageResponse(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
+    user = request.session[USER_SESSION_NAME]
+
+    # 检查是否提供了branchId
+    if 'branchId' not in request.REQUEST.keys():
+        return packageResponse(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_ID)
+    branchIdSigned = request.REQUEST['branchId']
+
+    # 对id进行数字签名的检查
+    try:
+        signer = Signer()
+        branchId = signer.unsign(branchIdSigned)
+    except BadSignature:
+        # 篡改发现处理
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.BAD_SAGNATURE)
+
+    # 检查对象是否还存在
+    branchList = Branch.objects.filter(id=branchId).select_for_update()
+    if len(branchList) == 0:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.OBJECT_NOT_EXIST)
+    branch = branchList[0]
+
+    # 检查当前用户是否有权限修改
+    if branch.createBy.id != user.id:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_PRIVILEGE)
+
+    # 将数据打包
+    questionList = []
+    # 导入问卷内的所有可选问题
+    for question in branch.getReachableQuestionList():
+        questionList.append(
+            {'num': question.getNum(), 'id': question.getIdSigned(), 'selected': branch.nextQuestion == question})
+    # 导入系统预定义
+    for question in branch.getSystemPredefined():
+        questionList.append(
+            {'num': question.getNum(), 'id': question.getIdSigned(), 'selected': branch.nextQuestion == question})
+    # 导入为空是系统预定义的下一题
+    questionList.append(
+        {'num': '下一题', 'id': None, 'selected': branch.nextQuestion is None})
+    return packageResponse(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'questionList': questionList})

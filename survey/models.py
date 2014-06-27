@@ -214,7 +214,7 @@ class Branch(TimeModel):
         numStyle = NumStyle(self.question.branchNumStyle)
         return numStyle.getNum(self.ord)
 
-    def getReachableQuestion(self):
+    def getReachableQuestionList(self):
         # 获取当前选项对应问题的之后的所有问题
         question = self.question
         paper = question.paper
