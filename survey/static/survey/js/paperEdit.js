@@ -474,7 +474,21 @@ function getSelectOptionsHtml(action, parameters) {
         question = questionList[i];
         selected = '';
         if (question['selected']) {
-            selected = 'selected = "selected"'
+            selected = 'selected = "selected"';
+        }
+        // 根据不同的问题类型显示不同的图标
+        switch (question['type']) {
+            case 'EndValid':
+                iconName = "glyphicon-ok-circle";
+                break;
+            case 'EndInvalid':
+                iconName = "glyphicon-ban-circle";
+                break;
+            case undefined:
+                iconName = "glyphicon-step-forward";
+                break;
+            default:
+                iconName = 'glyphicon-arrow-right';
         }
         option = '<option ' + selected + ' value="' + question['id'] + '">' + question['num'] + '</option>';
         selectOptionsHtml += option;

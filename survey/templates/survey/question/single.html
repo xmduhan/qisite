@@ -90,7 +90,7 @@
                 <div class="col-md-2">
                     <div class="btn-group btn-block">
                         <select class="selectpicker data-binding-field-select bootstrap-select-with-popover bootstrap-select-binding-dropdown"
-                                data-width='auto'
+                                data-width='75%'
                                 value='{{ branch.nextQuestion }}'
                                 {# 数据字段的绑定信息 #}
                                 data-binding-action="{% url 'survey:service.branch.modify' %}"
@@ -104,6 +104,7 @@
                                 data-content="这里是提示的内容">
                             {# 列出所有可达问题 #}
                             {#  <optgroup>#}
+                            {% comment %}
                             {% for reachableQuestion in  branch.getReachableQuestionList %}
                                 <option
                                         {% if reachableQuestion == branch.nextQuestion %}
@@ -112,9 +113,11 @@
                                             value='{{ reachableQuestion.getIdSigned }}'>{{ reachableQuestion.getNum }}
                                 </option>
                             {% endfor %}
+                            {% endcomment %}
                             {#</optgroup> #}
                             {# 列出所有系统预定义的选项 #}
                             {#  <optgroup label=""> #}
+                            {% comment %}
                             {% for reachableQuestion in  branch.getSystemPredefined %}
                                 <option
                                         {% if reachableQuestion == branch.nextQuestion %}
@@ -129,7 +132,16 @@
                                     {% endif %}
                                         value=''>下一题
                             </option>
+                            {% endcomment %}
                             {#</optgroup> #}
+                            {# 只需要显示当前选择的选项即可，其他选项当下拉框点击时加载 #}
+                            {% if branch.nextQuestion %}
+                                <option value={{ branch.nextQuestion.getIdSigned }} selected='selected'>
+                                    {{ branch.nextQuestion.getNum }}
+                                </option>
+                            {% else %}
+                                <option selected='selected' value="">下一题</option>
+                            {% endif %}
                         </select>
 
                     </div>

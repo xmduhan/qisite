@@ -830,13 +830,25 @@ def getReachableQuestionListForSelect(request):
     questionList = []
     # 导入问卷内的所有可选问题
     for question in branch.getReachableQuestionList():
-        questionList.append(
-            {'num': question.getNum(), 'id': question.getIdSigned(), 'selected': branch.nextQuestion == question})
+        questionList.append({
+            'num': question.getNum(),
+            'id': question.getIdSigned(),
+            'selected': question == branch.nextQuestion,
+            'type': question.type
+        })
     # 导入系统预定义
     for question in branch.getSystemPredefined():
-        questionList.append(
-            {'num': question.getNum(), 'id': question.getIdSigned(), 'selected': branch.nextQuestion == question})
+        questionList.append({
+            'num': question.getNum(),
+            'id': question.getIdSigned(),
+            'selected': branch.nextQuestion == question,
+            'type': question.type
+        })
     # 导入为空是系统预定义的下一题
-    questionList.append(
-        {'num': '下一题', 'id': None, 'selected': branch.nextQuestion is None})
+    questionList.append({
+        'num': '下一题',
+        'id': None,
+        'selected': branch.nextQuestion is None,
+        'type': None
+    })
     return packageResponse(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'questionList': questionList})
