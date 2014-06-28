@@ -444,8 +444,43 @@ function initQuestionCollapse(scope) {
 /***************************************
  *       下来框的可选数据的绑定        *
  ***************************************/
+function OptionDecoder() {
+    return OptionDecoder.prototype;
+}
+OptionDecoder.prototype.defaultSelect = function (question) {
+    selected = '';
+    if (question['selected']) {
+        selected = 'selected = "selected"';
+    }
+    option = '<option ' + selected + ' value="' + question['id'] + '">' + question['num'] + '</option>';
+    return option;
+}
+OptionDecoder.prototype.branchReachableQuestion = function (question) {
+    selected = '';
+    if (question['selected']) {
+        selected = 'selected = "selected"';
+    }
+    // 根据不同的问题类型显示不同的图标
+    console.log('question["type"]=' + question['type']);
+    switch (question['type']) {
+        case 'EndValid':
+            iconName = "glyphicon-ok";
+            break;
+        case 'EndInvalid':
+            iconName = "glyphicon-ban-circle";
+            break;
+        case null:
+            iconName = "glyphicon-arrow-down";
+            break;
+        default:
+            iconName = 'glyphicon-arrow-right';
+    }
+    option = '<option data-icon="' + iconName + '" ' + selected + ' value="' + question['id'] + '">' + question['num'] + '</option>';
+    return option;
+}
+
 // 通过链接和参数获取select的option列表的函数，提供给initBindingDropdown是用
-function getSelectOptionsHtml(action, parameters) {
+function getSelectOptionsHtml(action, parameters, decoder) {
     serviceUrl = action + '?' + parameters;
     ajaxSuccess = false;
     questionList = null;
@@ -472,25 +507,8 @@ function getSelectOptionsHtml(action, parameters) {
     selectOptionsHtml = '';
     for (i in questionList) {
         question = questionList[i];
-        selected = '';
-        if (question['selected']) {
-            selected = 'selected = "selected"';
-        }
-        // 根据不同的问题类型显示不同的图标
-        switch (question['type']) {
-            case 'EndValid':
-                iconName = "glyphicon-ok-circle";
-                break;
-            case 'EndInvalid':
-                iconName = "glyphicon-ban-circle";
-                break;
-            case undefined:
-                iconName = "glyphicon-step-forward";
-                break;
-            default:
-                iconName = 'glyphicon-arrow-right';
-        }
-        option = '<option ' + selected + ' value="' + question['id'] + '">' + question['num'] + '</option>';
+        //option = decodeOptionDefault(question);
+        option = decoder(question);
         selectOptionsHtml += option;
         console.log(option);
     }
@@ -500,16 +518,26 @@ function getSelectOptionsHtml(action, parameters) {
 function initBindingDropdown(scope) {
     // 锁定鼠标的mousedown事件，这个时间比click要来的早，所以在这个是用先把select的信息更新，并且refresh
     scope.find('.bootstrap-select-binding-dropdown').find('button').on('mousedown', function (e) {
+        // 找到对应的数据节点并读取信息
         dataElement = $(this).parent().prev();
         action = dataElement.data('binding-dropdown-action');
         parameters = dataElement.data('binding-dropdown-parameters');
-        // 请求可跳转到的问题列表
-        selectOptionsHtml = getSelectOptionsHtml(action, parameters);
-        // 如果请求列表失败，则让select控件保持原来的状态，不做处理。
+        decoderName = dataElement.data('binding-dropdown-decoder');
+        // 读取设置选项处理器
+        decoder = null;
+        optionDecoder = OptionDecoder();
+        if (decoderName in optionDecoder) {
+            decoder = optionDecoder[decoderName];
+        } else {
+            decoder = optionDecoder.defaultSelect;
+        }
+        // 向服务器请求选项数据并转为html的select option的格式
+        selectOptionsHtml = getSelectOptionsHtml(action, parameters, decoder);
         if (selectOptionsHtml != undefined) {
             dataElement.html(selectOptionsHtml);
             dataElement.selectpicker('refresh');
         }
+        // 如果请求列表失败，则让select控件保持原来的状态，不做处理。
     });
 }
 

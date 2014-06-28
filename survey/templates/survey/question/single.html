@@ -99,48 +99,26 @@
                                 {# 下拉框可选数据绑定 #}
                                 data-binding-dropdown-action="{% url 'survey:service.branch.getReachableQuestionListForSelect' %}"
                                 data-binding-dropdown-parameters='branchId={{ branch.getIdSigned }}'
+                                data-binding-dropdown-decoder="branchReachableQuestion"
                                 {# 弹出框提示信息 #}
                                 data-placement="left"
                                 data-content="这里是提示的内容">
-                            {# 列出所有可达问题 #}
-                            {#  <optgroup>#}
-                            {% comment %}
-                            {% for reachableQuestion in  branch.getReachableQuestionList %}
-                                <option
-                                        {% if reachableQuestion == branch.nextQuestion %}
-                                            selected='selected'
-                                        {% endif %}
-                                            value='{{ reachableQuestion.getIdSigned }}'>{{ reachableQuestion.getNum }}
-                                </option>
-                            {% endfor %}
-                            {% endcomment %}
-                            {#</optgroup> #}
-                            {# 列出所有系统预定义的选项 #}
-                            {#  <optgroup label=""> #}
-                            {% comment %}
-                            {% for reachableQuestion in  branch.getSystemPredefined %}
-                                <option
-                                        {% if reachableQuestion == branch.nextQuestion %}
-                                            selected='selected'
-                                        {% endif %}
-                                            value='{{ reachableQuestion.getIdSigned }}'>{{ reachableQuestion.getNum }}
-                                </option>
-                            {% endfor %}
-                            <option
-                                    {% if branch.nextQuestion == None %}
-                                        selected='selected'
-                                    {% endif %}
-                                        value=''>下一题
-                            </option>
-                            {% endcomment %}
-                            {#</optgroup> #}
                             {# 只需要显示当前选择的选项即可，其他选项当下拉框点击时加载 #}
                             {% if branch.nextQuestion %}
-                                <option value={{ branch.nextQuestion.getIdSigned }} selected='selected'>
+                                <option
+                                        {# 根据问题类型设置问题的图标 #}
+                                        {% if branch.type == 'EndValid' %}
+                                            data-icon="glyphicon-ok"
+                                        {% elif branch.type == 'EndInvalid' %}
+                                            data-icon="glyphicon-ban-circle"
+                                        {% else %}
+                                            data-icon="glyphicon-arrow-right"
+                                        {% endif %}
+                                            value={{ branch.nextQuestion.getIdSigned }} selected='selected'>
                                     {{ branch.nextQuestion.getNum }}
                                 </option>
                             {% else %}
-                                <option selected='selected' value="">下一题</option>
+                                <option data-icon='glyphicon-arrow-down' selected='selected' value="">下一题</option>
                             {% endif %}
                         </select>
 
