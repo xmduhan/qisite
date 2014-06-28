@@ -1093,6 +1093,7 @@ class BranchModifyTest(TestCase):
         self.data_valid = {'id': signer.sign(self.branch.id), 'text': 'branch1'}
         self.data_bad_signature = {'id': self.branch.id, 'text': 'branch1'}
         self.data_no_privilege = {'id': signer.sign(self.branch_other.id), 'text': 'branch1'}
+        self.data_valid_null_next = {'id': signer.sign(self.branch.id), 'nextQuestion': 'null'}
 
     def test_no_login(self):
         '''
@@ -1144,6 +1145,16 @@ class BranchModifyTest(TestCase):
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
         self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
+
+    def test_success_null_next(self):
+        '''
+            测试操作成功的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid_null_next)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
 
     def test_success(self):
         '''

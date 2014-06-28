@@ -640,7 +640,7 @@ def _branchModify(requestData, user):
 
         # 对外键的特殊处理
         if type(field) == ForeignKey:
-            if len(value) != 0:
+            if len(value) != 0 and value != 'null':
                 # 校验数字签名
                 try:
                     signer = Signer()
@@ -677,6 +677,7 @@ def branchModify(request):
     '''
         选项修改的服务
     '''
+
     # 检查用户是否登录，并读取session中的用户信息
     if USER_SESSION_NAME not in request.session.keys():
         result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
