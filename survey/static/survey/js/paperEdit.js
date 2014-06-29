@@ -24,7 +24,15 @@ function initBootstrapSwitch(scope) {
  *  初始化相关的bootstrap select控件   *
  ***************************************/
 function initBootstrapSelect(scope) {
-    scope.find('.selectpicker').selectpicker();
+    scope.find('.bootstrap-select').selectpicker();
+    // 这好像是bootstrap-select是bootstrap的一个bug，我们并没有指定title但它还是出现，文档中说默认是null
+    // 由于莫名奇妙的被加了一个title进去，这里之后设置了一段代码将其去掉
+    scope.find('.bootstrap-select').find('button').attr('title', '');
+    // 每次mouseover事件发生时都去掉一次，这样就没有机会套弹出这个title提示了。
+    scope.find('.bootstrap-select').find('button').on('mouseover', function () {
+        console.log('bootstrap-select.button.mouseover is call');
+        $(this).attr('title', '');
+    });
 }
 
 /***************************************
@@ -517,7 +525,16 @@ function getSelectOptionsHtml(action, parameters, decoder) {
 
 function initBindingDropdown(scope) {
     // 锁定鼠标的mousedown事件，这个时间比click要来的早，所以在这个是用先把select的信息更新，并且refresh
-    scope.find('.bootstrap-select-binding-dropdown').find('button').on('mousedown', function (e) {
+    // ******************************************** 存在问题 ********************************************
+    // 由于bootstrap-select似乎存在一个bug就是在启用data-icon属性，且同时俘获了mousedown事件，点击按钮中间的文字部分
+    // 下拉框是无法弹出的，请见云笔记中bootstrap中的bootstrap-select记录
+    // 所以这里只好先用mouseenter代替，但是这个是会给服务器增加很多不必要的请求。
+    // 但目前没有更好的办法，后续再解决这个问题。
+    // --------------------------
+    // 后来改用了click时间似乎就可以了，但如何保证click时间比bootstrap中定义的来得早？还不完全清楚
+    // 但目前来看是能正常工作了。
+    scope.find('.bootstrap-select-binding-dropdown').find('button').on('click', function (event) {
+        console.log('mouseenter is called');
         // 找到对应的数据节点并读取信息
         dataElement = $(this).parent().prev();
         action = dataElement.data('binding-dropdown-action');
@@ -536,8 +553,12 @@ function initBindingDropdown(scope) {
         if (selectOptionsHtml != undefined) {
             dataElement.html(selectOptionsHtml);
             dataElement.selectpicker('refresh');
+            // 这好像是bootstrap-select是bootstrap的一个bug，我们并没有指定title但它还是出现，文档中说默认是null
+            $('.bootstrap-select').find('button').attr('title', '');
+        } else {
+            // 如果请求列表失败，则让select控件保持原来的状态，不做处理。
+            console.log('initBindingDropdown:获取选项列表失败');
         }
-        // 如果请求列表失败，则让select控件保持原来的状态，不做处理。
     });
 }
 
@@ -572,7 +593,7 @@ function initial(scope) {
     // 初始化分支删除事件
     initBranchDeleteAction(scope);
     // 初始化弹出框信息
-    //initPopover(scope);
+    initPopover(scope);
     // 初始化折叠按钮
     initQuestionCollapse(scope);
     // 初始化下拉框可选项数据绑定
@@ -584,6 +605,8 @@ function initial(scope) {
  *          全局初始化加载操作         *
  ***************************************/
 
+
+
 $(document).ready(function () {
     // 绑定body中的所有相关控件的事件
     // 并初始化switch和selec
@@ -592,6 +615,7 @@ $(document).ready(function () {
     initQuestionDeleteConfirmButtonAction();
     // 初始化选项确认删除按钮事件
     initBranchDeleteConfirmButtonAction();
+
 });
 
 

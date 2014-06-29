@@ -5,11 +5,11 @@
         <div class="row">
             <div class="col-md-11 with-popover"
                  data-placement="auto"
-                 data-content="双击可以将问题折叠起来">
+                 data-content="双击标题栏可以将问题折叠起来">
                 <span class="glyphicon glyphicon-collapse-up with-popover"
                         {# 弹出框提示信息 #}
                       data-placement="right"
-                      data-content="将这个问题折叠起来"
+                      data-content="点击这里可以将问题折叠起来"
                       style="font-size:1.3em;">
                  </span>
 
@@ -59,7 +59,7 @@
                            data-binding-field-name="confused"
                             {# 弹出框提示信息 #}
                            data-placement="top"
-                           data-content="这里是提示的内容"/>
+                           data-content="该开关指定选项出现的顺序，当选择“正常”时用户答题时看到的和你设计时一样，当选择“乱序”时用户看见的选项出现的顺序是随机的"/>
                 </div>
             </div>
         </div>
@@ -100,7 +100,7 @@
                 {#  题支的跳转信息  #}
                 <div class="col-md-2">
                     <div class="btn-group btn-block">
-                        <select class="selectpicker data-binding-field-select bootstrap-select-with-popover bootstrap-select-binding-dropdown"
+                        <select class="bootstrap-select data-binding-field-select bootstrap-select-with-popover bootstrap-select-binding-dropdown"
                                 data-width='75%'
                                 value='{{ branch.nextQuestion }}'
                                 {# 数据字段的绑定信息 #}
@@ -110,17 +110,19 @@
                                 {# 下拉框可选数据绑定 #}
                                 data-binding-dropdown-action="{% url 'survey:service.branch.getReachableQuestionListForSelect' %}"
                                 data-binding-dropdown-parameters='branchId={{ branch.getIdSigned }}'
-                                {#  data-binding-dropdown-decoder="branchReachableQuestion" #}
+                                data-binding-dropdown-decoder="branchReachableQuestion"
                                 {# 弹出框提示信息 #}
                                 data-placement="left"
-                                data-content="这里是提示的内容">
+                                data-content="通过这个下拉框，你可以设置问题跳转。也就是用户选择这个选项后，对应转向的问题。"
+                                >
                             {# 只需要显示当前选择的选项即可，其他选项当下拉框点击时加载 #}
                             {% if branch.nextQuestion %}
                                 <option
                                         {# 根据问题类型设置问题的图标 #}
-                                        {% if branch.type == 'EndValid' %}
+                                        {#  目前bootstrap-select 使用data-icon一直会出现问题，暂时去掉 #}
+                                        {% if branch.nextQuestion.type == 'EndValid' %}
                                             data-icon="glyphicon-ok"
-                                        {% elif branch.type == 'EndInvalid' %}
+                                        {% elif branch.nextQuestion.type == 'EndInvalid' %}
                                             data-icon="glyphicon-ban-circle"
                                         {% else %}
                                             data-icon="glyphicon-arrow-right"
@@ -129,7 +131,9 @@
                                     {{ branch.nextQuestion.getNum }}
                                 </option>
                             {% else %}
-                                <option data-icon='glyphicon-arrow-down' selected='selected' value="">下一题</option>
+                                <option data-icon='glyphicon-arrow-down' selected='selected' value="">
+                                    下一题
+                                </option>
                             {% endif %}
                         </select>
 
@@ -148,7 +152,7 @@
                 data-binding-question-id="{{ question.getIdSigned }}"
                 {# 弹出框提示信息 #}
                 data-placement="right"
-                data-content="新增一个选项">
+                data-content="点击这个蓝色按钮可以新增一个选项">
             <span class="glyphicon glyphicon-plus"></span>
         </button>
 

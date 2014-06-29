@@ -97,12 +97,12 @@
                         <div class="btn-group btn-block">
                             <button type="button" class="btn btn-default with-popover"
                                     {# 弹出框提示信息 #}
-                                    data-placement="bottom"
-                                    data-content="这里是提示的内容"
+                                    {# data-placement="bottom" #}
+                                    {#  data-content="这个选项控制问题显示时，问题前面的序号的样子。" #}
                                     >
                                 标号样式
                             </button>
-                            <select class="selectpicker data-binding-field-select bootstrap-select-with-popover"
+                            <select class="bootstrap-select data-binding-field-select bootstrap-select-with-popover"
                                     data-width='auto'
                                     value='{{ paper.questionNumStyle }}'
                                     {# 数据绑定信息 #}
@@ -110,8 +110,8 @@
                                     data-binding-id="{{ paper.getIdSigned }}"
                                     data-binding-field-name="questionNumStyle"
                                     {# 弹出框提示信息 #}
-                                    data-placement="right"
-                                    data-content="这里是提示的内容"
+                                    data-placement="bottom"
+                                    data-content="这个选项控制问题显示时，问题前面的序号的样子。"
                                     >
                                 {# 列出可选标号样式数据 #}
                                 {% for code,display in  paper.getNumStyleAvailable %}
@@ -130,9 +130,10 @@
                         <div class="input-group input-group-sm ">
                             <span class="input-group-addon  with-popover"
                                     {# 弹出框提示信息 #}
-                                  data-placement="bottom"
-                                  data-content="这里是提示的内容">
-                                分页显示
+                                    {#data-placement="bottom" #}
+                                    {#data-content="这里是提示的内容"#}
+                                    >
+                                  分页显示
                             </span>
                             <input class="bootstrap-switch-input data-binding-field-switch bootstrap-switch-with-popover"
                                    type="checkbox"
@@ -143,7 +144,7 @@
                                    data-binding-field-name="paging"
                                     {# 弹出框提示信息 #}
                                    data-placement="bottom"
-                                   data-content="这里是提示的内容"/>
+                                   data-content="这个开关控制答题时问卷是否分页显示"/>
                         </div>
                     </div>
 
@@ -151,11 +152,16 @@
                     <div class="col-md-3">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">顺序答题</span>
-                            <input class="bootstrap-switch-input data-binding-field-switch" type="checkbox"
+                            <input class="bootstrap-switch-input data-binding-field-switch bootstrap-switch-with-popover"
+                                   type="checkbox"
                                    {% if paper.inOrder %}checked{% endif %}
                                    data-binding-action="{% url 'survey:service.paper.modify' %}"
                                    data-binding-id="{{ paper.getIdSigned }}"
-                                   data-binding-field-name="inOrder"/>
+                                   data-binding-field-name="inOrder"
+                                    {# 弹出框提示信息 #}
+                                   data-placement="bottom"
+                                   data-content="这个开关控制答题用户是否需要按顺序进行答题"
+                                    />
                         </div>
                     </div>
 
@@ -163,11 +169,15 @@
                     <div class="col-md-3 ">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">返回修改</span>
-                            <input class="bootstrap-switch-input data-binding-field-switch" type="checkbox"
+                            <input class="bootstrap-switch-input data-binding-field-switch bootstrap-switch-with-popover"
+                                   type="checkbox"
                                    {% if paper.lookBack %}checked{% endif %}
                                    data-binding-action="{% url 'survey:service.paper.modify' %}"
                                    data-binding-id="{{ paper.getIdSigned }}"
-                                   data-binding-field-name="lookBack"/>
+                                   data-binding-field-name="lookBack"
+                                    {# 弹出框提示信息 #}
+                                   data-placement="bottom"
+                                   data-content="这个开关控制是否允许用户返回上一题，对已回答的问题进行修改。"/>
                         </div>
                     </div>
                 </div>
@@ -328,12 +338,6 @@
         </div>
     </div>
 </div>
-
-<select class="selectpicker">
-    <option data-icon="glyphicon-heart">1</option>
-    <option data-icon="icon-heart">2</option>
-    <option data-icon="icon-heart">3</option>
-</select>
 
 {# 加载Javascript程序 #}
 
