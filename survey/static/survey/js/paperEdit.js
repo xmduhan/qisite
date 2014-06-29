@@ -389,7 +389,7 @@ function findPopoverDataElement(e) {
 }
 // 鼠标进入事件
 function popoverOnMouseOver() {
-    console.log('mouseover is call');
+    //console.log('mouseover is call');
     dataElement = findPopoverDataElement(this);
     //console.log(dataElement);
     $(this).popover('destroy');
@@ -406,7 +406,7 @@ function popoverOnMouseOver() {
 
 // 鼠标移出事件
 function popoverOnMouseLeave(e) {
-    console.log('mouseleave is call');
+    //console.log('mouseleave is call');
     $(this).popover('destroy');
 }
 
@@ -510,8 +510,8 @@ function getSelectOptionsHtml(action, parameters, decoder) {
         //option = decodeOptionDefault(question);
         option = decoder(question);
         selectOptionsHtml += option;
-        console.log(option);
     }
+    console.log(selectOptionsHtml);
     return selectOptionsHtml;
 }
 
@@ -542,6 +542,17 @@ function initBindingDropdown(scope) {
 }
 
 /***************************************
+ *  同步问题题干信息和其编辑框的标题   *
+ ***************************************/
+function initQuestionTitleSynchronization(scope) {
+    scope.find(".question-text-editor").on("change", function (event) {
+        console.log('question title need change');
+        titlePanel = $(this).parents('.panel').find('.question-title-panel-text');
+        titlePanel.html($(this).val());
+    });
+}
+
+/***************************************
  *        所有空间初始化操作工作       *
  ***************************************/
 // ***** 要考虑一下这个函数如果重复调用是否会出现问题 ******
@@ -561,11 +572,13 @@ function initial(scope) {
     // 初始化分支删除事件
     initBranchDeleteAction(scope);
     // 初始化弹出框信息
-    initPopover(scope);
+    //initPopover(scope);
     // 初始化折叠按钮
     initQuestionCollapse(scope);
     // 初始化下拉框可选项数据绑定
     initBindingDropdown(scope);
+    // 初始化问题题干和编辑框间的同步操作
+    initQuestionTitleSynchronization(scope);
 }
 /***************************************
  *          全局初始化加载操作         *
@@ -580,3 +593,5 @@ $(document).ready(function () {
     // 初始化选项确认删除按钮事件
     initBranchDeleteConfirmButtonAction();
 });
+
+
