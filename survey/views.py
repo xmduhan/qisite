@@ -23,7 +23,7 @@ def surveyList(request):
     template = loader.get_template('survey/surveyList.html')
     context = RequestContext(request, {"surveyList": surveyList, 'session': request.session})
     return HttpResponse(template.render(context))
-
+    
 
 def surveyEdit(request):
     template = loader.get_template('survey/surveyEdit.html')
@@ -82,5 +82,8 @@ def questionEdit(request, questionId):
     template = loader.get_template('survey/question/question.html')
     context = RequestContext(request, {'question': question})
     return HttpResponse(template.render(context))
+
+
+
 
 

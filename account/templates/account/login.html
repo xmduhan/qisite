@@ -13,7 +13,7 @@
         <div class="col-md-4 col-md-offset-4">
 
             {# 登录表单 #}
-            <form role="form" action="{% url 'account:login' %}" method="post">
+            <form name="loginMainForm" role="form" action="{% url 'account:login' %}" method="post">
                 {% csrf_token %}
 
                 <h2><span class="glyphicon glyphicon-user"></span> 用户登陆</h2>
@@ -51,7 +51,7 @@
                 <div class="row">
                     {# 登录按钮 #}
                     <div class="col-md-6">
-                        <input type="submit" value="登陆"
+                        <input name="loginButton" type="submit" value="登陆"
                                class="btn btn-success btn-block btn-lg" tabindex="7">
 
                     </div>

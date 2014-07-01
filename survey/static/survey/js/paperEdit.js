@@ -5,7 +5,9 @@ function getQuestionDocument(questionId) {
     return $('#question-' + questionId.replace(':', ''));
 }
 
-
+function getBranchDocument(branchId) {
+    return $('#branch-' + branchId.replace(':', ''));
+}
 /***************************************
  *  初始化相关的bootstrap switch控件   *
  ***************************************/
@@ -267,7 +269,9 @@ function initQuestionDeleteConfirmButtonAction() {
                 //
                 if (result['resultCode'] == 0) {
                     // 删除问题对应的DOM对象
-                    getQuestionDocument(id).remove();
+                    getQuestionDocument(id).animate({'opacity': 0}, 1500, callback = function () {
+                        $(this).remove();
+                    });
                 } else {
                     // 出错处理(暂缺)
                 }
@@ -328,7 +332,11 @@ function initBranchDeleteConfirmButtonAction() {
                 //
                 if (result['resultCode'] == 0) {
                     // 删除问题对应的DOM对象
-                    refreshQuestionDocument(questionId);
+                    getBranchDocument(id).animate({'opacity': 0}, 1000, callback = function () {
+                        //refreshQuestionDocument(questionId);
+                        $(this).remove();
+                    });
+
                 } else {
                     // 出错处理(暂缺)
                 }
@@ -574,6 +582,15 @@ function initQuestionTitleSynchronization(scope) {
 }
 
 /***************************************
+ *      初始化问题的顺序调整功能       *
+ ***************************************/
+function initQuestionSortable() {
+    $("#questionBox").sortable();
+    $("#questionBox").disableSelection();
+}
+
+
+/***************************************
  *        所有空间初始化操作工作       *
  ***************************************/
 // ***** 要考虑一下这个函数如果重复调用是否会出现问题 ******
@@ -615,7 +632,8 @@ $(document).ready(function () {
     initQuestionDeleteConfirmButtonAction();
     // 初始化选项确认删除按钮事件
     initBranchDeleteConfirmButtonAction();
-
+    // 初始化问题的排序功能
+    initQuestionSortable();
 });
 
 
