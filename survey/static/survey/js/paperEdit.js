@@ -58,12 +58,23 @@ function initDataBinding(scope) {
     });
 }
 
-
 /***************************************
  *       保存绑定字段数据到数据库      *
  ***************************************/
+function displayRefreshIcon(control) {
+    console.log('displayRefreshIcon is called');
+    //icon = itemSaved.closest('.data-binding-refresh-icon');
+    icon = $(control).closest('.panel').find('.data-binding-refresh-icon');
+    //console.log(icon);
+    icon.stop(true, true);
+    icon.css('opacity', 1);
+    icon.animate({'opacity': 0}, 3000);
+}
+
+
 function saveFieldValue(control, value) {
     // 从控件中读取数据
+    console.log('saveFieldValue is called');
     id = $(control).data('binding-id')
     field_name = $(control).data('binding-field-name')
     action = $(control).data('binding-action')
@@ -82,6 +93,7 @@ function saveFieldValue(control, value) {
             console.log('save successfully');
             console.log('resultCode:' + result['resultCode']);
             console.log('resultMessage:' + result['resultMessage']);
+            displayRefreshIcon(control);
         },
         // 失败说明网络有问题或者服务器有问题
         error: function (xhr, status, errorThrown) {

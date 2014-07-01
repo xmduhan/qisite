@@ -56,6 +56,7 @@
         {# panel标题 #}
         <div class="panel-heading">
             <span class="glyphicon glyphicon-list-alt"></span>
+            <span class="glyphicon glyphicon-save data-binding-refresh-icon" style="opacity:0"></span>
             问卷
         </div>
         {# panel内容 #}
@@ -66,7 +67,7 @@
                     <div class="col-md-12">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">问卷名称</span>
-                            <input type="text" class="form-control data-binding-field-text" placeholder="请填写问卷名称"
+                            <input id = type="text" class="form-control data-binding-field-text" placeholder="请填写问卷名称"
                                    value="{{ paper.title }}"
                                    data-binding-action="{% url 'survey:service.paper.modify' %}"
                                    data-binding-id="{{ paper.getIdSigned }}"
@@ -95,7 +96,7 @@
                     {# 标号样式选择 #}
                     <div class="col-md-3">
                         <div class="btn-group btn-block">
-                            <button type="button" class="btn btn-default with-popover"
+                            <button type="button" class="btn btn-default "
                                     {# 弹出框提示信息 #}
                                     {# data-placement="bottom" #}
                                     {#  data-content="这个选项控制问题显示时，问题前面的序号的样子。" #}
@@ -128,7 +129,7 @@
                     {# 分页显示(switch控件) #}
                     <div class="col-md-3">
                         <div class="input-group input-group-sm ">
-                            <span class="input-group-addon  with-popover"
+                            <span class="input-group-addon  "
                                     {# 弹出框提示信息 #}
                                     {#data-placement="bottom" #}
                                     {#data-content="这里是提示的内容"#}
