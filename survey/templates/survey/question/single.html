@@ -27,9 +27,9 @@
                         {# 弹出框提示信息 #}
                       data-placement="left"
                       data-content="删除这个问题"
-                      style="font-size:1.3em;">
-
+                      style="font-size:1.3em;color:#421410">
                  </span>
+
             </div>
         </div>
     </div>
@@ -88,6 +88,7 @@
                         {# 题支的删除按钮 #}
                         <span class="input-group-addon ">
                             <span class="glyphicon glyphicon-remove-sign pull-right btn-question-delete-branch with-popover"
+                                  style="color:#421410"
                                     {# 数据绑定信息 #}
                                   data-binding-action="{% url 'survey:service.branch.delete' %}"
                                   data-binding-id="{{ branch.getIdSigned }}"

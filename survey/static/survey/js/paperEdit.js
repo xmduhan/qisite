@@ -601,6 +601,38 @@ function initQuestionSortable() {
     $("#questionBox").disableSelection();
 }
 
+/***************************************
+ *        初始化删除按钮的颜色变化     *
+ ***************************************/
+
+function lightDeleteButton(button) {
+    console.log('mouseenter() is called');
+    $(button).stop(true, true);
+    $(button).animate({'color': '#e50a22'}, 800);
+}
+
+function slakeDeleteButton(button) {
+    console.log('mouseleave() is called');
+    $(button).stop(true, true);
+    $(button).animate({'color': '#421410'}, 800);
+}
+
+function initDeleteButtonColorChange(scope) {
+    // 为问题删除按钮绑定事件
+    $(".btn-paper-delete-question").on('mouseenter', function (event) {
+        lightDeleteButton(this);
+    });
+    $(".btn-paper-delete-question").on('mouseleave', function (event) {
+        slakeDeleteButton(this);
+    });
+    // 为选项删除按钮绑定事件
+    $(".btn-question-delete-branch").on('mouseenter', function (event) {
+        lightDeleteButton(this);
+    });
+    $(".btn-question-delete-branch").on('mouseleave', function (event) {
+        slakeDeleteButton(this);
+    });
+}
 
 /***************************************
  *        所有空间初始化操作工作       *
@@ -629,6 +661,8 @@ function initial(scope) {
     initBindingDropdown(scope);
     // 初始化问题题干和编辑框间的同步操作
     initQuestionTitleSynchronization(scope);
+    // 初始化删除按钮的颜色变化
+    initDeleteButtonColorChange(scope);
 }
 /***************************************
  *          全局初始化加载操作         *
