@@ -45,7 +45,7 @@
 
                 {# 表格内容 #}
                 {% for paper in paperList %}
-                    <tr class='paper-record'>
+                    <tr id='paper-{{ paper.getIdSigned | cut:':' }}'>
                         {# 标号 #}
                         <td>{{ forloop.counter }}</td>
                         {# 问卷标题 #}
@@ -110,7 +110,7 @@
             <div class="modal-body" align="center">
                 <h4>
                     <span class="glyphicon glyphicon-remove-circle"></span>
-                    您确定要删除这个问题吗?
+                    您确定要删除这个问卷吗?
                 </h4>
             </div>
             {# 对话框底部 #}

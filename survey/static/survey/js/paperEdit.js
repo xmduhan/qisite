@@ -345,8 +345,8 @@ function initBranchDeleteConfirmButtonAction() {
                 if (result['resultCode'] == 0) {
                     // 删除问题对应的DOM对象
                     getBranchDocument(id).animate({'opacity': 0}, 1000, callback = function () {
-                        //refreshQuestionDocument(questionId);
-                        $(this).remove();
+                        refreshQuestionDocument(questionId);
+                        //$(this).remove();
                     });
 
                 } else {

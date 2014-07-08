@@ -1,3 +1,10 @@
+function getPaperRecord(paperId) {
+    str = '#paper-' + paperId.replace(':', '');
+    console.log('str=' + str);
+    return $(str);
+}
+
+
 /***************************************
  *        初始化新增按钮点击事件       *
  ***************************************/
@@ -63,8 +70,8 @@ function initPaperDeleteConfirmButtonAction() {
         // 准备提交到服务器的数据
         id = confirmButton.data('binding-id')
         action = confirmButton.data('binding-action')
-        console.log('action=' + action);
-        console.log('id=' + id);
+        //console.log('action=' + action);
+        //console.log('id=' + id);
         data = {}
         data['id'] = id
         $.ajax({
@@ -80,8 +87,10 @@ function initPaperDeleteConfirmButtonAction() {
                 console.log('resultMessage:' + result['resultMessage']);
                 //
                 if (result['resultCode'] == 0) {
-                    // 更新页面
-                    location.reload();
+                    // 被删除的问卷记录的淡出效果，并更新页面
+                    getPaperRecord(id).animate({'opacity': 0}, 1500, callback = function () {
+                        location.reload();
+                    });
                 } else {
                     // 出错处理(暂缺)
                 }
@@ -125,7 +134,6 @@ function initDeleteButtonColorChange() {
         slakeDeleteButton(this);
     });
 }
-
 
 
 /***************************************
