@@ -42,9 +42,10 @@
                     <th colspan="3"></th>
                 </tr>
                 </thead>
+
                 {# 表格内容 #}
                 {% for paper in paperList %}
-                    <tr>
+                    <tr class='paper-record'>
                         {# 标号 #}
                         <td>{{ forloop.counter }}</td>
                         {# 问卷标题 #}
