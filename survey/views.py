@@ -6,33 +6,45 @@ from django.template import Context, loader, RequestContext
 from account.models import User
 from models import *
 from django.core.signing import Signer, BadSignature
+import services
+from qisite.definitions import USER_SESSION_NAME
 
 
-def getCurrent():
-    userList = User.objects.filter(name='杜涵')
-    if len(userList) > 0:
-        return userList[0]
-    else:
-        return None
+def getCurrent(request):
+    #userList = User.objects.filter(name='杜涵')
+    #if len(userList) > 0:
+    #    return userList[0]
+    #else:
+    #    return None
+    return request.session.get(USER_SESSION_NAME, None)
 
 
 def surveyList(request):
-    user = getCurrent()
+    '''
+        列出用户的调查
+    '''
+    user = getCurrent(request)
     surveyList = user.surveyCreated_set.all()
     #surveyList = user.surveyCreated_set.filter(state = 'P')
     template = loader.get_template('survey/surveyList.html')
     context = RequestContext(request, {"surveyList": surveyList, 'session': request.session})
     return HttpResponse(template.render(context))
-    
+
 
 def surveyEdit(request):
+    '''
+        编辑调查
+    '''
     template = loader.get_template('survey/surveyEdit.html')
     context = RequestContext(request, {'session': request.session})
     return HttpResponse(template.render(context))
 
 
 def paperList(request):
-    user = getCurrent()
+    '''
+        列出用户的问卷
+    '''
+    user = getCurrent(request)
     paperList = user.paperCreated_set.all()
     template = loader.get_template('survey/paperList.html')
     context = RequestContext(request, {"paperList": paperList, 'session': request.session})
@@ -40,6 +52,9 @@ def paperList(request):
 
 
 def paperEdit(request, paperId):
+    '''
+        问卷编辑
+    '''
     paperList = Paper.objects.filter(id=paperId)
     if paperList:
         paper = paperList[0]
@@ -51,7 +66,10 @@ def paperEdit(request, paperId):
 
 
 def custListList(request):
-    user = getCurrent()
+    '''
+        列出用户的客户清单
+    '''
+    user = getCurrent(request)
     custListList = user.custListCreated_set.all()
     template = loader.get_template('survey/custListList.html')
     context = RequestContext(request, {'custListList': custListList, 'session': request.session})
@@ -62,7 +80,7 @@ def questionEdit(request, questionId):
     '''
         生成问题编辑DOM片段的view服务
     '''
-    user = getCurrent()
+    user = getCurrent(request)
 
     # 检查数字签名
     try:

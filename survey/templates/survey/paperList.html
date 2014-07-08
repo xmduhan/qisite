@@ -14,7 +14,7 @@
     {# 新增按钮 #}
     <div class="row">
         <p>
-            <button type="button" class="btn btn-primary">
+            <button type="button" class="btn btn-primary btn-paper-add">
                 <span class="glyphicon glyphicon-plus"></span>
                 新 增
             </button>
@@ -64,7 +64,13 @@
                         {# 发起调查 #}
                         <td><span class="glyphicon glyphicon glyphicon-new-window"></span></td>
                         {# 删除 #}
-                        <td><span class="glyphicon glyphicon-remove-circle"></span></td>
+                        <td>
+                            <span class="glyphicon glyphicon-remove-circle btn-paper-delete"
+                                    {# 数据绑定信息 #}
+                                  data-binding-action="{% url 'survey:service.paper.delete' %}"
+                                  data-binding-id="{{ paper.getIdSigned }}">
+                            </span>
+                        </td>
                     </tr>
                 {% endfor %}
             </table>
@@ -86,7 +92,48 @@
 
 </div>
 
+
+{# 选项删除对话框 #}
+<div class="modal fade" id="paperDeleteConfirmDialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            {# 对话框标题栏 #}
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">
+                    <span class="glyphicon glyphicon-exclamation-sign"></span> 请确认
+                </h4>
+            </div>
+            {# 对话框内容 #}
+            <div class="modal-body" align="center">
+                <h4>
+                    <span class="glyphicon glyphicon-remove-circle"></span>
+                    您确定要删除这个问题吗?
+                </h4>
+            </div>
+            {# 对话框底部 #}
+            <div class="modal-footer">
+                <div class='row' align="center">
+                    <div class="col-md-3"></div>
+                    <div class="col-md-3">
+                        <button id='paperDeleteConfirmButton' type="button" class="btn btn-danger btn-block">确定
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-default btn-block" data-dismiss="modal">取消</button>
+                    </div>
+                    <div class="col-md-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 {# 加载Javascript程序 #}
 {% include "www/commonjs.html" %}
+<script src="/static/survey/js/paperList.js"></script>
+
 </body>
 </html>
