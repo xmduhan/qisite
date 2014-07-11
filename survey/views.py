@@ -8,6 +8,7 @@ from models import *
 from django.core.signing import Signer, BadSignature
 import services
 from qisite.definitions import USER_SESSION_NAME
+from django.core.paginator import Paginator
 
 
 def getCurrent(request):
@@ -40,15 +41,31 @@ def surveyEdit(request):
     return HttpResponse(template.render(context))
 
 
-def paperList(request):
+def paperList(request, page=1):
     '''
         列出用户的问卷
     '''
+    # 确定page类型为整型
+    if type(page) != int: page = int(page)
+    # 读取用户
     user = getCurrent(request)
-    paperList = user.paperCreated_set.all()
+    # 读取用户所创建的问卷，并做分页处理
+    paperCreateSet = user.paperCreated_set.all()
+    paginator = Paginator(paperCreateSet, 5)
+    # 对page的异常值进行处理
+    if page < 1: page = 1
+    if page > paginator.num_pages: page = paginator.num_pages
+    # 读取当前分页数据
+    thisPagePaperList = paginator.page(page)
+    # 通过模板生成返回内容
     template = loader.get_template('survey/paperList.html')
-    context = RequestContext(request, {"paperList": paperList, 'session': request.session})
+    context = RequestContext(request, {
+        "paperList": thisPagePaperList,
+        'session': request.session
+    })
     return HttpResponse(template.render(context))
+
+
 '''
 from survey.models import *
 from account.models import *
