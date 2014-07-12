@@ -611,7 +611,16 @@ function initQuestionTitleSynchronization(scope) {
  *      初始化问题的顺序调整功能       *
  ***************************************/
 function initQuestionSortable() {
-    $("#questionBox").sortable();
+    $("#questionBox").sortable({
+        update: function (event, ui) {
+            console.log('sortupdate() is called');
+            id = ui.item.attr('id');
+            index = ui.item.index();
+            console.log('quetionId=' + id);
+            console.log('newIndex=' + index);
+        },
+        handle: '.panel-heading'
+    });
     $("#questionBox").disableSelection();
 }
 
