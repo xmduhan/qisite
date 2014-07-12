@@ -79,29 +79,38 @@
     </div>
 
     {# 分页控件 #}
-    <div class="row" align="center">
-        <div class="btn-group">
-            <button type="button" class="btn btn-default">&laquo;</button>
-            <button type="button" class="btn btn-default active">1</button>
-            <button type="button" class="btn btn-default disabled">2</button>
-            <button type="button" class="btn btn-default">3</button>
-            <button type="button" class="btn btn-default">4</button>
-            <button type="button" class="btn btn-default">5</button>
-            <button type="button" class="btn btn-default">&raquo;</button>
-        </div>
-    </div>
+    <ul class="pager">
+        {# 开头 #}
+        {% if paperList.has_previous %}
+            <li><a href="{% url 'survey:view.paper.list' %}">&laquo;</a></li>
+        {% else %}
+            <li class='disabled'><a href="">&laquo;</a></li>
+        {% endif %}
 
-    <div>
-        <ul class="pagination">
-            <li><a href="#">&laquo;</a></li>
-            <li><a href="#">1</a></li>
-            <li><a href="#">2</a></li>
-            <li><a href="#">3</a></li>
-            <li><a href="#">4</a></li>
-            <li><a href="#">5</a></li>
-            <li><a href="#">&raquo;</a></li>
-        </ul>
-    </div>
+        {# 下一页 #}
+        {% if paperList.has_previous %}
+            <li><a href="{% url 'survey:view.paper.list' paperList.previous_page_number %}">上一页</a></li>
+        {% else %}
+            <li class='disabled'><a href="">上一页</a></li>
+        {% endif %}
+
+        {# 当前页显示 #}
+        <input type='text' size="1" style="text-align:center" value='{{ paperList.number }}'>
+        / {{ paperList.paginator.num_pages }}
+
+        {# 下一页 #}
+        {% if paperList.has_next %}
+            <li><a href="{% url 'survey:view.paper.list' paperList.next_page_number %}">下一页</a></li>
+        {% else %}
+            <li class='disabled'><a href="#">下一页</a></li>
+        {% endif %}
+        {# 最后 #}
+        {% if paperList.has_next %}
+            <li><a href="{% url 'survey:view.paper.list'  paperList.paginator.num_pages %}">&raquo;</a></li>
+        {% else %}
+            <li class='disabled'><a href="#">&raquo;</a></li>
+        {% endif %}
+    </ul>
 
 </div>
 

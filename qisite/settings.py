@@ -108,7 +108,7 @@ REST_FRAMEWORK = {
 #smsSend = sms.send
 smsSend = sms.sendTest
 
-#""" SQL日志开关
+""" SQL日志开关
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

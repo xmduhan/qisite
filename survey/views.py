@@ -50,7 +50,7 @@ def paperList(request, page=1):
     # 读取用户
     user = getCurrent(request)
     # 读取用户所创建的问卷，并做分页处理
-    paperCreateSet = user.paperCreated_set.all()
+    paperCreateSet = user.paperCreated_set.all().order_by('-createTime')
     paginator = Paginator(paperCreateSet, 5)
     # 对page的异常值进行处理
     if page < 1: page = 1
