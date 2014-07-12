@@ -13,9 +13,8 @@
 
 {# 页面主体 #}
 <div class="container" style="padding-top: 30px;">
-
     {# 完成按钮 #}
-    <a href="{% url 'survey:view.paper.list' %}"
+    <a id="finishButton" href="{% url 'survey:view.paper.list' %}"
        type="button" class="btn btn-success ">
         <span class="glyphicon glyphicon-ok"></span>
         完成
@@ -67,7 +66,7 @@
                     <div class="col-md-12">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">问卷名称</span>
-                            <input id = type="text" class="form-control data-binding-field-text" placeholder="请填写问卷名称"
+                            <input id=type="text" class="form-control data-binding-field-text" placeholder="请填写问卷名称"
                                    value="{{ paper.title }}"
                                    data-binding-action="{% url 'survey:service.paper.modify' %}"
                                    data-binding-id="{{ paper.getIdSigned }}"

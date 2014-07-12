@@ -45,13 +45,14 @@ def paperList(request, page=1):
     '''
         列出用户的问卷
     '''
+    perPage = 10
     # 确定page类型为整型
     if type(page) != int: page = int(page)
     # 读取用户
     user = getCurrent(request)
     # 读取用户所创建的问卷，并做分页处理
-    paperCreateSet = user.paperCreated_set.all().order_by('-createTime')
-    paginator = Paginator(paperCreateSet, 5)
+    paperCreateSet = user.paperCreated_set.all().order_by('-modifyTime')
+    paginator = Paginator(paperCreateSet, perPage)
     # 对page的异常值进行处理
     if page < 1: page = 1
     if page > paginator.num_pages: page = paginator.num_pages

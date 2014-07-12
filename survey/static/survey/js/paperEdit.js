@@ -71,8 +71,18 @@ function displayRefreshIcon(control) {
     icon.animate({'opacity': 0}, 3000);
 }
 
+function disableFinishButton() {
+    console.log('disableFinishButton() is called');
+    $('#finishButton').attr('disabled', true);
+}
+function enableFinishButton() {
+    console.log('enableFinishButton() is called');
+    $('#finishButton').attr('disabled', false);
+}
 
 function saveFieldValue(control, value) {
+    // 保存期间禁止完成按钮
+    disableFinishButton();
     // 从控件中读取数据
     console.log('saveFieldValue is called');
     id = $(control).data('binding-id')
@@ -98,6 +108,10 @@ function saveFieldValue(control, value) {
         // 失败说明网络有问题或者服务器有问题
         error: function (xhr, status, errorThrown) {
             console.log('save error');
+        },
+        complete: function (xhr, status) {
+            // 保存操作完成使完成按钮可用
+            enableFinishButton();
         }
     });
 }

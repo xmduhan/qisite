@@ -38,7 +38,7 @@
                     <th>名称</th>
                     <th>描述</th>
                     <th>题目数量</th>
-                    <th>创建时间</th>
+                    <th>修改时间</th>
                     <th colspan="3"></th>
                 </tr>
                 </thead>
@@ -54,8 +54,8 @@
                         <td>{{ paper.description }}</td>
                         {# 问题数量 #}
                         <td>{{ paper.question_set.count }}</td>
-                        {# 创建时间 #}
-                        <td>{{ paper.createTime | date:"Y-m-d H:i" }}</td>
+                        {# 修改时间 #}
+                        <td>{{ paper.modifyTime | date:"Y-m-d H:i" }}</td>
                         {# 编辑按钮 #}
                         <td>
                             <a href="{% url 'survey:view.paper.edit' paper.id %}">
@@ -95,7 +95,11 @@
         {% endif %}
 
         {# 当前页显示 #}
-        <input type='text' size="1" style="text-align:center" value='{{ paperList.number }}'>
+        <input class='page-switcher'
+               type='text' size="1"
+               style="text-align:center"
+               value='{{ paperList.number }}'
+               data-binding-action="{% url 'survey:view.paper.list' %}">
         / {{ paperList.paginator.num_pages }}
 
         {# 下一页 #}
