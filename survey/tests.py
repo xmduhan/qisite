@@ -1439,4 +1439,9 @@ class AddDefaultBranchTest(TestCase):
         self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
 
 
+    def test_session(self):
+        '''
 
+        '''
+        client = self.client
+        client.session
