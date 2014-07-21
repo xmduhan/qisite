@@ -131,7 +131,7 @@ def questionEdit(request, questionId):
         raise Http404
 
     # 返回数据
-    template = loader.get_template('survey/question/question.html')
+    template = loader.get_template('survey/question/questionEdit.html')
     context = RequestContext(request, {'question': question})
     return HttpResponse(template.render(context))
 
