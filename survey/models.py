@@ -233,14 +233,14 @@ class Branch(TimeModel):
 
 
 class Survey(TimeModel):
-    paper = models.ForeignKey('Paper', verbose_name="问卷")
+    paper = models.ForeignKey('Paper', verbose_name="问卷", null=True, blank=True, on_delete=models.SET_NULL)
     # 目标客户清单 targetcust_set (ok) (已在目标客户中设置外键)
     targetOnly = models.BooleanField('定向调查', default=False)
     state = models.CharField("状态", max_length=5)
     shared = models.BooleanField('是否分享', default=False)
     viewResult = models.BooleanField('查看结果', default=True)
     resubmit = models.BooleanField('是否允许重填', default=True)
-    passwd = models.CharField("参与密码", max_length=10, blank=True)
+    password = models.CharField("参与密码", max_length=10, blank=True)
     ipLimit = models.IntegerField("IP限制", default=5)
     macLimit = models.IntegerField("MAC限制", default=5)
     publishTime = models.DateTimeField("发布时间", default=datetime.now)

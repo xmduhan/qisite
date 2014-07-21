@@ -57,7 +57,12 @@
                             {# 发布时间 #}
                             <td>{{ survey.publishTime | date:"Y-m-d H:i" }}</td>
                             {# 编辑按钮 #}
-                            <td><span class="glyphicon glyphicon-edit"></span></td>
+                            {#  <td><span class="glyphicon glyphicon-edit"></span></td> #}
+                            <td>
+                                <a href="{% url 'survey:view.survey.edit' survey.id %}">
+                                    <span class="glyphicon glyphicon-edit"></span>
+                                </a>
+                            </td>
                             {# 发布/暂停调查 #}
                             <td><span class="glyphicon glyphicon-play "></span></td>
                             {# 删除调查 #}

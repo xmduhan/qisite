@@ -32,13 +32,18 @@ def surveyList(request):
     return HttpResponse(template.render(context))
 
 
-def surveyEdit(request):
+def surveyEdit(request, surveyId):
     '''
         编辑调查
     '''
-    template = loader.get_template('survey/surveyEdit.html')
-    context = RequestContext(request, {'session': request.session})
-    return HttpResponse(template.render(context))
+    surveyList = Survey.objects.filter(id=surveyId)
+    if surveyList:
+        survey = surveyList[0]
+        template = loader.get_template('survey/surveyEdit.html')
+        context = RequestContext(request, {'session': request.session, 'survey': survey})
+        return HttpResponse(template.render(context))
+    else:
+        raise Http404
 
 
 def paperList(request, page=1):

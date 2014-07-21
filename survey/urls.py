@@ -14,7 +14,7 @@ urlpatterns = patterns(
     url(r'^view/paper/list/$', views.paperList, name='view.paper.list'),
     url(r'^view/paper/list/(?P<page>\d+)$', views.paperList, name='view.paper.list'),
     ## 编辑页面
-    url(r'^view/survey/edit$', views.surveyEdit, name='view.survey.edit'),
+    url(r'^view/survey/edit/(?P<surveyId>\d+)$', views.surveyEdit, name='view.survey.edit'),
     url(r'^view/paper/edit/(?P<paperId>\d+)$', views.paperEdit, name='view.paper.edit'),
     ## 获取问题编辑
     url(r'^view/question/edit/(?P<questionId>\S+)$', views.questionEdit, name='view.question.edit'),

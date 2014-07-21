@@ -85,7 +85,7 @@ admin.site.register(Branch, BranchAdmin)
 
 class SurveyAdmin(admin.ModelAdmin):
     fields = [
-        'paper', 'targetOnly', 'state', 'shared', 'viewResult', 'resubmit', 'passwd', 'ipLimit',
+        'paper', 'targetOnly', 'state', 'shared', 'viewResult', 'resubmit', 'password', 'ipLimit',
         'macLimit', 'publishTime', 'endTime', 'hardCost', 'bonus', 'fee', 'validSampleLimit',
         'createBy', 'modifyBy', 'createTime', 'modifyTime'
     ]
