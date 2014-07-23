@@ -9,7 +9,8 @@ urlpatterns = patterns(
     #              页面               #
     ####################################
     ## 列表页面
-    url(r'^view/survey/list$', views.surveyList, name='view.survey.list'),
+    url(r'^view/survey/list/$', views.surveyList, name='view.survey.list'),
+    url(r'^view/survey/list/(?P<page>\d+)$', views.surveyList, name='view.survey.list'),
     url(r'^view/custList/list$', views.custListList, name='view.custList.list'),
     url(r'^view/paper/list/$', views.paperList, name='view.paper.list'),
     url(r'^view/paper/list/(?P<page>\d+)$', views.paperList, name='view.paper.list'),

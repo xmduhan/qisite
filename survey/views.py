@@ -20,16 +20,27 @@ def getCurrent(request):
     return request.session.get(USER_SESSION_NAME, None)
 
 
-def surveyList(request):
+def surveyList(request, page=1):
     '''
         列出用户的调查
     '''
+    perPage = 10
+    # 确定page类型为整型
+    if type(page) != int: page = int(page)
+    # 读取用户
     user = getCurrent(request)
-    surveyList = user.surveyCreated_set.all()
-    #surveyList = user.surveyCreated_set.filter(state = 'P')
+    surveyCreateSet = user.surveyCreated_set.all().order_by('-modifyTime')
+    paginator = Paginator(surveyCreateSet, perPage)
+    # 对page的异常值进行处理
+    if page < 1: page = 1
+    if page > paginator.num_pages: page = paginator.num_pages
+    # 读取当前分页数据
+    thisPageSurveyList = paginator.page(page)
+    # 通过模板生成返回内容
     template = loader.get_template('survey/surveyList.html')
-    context = RequestContext(request, {"surveyList": surveyList, 'session': request.session})
+    context = RequestContext(request, {"surveyList": thisPageSurveyList, 'session': request.session})
     return HttpResponse(template.render(context))
+
 
 
 def surveyEdit(request, surveyId):

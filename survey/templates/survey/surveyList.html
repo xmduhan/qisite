@@ -79,21 +79,47 @@
     </div>
 
     {# 分页控件 #}
-    <div class="row" align="center">
-        <div class="btn-group">
-            <button type="button" class="btn btn-default">&laquo;</button>
-            <button type="button" class="btn btn-default active">1</button>
-            <button type="button" class="btn btn-default disabled">2</button>
-            <button type="button" class="btn btn-default">3</button>
-            <button type="button" class="btn btn-default">4</button>
-            <button type="button" class="btn btn-default">5</button>
-            <button type="button" class="btn btn-default">&raquo;</button>
-        </div>
-    </div>
+    <ul class="pager">
+        {# 开头 #}
+        {% if surveyList.has_previous %}
+            <li><a href="{% url 'survey:view.survey.list' %}">&laquo;</a></li>
+        {% else %}
+            <li class='disabled'><a href="">&laquo;</a></li>
+        {% endif %}
+
+        {# 下一页 #}
+        {% if surveyList.has_previous %}
+            <li><a href="{% url 'survey:view.survey.list' surveyList.previous_page_number %}">上一页</a></li>
+        {% else %}
+            <li class='disabled'><a href="">上一页</a></li>
+        {% endif %}
+
+        {# 当前页显示 #}
+        <input class='page-switcher'
+               type='text' size="1"
+               style="text-align:center"
+               value='{{ surveyList.number }}'
+               data-binding-action="{% url 'survey:view.survey.list' %}">
+        / {{ surveyList.paginator.num_pages }}
+
+        {# 下一页 #}
+        {% if surveyList.has_next %}
+            <li><a href="{% url 'survey:view.survey.list' surveyList.next_page_number %}">下一页</a></li>
+        {% else %}
+            <li class='disabled'><a href="#">下一页</a></li>
+        {% endif %}
+        {# 最后 #}
+        {% if surveyList.has_next %}
+            <li><a href="{% url 'survey:view.survey.list'  surveyList.paginator.num_pages %}">&raquo;</a></li>
+        {% else %}
+            <li class='disabled'><a href="#">&raquo;</a></li>
+        {% endif %}
+    </ul>
 
 </div>
 
 {# 加载Javascript程序 #}
 {% include "www/commonjs.html" %}
+<script src="/static/survey/js/surveyList.js"></script>
 </body>
 </html>
