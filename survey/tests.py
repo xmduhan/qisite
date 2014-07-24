@@ -74,7 +74,7 @@ class SurveyModelTest(TestCase):
     def addSurvey(self):
         survey = Survey(
             paper=self.tsPaper,  # 在没有问卷的情况下，是无法创建调查的
-            targetOnly=True, state='?', shared=False, viewResult=False, resubmit=False, passwd='',
+            targetOnly=True, state='?', shared=False, viewResult=False, resubmit=False, password='',
             hardCost=0, bonus=0, fee=0, validSampleLimit=0, createBy=self.tsUser, modifyBy=self.tsUser
             #survey.ipLimit = 5  #survey.ipLimit = 5  # 用来测试默认值
         )
