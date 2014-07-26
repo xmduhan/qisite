@@ -1,4 +1,144 @@
+一、控件层
+
+(一)控件初始化定义
+1、select控件
+class = 'bootstrap-select'
+2、switch控件
+class = 'bootstrap-switch-input' 
+3、特殊switch控件
+class = 'bootstrap-switch-input-confused' 
+
+
+4、popover提示信息
+class = 'with-popover'
+5、popover提示信息针对bootstrap-switch
+class = 'bootstrap-switch-with-popover'
+6、popover提示信息针对bootstrap-select
+class = 'bootstrap-select-with-popover'
+
+
+
+重构考虑：
+（1）去掉bootstrap-switch-input-confused，对bootstrap-switch-input增加onText，offText 支持相同的功能。
+（2）将bootstrap-switch-input改名为bootstrap-switch
+（3）bootstrap-switch-with-popover,bootstrap-select-with-popover合并到with-popover，然后在绑定过程中判断待绑定对象到底何种类型的控件，
+
+
+(二)数据绑定定义
+1、绑定的text控件
+class = 'data-binding-field-text'
+2、绑定的switch控件
+class = 'data-binding-field-switch'
+3、绑定的select控件
+class = 'data-binding-field-select'
+
+4、数据绑定下拉框
+class = 'bootstrap-select-binding-dropdown'
+
+
+5、数据更新提示图标
+class = data-binding-refresh-icon
+
+
+6、绑定数据的对象id
+data('binding-id')
+
+7、绑定数据对象的字段名称(仅用于更新)
+data('binding-field-name')
+
+8、绑定数据的动作(url)
+data('binding-action')
+
+
+9、新增问题时提供的paperId
+data('binding-paperId')
+
+10、新增选项时提供的questionId
+data('binding-questionId')
+
+
+11、删除选项时提供的
+data('binding-question-id')        # 这个id在程序中实际没有作用，干了它。
+
+
+
+12、下拉列表服务的服务地址
+data('binding-dropdown-action')
+
+13、下拉列表服务的参数
+data('binding-dropdown-parameters')
+
+14、下拉列表服务的解析方式
+data('binding-dropdown-decoder')
+
+
+
+重构考虑：
+（1）data-binding-field-text，data-binding-field-switch，data-binding-field-select 合并为data-binding-field,然后在处理过程中特殊地处理switch。
+
+（2）binding-paperId和binding-questionId是否用binding-id来替换，当时有意指定使用paperId和questionId是为了表示新增对象和提供的id不是同一回事，但这个有必要吗？
+
+二、业务逻辑层
+
 (一)对象标识定义
 1、问题DOM对象标志定义
-replace('question-' + question.idSigned,':','') 
-2、
+id = replace('question-' + question.idSigned,':','') 
+
+2、选项DOM对象定义
+id = replace('branch-' + branch.idSigned,':','') 
+
+3、表示question的内容,非question的完整DOM
+class = 'question-body'
+
+4、隐藏所有question-body的按钮
+id = 'collapse-all-question-hide'
+
+5、隐藏当前问题
+class = 'collapse-this-question'
+
+6、问题的标题编辑控件
+class = 'question-text-editor'
+
+
+7、承载所有问题的容器
+id = 'questionBox'
+
+
+
+(二)对象动作的定义
+
+1、增加一个单选题
+id = 'addSingleButton'
+
+2、为单选题增加一个选项的按钮动作
+class = 'btn-question-add-branch'
+
+3、确认删除问题的按钮
+id = questionDeleteConfirmButton
+
+
+4、删除问题动作
+class = 'btn-paper-delete-question'
+
+
+5、删除选项的确认
+id = 'branchDeleteConfirmButton'
+
+
+6、删除选项动作
+class = 'btn-question-delete-branch'
+
+
+重构考虑:
+(1)btn-paper-delete-question 改为 btn-delete-question，btn-question-delete-branch 改为 btn-delete-branch。
+(2)删除对象的确认对话框可以统一起来。
+
+
+三、过程
+1、更新某个问题的DOM信息
+refreshQuestionDocument
+
+2、为过程新增
+loadNewQuestionDocument
+
+重构考虑增加一个loadQuestionDocument,然后把refreshQuestionDocument和loadNewQuestionDocument的中向服务器请求问题DOM内容封装起来。
