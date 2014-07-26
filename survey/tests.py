@@ -57,6 +57,7 @@ class SurveyModelTest(TestCase):
     '''
         数据模型的基本操作测试
     '''
+    fixtures = ['initial_data.json']
 
     def addUser(self):
         user = account.models.User(name='tsUser', phone='1234567890', email='sample@example.com')
@@ -349,6 +350,17 @@ class SurveyModelTest(TestCase):
         self.assertEqual(question.id, self.tsFillblankQuestion.id)
         question = questionCatalog.question_set.order_by('ord')[0]
         self.assertEqual(question.id, self.tsSingleQuestion.id)
+
+
+    def test_branch_getSystemPredefined(self):
+        '''
+        测试通过选项获取系统预定义出口（特殊问题）
+        如果出现问题一般是数据缺失
+        '''
+        branch = Branch()
+        questionList = branch.getSystemPredefined()
+        self.assertEquals(len(questionList), 2)
+
 
 
 class PaperAddTest(TestCase):

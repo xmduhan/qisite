@@ -35,7 +35,7 @@ admin.site.register(PaperCatalogPaper, PaperCatalogPaperAdmin)
 
 class QuestionAdmin(admin.ModelAdmin):
     fields = [
-        'type', 'ord', 'contentLengh', 'valueMin', 'valueMax', 'confused', 'branchNumStyle',
+        'type', 'ord', 'contentLength', 'valueMin', 'valueMax', 'confused', 'branchNumStyle',
         'nextQuestion', 'paper', 'createBy', 'modifyBy', 'createTime', 'modifyTime'
     ]
     list_display = ('ord', 'getStemText', 'type', 'branchNumStyle', 'paper', 'createBy', 'createTime')

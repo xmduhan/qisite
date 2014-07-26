@@ -837,6 +837,7 @@ def getReachableQuestionListForSelect(request):
             'selected': question == branch.nextQuestion,
             'type': question.type
         })
+
     # 导入系统预定义
     for question in branch.getSystemPredefined():
         questionList.append({
@@ -845,6 +846,7 @@ def getReachableQuestionListForSelect(request):
             'selected': branch.nextQuestion == question,
             'type': question.type
         })
+
     # 导入为空是系统预定义的下一题
     questionList.append({
         'num': '下一题',

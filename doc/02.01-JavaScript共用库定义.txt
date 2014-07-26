@@ -1,0 +1,4 @@
+(一)对象标识定义
+1、问题DOM对象标志定义
+replace('question-' + question.idSigned,':','') 
+2、

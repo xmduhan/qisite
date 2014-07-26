@@ -109,6 +109,7 @@ class Question(TimeModel):
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='questionCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='questionModified_set')
 
+
     def clean(self):
         '''
             问题模型校验
@@ -119,6 +120,7 @@ class Question(TimeModel):
             raise ValidationError(u'选择题不能有填写值长度')
         if self.type not in ( 'Single', 'Multiple') and self.confused:
             raise ValidationError(u'非选择题不能指定乱序选项')
+
 
     def getStemText(self):
         '''
@@ -165,6 +167,9 @@ class QuestionCatalog(TimeModel):
     class Meta:
         verbose_name = "问题目录"
         verbose_name_plural = "[05].问题目录"
+
+    def __unicode__(self):
+        return '%s(%s)' % (self.name, self.code)
 
 
 class QuestionCatalogQuestion(TimeModel):
