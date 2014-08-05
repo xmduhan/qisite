@@ -102,7 +102,7 @@
                                     >
                                 标号样式
                             </button>
-                            <select class="bootstrap-select data-binding-field-select bootstrap-select-with-popover"
+                            <select class="bootstrap-select data-binding-field-select with-popover"
                                     data-width='auto'
                                     value='{{ paper.questionNumStyle }}'
                                     {# 数据绑定信息 #}
@@ -135,7 +135,7 @@
                                     >
                                   分页显示
                             </span>
-                            <input class="bootstrap-switch data-binding-field-switch bootstrap-switch-with-popover"
+                            <input class="bootstrap-switch data-binding-field-switch with-popover"
                                    type="checkbox"
                                    {% if paper.paging %}checked{% endif %}
                                     {# 数据绑定信息 #}
@@ -152,7 +152,7 @@
                     <div class="col-md-3">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">顺序答题</span>
-                            <input class="bootstrap-switch data-binding-field-switch bootstrap-switch-with-popover"
+                            <input class="bootstrap-switch data-binding-field-switch with-popover"
                                    type="checkbox"
                                    {% if paper.inOrder %}checked{% endif %}
                                    data-binding-action="{% url 'survey:service.paper.modify' %}"
@@ -169,7 +169,7 @@
                     <div class="col-md-3 ">
                         <div class="input-group input-group-sm">
                             <span class="input-group-addon">返回修改</span>
-                            <input class="bootstrap-switch data-binding-field-switch bootstrap-switch-with-popover"
+                            <input class="bootstrap-switch data-binding-field-switch with-popover"
                                    type="checkbox"
                                    {% if paper.lookBack %}checked{% endif %}
                                    data-binding-action="{% url 'survey:service.paper.modify' %}"

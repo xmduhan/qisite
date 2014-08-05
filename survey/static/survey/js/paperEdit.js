@@ -419,8 +419,8 @@ function findPopoverDataElement(e) {
         return $(e).parent().parent().prev();
     }
     // 尝试将元素当成一个bootstrap-switch元素寻找其popover数据节点
-    if ($(e).find('.bootstrap-switch-with-popover').data('placement') != undefined) {
-        return $(e).find('.bootstrap-switch-with-popover');
+    if ($(e).find('.bootstrap-switch').data('placement') != undefined) {
+        return $(e).find('.bootstrap-switch');
     }
     return undefined;
 }
@@ -450,17 +450,19 @@ function popoverOnMouseLeave(e) {
 // 绑定弹出事件
 function initPopover(scope) {
     // 绑定普通的bootstrap控件
-    scope.find(".with-popover").on('mouseover', popoverOnMouseOver);
-    scope.find(".with-popover").on('mouseleave', popoverOnMouseLeave);
-    scope.find(".with-popover").on('click', popoverOnMouseLeave);
+    specialForPopover = ['.bootstrap-select', '.bootstrap-switch'];
+    exclusion = specialForPopover.join(',');
+    scope.find(".with-popover").not(exclusion).on('mouseover', popoverOnMouseOver);
+    scope.find(".with-popover").not(exclusion).on('mouseleave', popoverOnMouseLeave);
+    scope.find(".with-popover").not(exclusion).on('click', popoverOnMouseLeave);
     // 绑定bootstrap-switch控件
-    scope.find('.bootstrap-switch-with-popover').parent('.bootstrap-switch-container').on('mouseover', popoverOnMouseOver);
-    scope.find('.bootstrap-switch-with-popover').parent('.bootstrap-switch-container').on('mouseleave', popoverOnMouseLeave);
-    scope.find('.bootstrap-switch-with-popover').parent('.bootstrap-switch-container').on('click', popoverOnMouseLeave);
+    scope.find('.bootstrap-switch.with-popover').parent('.bootstrap-switch-container').on('mouseover', popoverOnMouseOver);
+    scope.find('.bootstrap-switch.with-popover').parent('.bootstrap-switch-container').on('mouseleave', popoverOnMouseLeave);
+    scope.find('.bootstrap-switch.with-popover').parent('.bootstrap-switch-container').on('click', popoverOnMouseLeave);
     // 绑定bootstrap-select控件(如此复杂处理，原因具体见findPopoverDataElement中的说明)
-    scope.find(".bootstrap-select-with-popover").find('button').find('.filter-option').on('mouseover', popoverOnMouseOver);
-    scope.find(".bootstrap-select-with-popover").find('button').find('.filter-option').on('mouseleave', popoverOnMouseLeave);
-    scope.find(".bootstrap-select-with-popover").find('button').find('.filter-option').on('click', popoverOnMouseLeave);
+    scope.find(".bootstrap-select.with-popover").find('button').find('.filter-option').on('mouseover', popoverOnMouseOver);
+    scope.find(".bootstrap-select.with-popover").find('button').find('.filter-option').on('mouseleave', popoverOnMouseLeave);
+    scope.find(".bootstrap-select.with-popover").find('button').find('.filter-option').on('click', popoverOnMouseLeave);
 }
 
 /***************************************

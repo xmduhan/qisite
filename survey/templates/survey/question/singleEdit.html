@@ -54,7 +54,7 @@
             {# 是否乱序(switch控件) #}
             <div class="col-md-2">
                 <div class="input-group input-group-sm">
-                    <input class="bootstrap-switch data-binding-field-switch bootstrap-switch-with-popover"
+                    <input class="bootstrap-switch data-binding-field-switch with-popover"
                            type="checkbox" {% if question.confused %}checked{% endif %}
                             {# 数据绑定信息 #}
                            data-binding-action="{% url 'survey:service.question.modify' %}"
@@ -108,7 +108,7 @@
                 {#  题支的跳转信息  #}
                 <div class="col-md-2">
                     <div class="btn-group btn-block">
-                        <select class="bootstrap-select data-binding-field-select bootstrap-select-with-popover bootstrap-select-binding-dropdown"
+                        <select class="bootstrap-select data-binding-field-select with-popover bootstrap-select-binding-dropdown"
                                 data-width='75%'
                                 value='{{ branch.nextQuestion }}'
                                 {# 数据字段的绑定信息 #}
