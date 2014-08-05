@@ -12,14 +12,9 @@ function getBranchDocument(branchId) {
  *  初始化相关的bootstrap switch控件   *
  ***************************************/
 function initBootstrapSwitch(scope) {
-    scope.find(".bootstrap-switch-input").bootstrapSwitch.defaults.onText = '是';
-    scope.find(".bootstrap-switch-input").bootstrapSwitch.defaults.offText = '否';
-    scope.find(".bootstrap-switch-input").bootstrapSwitch();
-    // 这段代码需要重构
-    scope.find(".bootstrap-switch-input-confused").bootstrapSwitch.defaults.onText = '乱序';
-    scope.find(".bootstrap-switch-input-confused").bootstrapSwitch.defaults.offText = '正常';
-    scope.find(".bootstrap-switch-input-confused").bootstrapSwitch();
-
+    scope.find(".bootstrap-switch").bootstrapSwitch.defaults.onText = '是';
+    scope.find(".bootstrap-switch").bootstrapSwitch.defaults.offText = '否';
+    scope.find(".bootstrap-switch").bootstrapSwitch();
 }
 
 /***************************************

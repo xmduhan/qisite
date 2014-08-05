@@ -54,15 +54,19 @@
             {# 是否乱序(switch控件) #}
             <div class="col-md-2">
                 <div class="input-group input-group-sm">
-                    <input class="bootstrap-switch-input-confused data-binding-field-switch bootstrap-switch-with-popover"
+                    <input class="bootstrap-switch data-binding-field-switch bootstrap-switch-with-popover"
                            type="checkbox" {% if question.confused %}checked{% endif %}
                             {# 数据绑定信息 #}
                            data-binding-action="{% url 'survey:service.question.modify' %}"
                            data-binding-id="{{ question.getIdSigned }}"
                            data-binding-field-name="confused"
+                            {# 开关控件的显示值 #}
+                           data-on-text="乱序"
+                           data-off-text="顺序"
                             {# 弹出框提示信息 #}
                            data-placement="top"
                            data-content="该开关指定选项出现的顺序，当选择“正常”时用户答题时看到的和你设计时一样，当选择“乱序”时用户看见的选项出现的顺序是随机的"/>
+
                 </div>
             </div>
         </div>
