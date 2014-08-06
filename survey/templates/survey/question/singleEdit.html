@@ -1,4 +1,5 @@
-<div class="panel panel-default" id='question-{{ question.getIdSigned | cut:':' }}'>
+<div class="survey-question panel panel-default" id='question-{{ question.getIdSigned | cut:':' }}'
+     data-id= {{ question.getIdSigned }}>
 
     {# panel标题 #}
     <div class="panel-heading collapse-this-question ">
@@ -74,7 +75,8 @@
 
         {# 题支 #}
         {% for  branch in question.getBranchSetInOrder %}
-            <div class="row" id="branch-{{ branch.getIdSigned | cut:':' }}">
+            <div class="survey-branch row" id="branch-{{ branch.getIdSigned | cut:':' }}"
+                 data-id='{{ branch.getIdSigned }}'>
                 {# 题支的基本信息 #}
                 <div class="col-md-10">
                     <div class="input-group">
@@ -96,7 +98,6 @@
                                     {# 数据绑定信息 #}
                                   data-binding-action="{% url 'survey:service.branch.delete' %}"
                                   data-binding-id="{{ branch.getIdSigned }}"
-                                  data-binding-question-id="{{ question.getIdSigned }}"
                                     {# 弹出框提示信息 #}
                                   data-placement="left"
                                   data-content="删除这个选项">
@@ -157,7 +158,7 @@
         <button class="btn btn-primary btn-sm btn-question-add-branch with-popover"
                 {# 数据字段的绑定信息 #}
                 data-binding-action="{% url 'survey:service.branch.addDefaultBranch' %}"
-                data-binding-question-id="{{ question.getIdSigned }}"
+                data-binding-id="{{ question.getIdSigned }}"
                 {# 弹出框提示信息 #}
                 data-placement="right"
                 data-content="点击这个蓝色按钮可以新增一个选项">

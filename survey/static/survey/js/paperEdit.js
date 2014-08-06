@@ -8,6 +8,14 @@ function getQuestionDocument(questionId) {
 function getBranchDocument(branchId) {
     return $('#branch-' + branchId.replace(':', ''));
 }
+
+/***************************************************
+ *      给定branchId通过dom结构找到questionId      *
+ ***************************************************/
+function getBranchQuestionId(branchId) {
+    return getBranchDocument(branchId).closest('.survey-question').data('id');
+}
+
 /***************************************
  *  初始化相关的bootstrap switch控件   *
  ***************************************/
@@ -147,7 +155,7 @@ function initQuestionAddAction(scope) {
         // 禁用所有新增按钮
         $(".btn-paper-add-question").attr('disabled', true);
         // 准备提交到服务器的数据
-        paperId = $(this).data('binding-paperId')
+        paperId = $(this).data('binding-id')
         action = $(this).data('binding-action')
         data = {}
         data['paper'] = paperId;
@@ -224,7 +232,7 @@ function initBranchAddAction(scope) {
         // 将按钮禁用，待question的DOM重新加载后，按钮会自动恢复。
         $(this).attr('disabled', true);
         // 准备提交到服务器的数据
-        questionId = $(this).data('binding-questionId')
+        questionId = $(this).data('binding-id')
         action = $(this).data('binding-action')
         data = {}
         data['question'] = questionId;
@@ -332,11 +340,13 @@ function initBranchDeleteConfirmButtonAction() {
         confirmButton = $(this);
         confirmButton.attr('disabled', true);
         // 准备提交到服务器的数据
-        id = confirmButton.data('binding-id')
+        branchId = confirmButton.data('binding-id')
         action = confirmButton.data('binding-action')
-        questionId = confirmButton.data('binding-question-id')
+        //console.log('branchId=' + branchId);
+        questionId = getBranchQuestionId(branchId);
+        //console.log('questionId=' + questionId);
         data = {}
-        data['id'] = id
+        data['id'] = branchId
         $.ajax({
             url: action,
             data: data,
@@ -351,7 +361,7 @@ function initBranchDeleteConfirmButtonAction() {
                 //
                 if (result['resultCode'] == 0) {
                     // 删除问题对应的DOM对象
-                    getBranchDocument(id).animate({'opacity': 0}, 1000, callback = function () {
+                    getBranchDocument(branchId).animate({'opacity': 0}, 1000, callback = function () {
                         refreshQuestionDocument(questionId);
                         //$(this).remove();
                     });
@@ -380,9 +390,8 @@ function initBranchDeleteConfirmButtonAction() {
 function initBranchDeleteAction(scope) {
     scope.find('.btn-question-delete-branch').on('click', function () {
         // 要删除的选项信息放到确定按钮的data中,以便在点确定按钮的时间函数中可以直接用$(this).data来访问
-        $('#branchDeleteConfirmButton').data('binding-id', $(this).data('binding-id'));
         $('#branchDeleteConfirmButton').data('binding-action', $(this).data('binding-action'));
-        $('#branchDeleteConfirmButton').data('binding-question-id', $(this).data('binding-question-id'));
+        $('#branchDeleteConfirmButton').data('binding-id', $(this).data('binding-id'));
         // 将对象框显示出来
         $('#branchDeleteConfirmDialog').modal('show');
     });
@@ -685,8 +694,6 @@ function initial(scope) {
 /***************************************
  *          全局初始化加载操作         *
  ***************************************/
-
-
 
 $(document).ready(function () {
     // 绑定body中的所有相关控件的事件
