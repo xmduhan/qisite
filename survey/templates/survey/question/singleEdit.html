@@ -21,7 +21,7 @@
                 <span class="question-title-panel-text">{{ question.text }}</span>
             </div>
             <div class="col-md-1">
-                <span class="glyphicon glyphicon-remove-sign pull-right btn-paper-delete-question with-popover"
+                <span class="glyphicon glyphicon-remove-sign pull-right btn-delete-question with-popover"
                         {# 数据绑定信息 #}
                       data-binding-action="{% url 'survey:service.question.delete' %}"
                       data-binding-id="{{ question.getIdSigned }}"
@@ -93,7 +93,7 @@
                                data-binding-field-name="text">
                         {# 题支的删除按钮 #}
                         <span class="input-group-addon ">
-                            <span class="glyphicon glyphicon-remove-sign pull-right btn-question-delete-branch with-popover"
+                            <span class="glyphicon glyphicon-remove-sign pull-right btn-delete-branch with-popover"
                                   style="color:#421410"
                                     {# 数据绑定信息 #}
                                   data-binding-action="{% url 'survey:service.branch.delete' %}"

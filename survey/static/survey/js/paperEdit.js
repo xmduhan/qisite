@@ -321,7 +321,7 @@ function initQuestionDeleteConfirmButtonAction() {
  *          绑定问题删除事件           *
  ***************************************/
 function initQuestionDeleteAction(scope) {
-    scope.find('.btn-paper-delete-question').on('click', function () {
+    scope.find('.btn-delete-question').on('click', function () {
         // 要删除的选项信息放到确定按钮的data中,以便在点确定按钮的时间函数中可以直接用$(this).data来访问
         $('#questionDeleteConfirmButton').data('binding-id', $(this).data('binding-id'));
         $('#questionDeleteConfirmButton').data('binding-action', $(this).data('binding-action'));
@@ -388,7 +388,7 @@ function initBranchDeleteConfirmButtonAction() {
  *          绑定选项删除事件           *
  ***************************************/
 function initBranchDeleteAction(scope) {
-    scope.find('.btn-question-delete-branch').on('click', function () {
+    scope.find('.btn-delete-branch').on('click', function () {
         // 要删除的选项信息放到确定按钮的data中,以便在点确定按钮的时间函数中可以直接用$(this).data来访问
         $('#branchDeleteConfirmButton').data('binding-action', $(this).data('binding-action'));
         $('#branchDeleteConfirmButton').data('binding-id', $(this).data('binding-id'));
@@ -646,17 +646,17 @@ function slakeDeleteButton(button) {
 
 function initDeleteButtonColorChange(scope) {
     // 为问题删除按钮绑定事件
-    $(".btn-paper-delete-question").on('mouseenter', function (event) {
+    $(".btn-delete-question").on('mouseenter', function (event) {
         lightDeleteButton(this);
     });
-    $(".btn-paper-delete-question").on('mouseleave', function (event) {
+    $(".btn-delete-question").on('mouseleave', function (event) {
         slakeDeleteButton(this);
     });
     // 为选项删除按钮绑定事件
-    $(".btn-question-delete-branch").on('mouseenter', function (event) {
+    $(".btn-delete-branch").on('mouseenter', function (event) {
         lightDeleteButton(this);
     });
-    $(".btn-question-delete-branch").on('mouseleave', function (event) {
+    $(".btn-delete-branch").on('mouseleave', function (event) {
         slakeDeleteButton(this);
     });
 }
