@@ -36,20 +36,18 @@ function initBootstrapSelect(scope) {
  *         初始化数据绑定字段          *
  ***************************************/
 function initDataBinding(scope) {
+    // 生成需要特殊处理的类型
+    specialForBinding = ['.bootstrap-switch'];
+    exclusion = specialForBinding.join(',');
     // 俘获文本框修改信息
-    scope.find(".data-binding-field-text").on("change", function (event) {
+    scope.find(".data-binding-field").not(exclusion).on("change", function (event) {
         console.log('text edit is changed(' + $(this).val() + ')');
         saveFieldValue(this, $(this).val());
     });
     // 俘获开关控件的变动信息
-    scope.find('.data-binding-field-switch').on('switchChange.bootstrapSwitch', function (event, state) {
+    scope.find('.data-binding-field.bootstrap-switch').on('switchChange.bootstrapSwitch', function (event, state) {
         console.log('switch is changed(' + state + ')');
         saveFieldValue(this, state);
-    });
-    // 俘获选择控件的变动信息
-    scope.find(".data-binding-field-select").on("change", function (event) {
-        console.log('select is changed(' + $(this).val() + ')');
-        saveFieldValue(this, $(this).val());
     });
 }
 

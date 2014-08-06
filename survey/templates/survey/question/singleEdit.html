@@ -42,7 +42,7 @@
             <div class="col-md-10">
                 <div class="input-group input-group-sm">
                     <span class="input-group-addon">{{ question.getNum }}</span>
-                    <input type="text" class="form-control data-binding-field-text question-text-editor"
+                    <input type="text" class="form-control data-binding-field question-text-editor"
                            placeholder="请填写"
                            value="{{ question.text }}"
                             {# 数据绑定信息 #}
@@ -54,7 +54,7 @@
             {# 是否乱序(switch控件) #}
             <div class="col-md-2">
                 <div class="input-group input-group-sm">
-                    <input class="bootstrap-switch data-binding-field-switch with-popover"
+                    <input class="bootstrap-switch data-binding-field with-popover"
                            type="checkbox" {% if question.confused %}checked{% endif %}
                             {# 数据绑定信息 #}
                            data-binding-action="{% url 'survey:service.question.modify' %}"
@@ -83,7 +83,7 @@
                         {# 题支的编号 #}
                         <span class="input-group-addon">{{ branch.getNum }}</span>
                         {# 题支的文字内容 #}
-                        <input type="text" class="form-control data-binding-field-text"
+                        <input type="text" class="form-control data-binding-field"
                                value="{{ branch.text }}"
                                 {# 数据绑定信息 #}
                                data-binding-action="{% url 'survey:service.branch.modify' %}"
@@ -108,7 +108,7 @@
                 {#  题支的跳转信息  #}
                 <div class="col-md-2">
                     <div class="btn-group btn-block">
-                        <select class="bootstrap-select data-binding-field-select with-popover bootstrap-select-binding-dropdown"
+                        <select class="bootstrap-select data-binding-field with-popover bootstrap-select-binding-dropdown"
                                 data-width='75%'
                                 value='{{ branch.nextQuestion }}'
                                 {# 数据字段的绑定信息 #}
