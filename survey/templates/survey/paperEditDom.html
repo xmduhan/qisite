@@ -1,0 +1,274 @@
+{# 问卷信息 #}
+<div class="panel panel-default">
+    {# panel标题 #}
+    <div class="panel-heading">
+        <span class="glyphicon glyphicon-list-alt"></span>
+        <span class="glyphicon glyphicon-save data-binding-refresh-icon" style="opacity:0"></span>
+        问卷
+    </div>
+    {# panel内容 #}
+    <div class="panel-body">
+        <div class="well well-lg">
+            {# 问卷的标题 #}
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">问卷名称</span>
+                        <input id=type="text" class="form-control data-binding-field" placeholder="请填写问卷名称"
+                               value="{{ paper.title }}"
+                               data-binding-action="{% url 'survey:service.paper.modify' %}"
+                               data-binding-id="{{ paper.getIdSigned }}"
+                               data-binding-field-name="title">
+                    </div>
+                </div>
+            </div>
+            <p></p>
+
+            {# 问卷的描述 #}
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">问卷描述</span>
+                        <input type="text" class="form-control data-binding-field" placeholder="请填写问卷描述"
+                               value="{{ paper.description }}"
+                               data-binding-action="{% url 'survey:service.paper.modify' %}"
+                               data-binding-id="{{ paper.getIdSigned }}"
+                               data-binding-field-name="description">
+                    </div>
+                </div>
+            </div>
+            <p></p>
+
+            <div class="row">
+                {# 标号样式选择 #}
+                <div class="col-md-3">
+                    <div class="btn-group btn-block">
+                        <button type="button" class="btn btn-default "
+                                {# 弹出框提示信息 #}
+                                {# data-placement="bottom" #}
+                                {#  data-content="这个选项控制问题显示时，问题前面的序号的样子。" #}
+                                >
+                            标号样式
+                        </button>
+                        <select class="bootstrap-select data-binding-field with-popover"
+                                data-width='auto'
+                                value='{{ paper.questionNumStyle }}'
+                                {# 数据绑定信息 #}
+                                data-binding-action="{% url 'survey:service.paper.modify' %}"
+                                data-binding-id="{{ paper.getIdSigned }}"
+                                data-binding-field-name="questionNumStyle"
+                                {# 弹出框提示信息 #}
+                                data-placement="bottom"
+                                data-content="这个选项控制问题显示时，问题前面的序号的样子。"
+                                >
+                            {# 列出可选标号样式数据 #}
+                            {% for code,display in  paper.getNumStyleAvailable %}
+                                <option
+                                        {% if code == paper.questionNumStyle %}
+                                            selected='selected'
+                                        {% endif %}
+                                            value='{{ code }}'>{{ display }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                {# 分页显示(switch控件) #}
+                <div class="col-md-3">
+                    <div class="input-group input-group-sm ">
+                            <span class="input-group-addon  "
+                                    {# 弹出框提示信息 #}
+                                    {#data-placement="bottom" #}
+                                    {#data-content="这里是提示的内容"#}
+                                    >
+                                  分页显示
+                            </span>
+                        <input class="bootstrap-switch data-binding-field with-popover"
+                               type="checkbox"
+                               {% if paper.paging %}checked{% endif %}
+                                {# 数据绑定信息 #}
+                               data-binding-action="{% url 'survey:service.paper.modify' %}"
+                               data-binding-id="{{ paper.getIdSigned }}"
+                               data-binding-field-name="paging"
+                                {# 弹出框提示信息 #}
+                               data-placement="bottom"
+                               data-content="这个开关控制答题时问卷是否分页显示"/>
+                    </div>
+                </div>
+
+                {# 顺序答题(switch控件) #}
+                <div class="col-md-3">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">顺序答题</span>
+                        <input class="bootstrap-switch data-binding-field with-popover"
+                               type="checkbox"
+                               {% if paper.inOrder %}checked{% endif %}
+                               data-binding-action="{% url 'survey:service.paper.modify' %}"
+                               data-binding-id="{{ paper.getIdSigned }}"
+                               data-binding-field-name="inOrder"
+                                {# 弹出框提示信息 #}
+                               data-placement="bottom"
+                               data-content="这个开关控制答题用户是否需要按顺序进行答题"
+                                />
+                    </div>
+                </div>
+
+                {# 返回修改(switch控件) #}
+                <div class="col-md-3 ">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">返回修改</span>
+                        <input class="bootstrap-switch data-binding-field with-popover"
+                               type="checkbox"
+                               {% if paper.lookBack %}checked{% endif %}
+                               data-binding-action="{% url 'survey:service.paper.modify' %}"
+                               data-binding-id="{{ paper.getIdSigned }}"
+                               data-binding-field-name="lookBack"
+                                {# 弹出框提示信息 #}
+                               data-placement="bottom"
+                               data-content="这个开关控制是否允许用户返回上一题，对已回答的问题进行修改。"/>
+                    </div>
+                </div>
+            </div>
+            {# <div class="row"> #}
+            <p></p>
+        </div>
+        {# end <div class="well well-lg"> #}
+    </div>
+    {# end <div class="panel-body"> #}
+</div>
+{# end panel #}
+
+{# 问题内容框 #}
+<div class="well" id="questionBox">
+    {% for question in paper.getQuestionSetInOrder %}
+        {% include "survey/question/questionEdit.html" with question=question only %}
+    {% endfor %}
+</div>
+<p></p>
+
+
+{# 问题新增对话框 #}
+<div class="modal fade" id="addQuestionDialog" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            {# 对话框标题 #}
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">
+                    <span class="glyphicon glyphicon-plus"></span> 新增问题
+                </h4>
+            </div>
+            {# 对话框内容 #}
+            <div class="modal-body">
+                <div class="row" align="center">
+                    <div class="col-md-3">
+                        <button id="addSingleButton"
+                                class="btn btn-default btn-block btn-lg btn-paper-add-question"
+                                data-binding-action="{% url 'survey:service.question.addDefaultSingleQuestion' %}"
+                                data-binding-id="{{ paper.getIdSigned }}">
+                            <span class="glyphicon glyphicon-check"></span>
+                            单选题
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-default btn-block btn-lg btn-paper-add-question">
+                            <span class="glyphicon glyphicon-th-list"></span>
+                            多选题
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-default btn-block btn-lg btn-paper-add-question">
+                            <span class="glyphicon glyphicon-pencil"></span>
+                            填空题
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-default btn-block btn-lg btn-paper-add-question">
+                            <span class="glyphicon glyphicon-star"></span>
+                            评分题
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {# 对话框底部 #}
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{# 问题删除对话框 #}
+<div class="modal fade" id="questionDeleteConfirmDialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            {# 对话框标题栏 #}
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">
+                    <span class="glyphicon glyphicon-exclamation-sign"></span> 请确认
+                </h4>
+            </div>
+            {# 对话框内容 #}
+            <div class="modal-body" align="center">
+                <h4>
+                    <span class="glyphicon glyphicon-remove-circle"></span>
+                    您确定要删除这个问题吗?
+                </h4>
+            </div>
+            {# 对话框底部 #}
+            <div class="modal-footer">
+                <div class='row' align="center">
+                    <div class="col-md-3"></div>
+                    <div class="col-md-3">
+                        <button id='questionDeleteConfirmButton' type="button" class="btn btn-danger btn-block">确定
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-default btn-block" data-dismiss="modal">取消</button>
+                    </div>
+                    <div class="col-md-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# 选项删除对话框 #}
+<div class="modal fade" id="branchDeleteConfirmDialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            {# 对话框标题栏 #}
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">
+                    <span class="glyphicon glyphicon-exclamation-sign"></span> 请确认
+                </h4>
+            </div>
+            {# 对话框内容 #}
+            <div class="modal-body" align="center">
+                <h4>
+                    <span class="glyphicon glyphicon-remove-circle"></span>
+                    您确定要删除这个选项吗?
+                </h4>
+            </div>
+            {# 对话框底部 #}
+            <div class="modal-footer">
+                <div class='row' align="center">
+                    <div class="col-md-3"></div>
+                    <div class="col-md-3">
+                        <button id='branchDeleteConfirmButton' type="button" class="btn btn-danger btn-block">确定
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-default btn-block" data-dismiss="modal">取消</button>
+                    </div>
+                    <div class="col-md-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
