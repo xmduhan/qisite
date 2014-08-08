@@ -704,10 +704,6 @@ $(document).ready(function () {
     // 绑定body中的所有相关控件的事件
     // 并初始化switch和selec
     initial($('body'));
-    // 初始问题确认删除按钮事件
-    //initQuestionDeleteConfirmButtonAction();
-    // 初始化选项确认删除按钮事件
-    //initBranchDeleteConfirmButtonAction();
     // 初始化问题的排序功能
     initQuestionSortable();
 });
