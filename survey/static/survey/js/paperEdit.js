@@ -285,6 +285,7 @@ function initQuestionDeleteAction(scope) {
 
         // 定义用户确认后的具体删除动作
         questionDeleteConfirmAction = function () {
+            console.log('questionDeleteConfirmAction is called');
             // 准备提交到服务器的数据
             data = {}
             data['id'] = id
@@ -327,6 +328,7 @@ function initBranchDeleteAction(scope) {
 
         // 定义用户确认删除后的具体删除动作
         branchDeleteConfirmAction = function () {
+            console.log('branchDeleteConfirmAction is called');
             data = {}
             data['id'] = branchId
             $.ajax({
@@ -377,7 +379,7 @@ function showConfirmDialog(message, action, title, icon) {
     // 找到对话框
     // 如果找不到需要自动加载(暂缺)
     dialog = $('#confirmDialog');
-
+    button = dialog.find('#confirmButton');
     // 生成对话框标题
     formation = '<span class="glyphicon %s"></span> %s';
     titleContent = sprintf(formation, icon, title);
@@ -389,14 +391,15 @@ function showConfirmDialog(message, action, title, icon) {
     // 将确认后要做的动作绑定到确认按钮上
     // 问题:要清楚原来的事件列表
     function confirmButtonAction() {
-        button = $(this);
         button.attr('disabled', true);
         action();
         button.attr('disabled', false);
         dialog.modal('hide');
     }
 
-    dialog.find('#confirmButton').on('click', confirmButtonAction);
+    // 绑定到当前事件
+    button.unbind('click');
+    button.on('click', confirmButtonAction);
     //  显示对话框
     dialog.modal('show');
 }
