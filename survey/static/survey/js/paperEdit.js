@@ -397,6 +397,64 @@ function initBranchDeleteAction(scope) {
     });
 }
 
+
+/***************************************
+ *          绑定选项删除事件           *
+ ***************************************/
+
+function myConfirmAction() {
+    console.log('myConfirmAction is called');
+}
+
+function myCallConfirmDialog() {
+    confirmDialog('测试提示内容', myConfirmAction, '测试标题', 'glyphicon glyphicon-tag');
+}
+
+
+
+
+function confirmDialog(message, action, title, icon) {
+
+    // 处理参数的默认值
+    if (message == undefined) {
+        message = '请确认';
+    }
+    if (action == undefined) {
+        action = function () {
+        };
+    }
+    if (icon == undefined) {
+        icon = 'glyphicon-exclamation-sign';
+    }
+    if (title == undefined) {
+        title = '请确认';
+    }
+
+    // 找到对话框
+    // 如果找不到需要自动加载(暂缺)
+    dialog = $('#confirmDialog');
+
+    // 生成对话框标题
+    formation = '<span class="glyphicon %s"></span> %s';
+    titleContent = sprintf(formation, icon, title);
+    dialog.find('#title').html(titleContent);
+
+    // 生成提示内容
+    dialog.find('#content').html(message);
+
+    // 将确认后要做的动作绑定到确认按钮上
+    // 问题:要清楚原来的事件列表
+    function confirmButtonAction() {
+        action();
+        dialog.modal('hide');
+    }
+
+    dialog.find('#confirmButton').on('click', confirmButtonAction);
+    //  显示对话框
+    dialog.modal('show');
+}
+
+
 /***************************************
  *          绑定弹出提示事件           *
  ***************************************/
