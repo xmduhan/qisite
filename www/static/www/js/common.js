@@ -1,3 +1,7 @@
+/***************************************
+ *       让页面中对象震动的函数        *
+ ***************************************/
+
 function shake(obj, cycle, n) {
     /*
      参数说明：
@@ -20,3 +24,29 @@ function shake(obj, cycle, n) {
     // 对象位置复位
     obj.animate({"margin-top": "0"}, cycle);
 }
+
+/***************************************
+ *          定义日志工具               *
+ ***************************************/
+
+function Logger() {
+    this.logger = console;
+}
+
+Logger.prototype.log = function (msg) {
+    this.logger.log(msg);
+}
+
+Logger.prototype.debug = function (msg) {
+    this.logger.debug(msg);
+}
+
+Logger.prototype.warn = function (msg) {
+    this.logger.warn(msg);
+}
+
+Logger.prototype.error = function (msg) {
+    this.logger.error(msg);
+}
+
+logger = new Logger();
