@@ -375,7 +375,6 @@ function showConfirmDialog(message, action, title, icon) {
     icon = icon || 'glyphicon-exclamation-sign';
     title = title || '请确认';
 
-
     // 找到对话框
     // 如果找不到需要自动加载(暂缺)
     dialog = $('#confirmDialog');
@@ -389,17 +388,14 @@ function showConfirmDialog(message, action, title, icon) {
     dialog.find('#content').html(message);
 
     // 将确认后要做的动作绑定到确认按钮上
-    // 问题:要清楚原来的事件列表
-    function confirmButtonAction() {
+    button.unbind('click');
+    button.on('click', function () {
         button.attr('disabled', true);
         action();
         button.attr('disabled', false);
         dialog.modal('hide');
-    }
+    });
 
-    // 绑定到当前事件
-    button.unbind('click');
-    button.on('click', confirmButtonAction);
     //  显示对话框
     dialog.modal('show');
 }
