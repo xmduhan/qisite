@@ -272,131 +272,85 @@ function initBranchAddAction(scope) {
 /***************************************
  *          绑定问题删除事件           *
  ***************************************/
-function initQuestionDeleteConfirmButtonAction() {
-    $('#questionDeleteConfirmButton').on('click', function () {
-        console.log('initQuestionDeleteAction() is called');
-        confirmButton = $(this);
-        confirmButton.attr('disabled', true);
-        // 准备提交到服务器的数据
-        id = confirmButton.data('binding-id');
-        action = confirmButton.data('binding-action');
-        data = {}
-        data['id'] = id
-        $.ajax({
-            url: action,
-            data: data,
-            type: "post",
-            dataType: "json",
-            async: true,
-            // 通讯成功，解析返回结果做进一步处理
-            success: function (result) {
-                console.log('save successfully');
-                console.log('resultCode:' + result['resultCode']);
-                console.log('resultMessage:' + result['resultMessage']);
-                //
-                if (result['resultCode'] == 0) {
-                    // 删除问题对应的DOM对象
-                    getQuestionDocument(id).animate({'opacity': 0}, 1500, callback = function () {
-                        $(this).remove();
-                    });
-                } else {
-                    // 出错处理(暂缺)
-                }
-            },
-            // 失败说明网络有问题或者服务器有问题
-            error: function (xhr, status, errorThrown) {
-                console.log('network error!');
-                // 出错处理(暂缺)
-            },
-            complete: function (xhr, status) {
-                console.log('initQuestionDeleteConfirmButtonAction:complete');
-                confirmButton.attr('disabled', false);
-                $('#questionDeleteConfirmDialog').modal('hide');
-            }
-        });
-    });
-}
+
 
 /***************************************
  *          绑定问题删除事件           *
  ***************************************/
 function initQuestionDeleteAction(scope) {
     scope.find('.btn-delete-question').on('click', function () {
-        // 要删除的选项信息放到确定按钮的data中,以便在点确定按钮的时间函数中可以直接用$(this).data来访问
-        $('#questionDeleteConfirmButton').data('binding-id', $(this).data('binding-id'));
-        $('#questionDeleteConfirmButton').data('binding-action', $(this).data('binding-action'));
-        // 将对象框显示出来
-        $('#questionDeleteConfirmDialog').modal('show');
-    });
-}
+        // 读取控件的数据绑定信息
+        action = $(this).data('binding-action');
+        id = $(this).data('binding-id');
 
-/***************************************
- *     选项删除确认按钮的事件处理      *
- ***************************************/
-
-function initBranchDeleteConfirmButtonAction() {
-    $('#branchDeleteConfirmButton').on('click', function () {
-        console.log('initBranchDeleteConfirmButtonAction() is called');
-        confirmButton = $(this);
-        confirmButton.attr('disabled', true);
-        // 准备提交到服务器的数据
-        branchId = confirmButton.data('binding-id')
-        action = confirmButton.data('binding-action')
-        //console.log('branchId=' + branchId);
-        questionId = getBranchQuestionId(branchId);
-        //console.log('questionId=' + questionId);
-        data = {}
-        data['id'] = branchId
-        $.ajax({
-            url: action,
-            data: data,
-            type: "post",
-            dataType: "json",
-            async: true,
-            // 通讯成功，解析返回结果做进一步处理
-            success: function (result) {
-                console.log('save successfully');
-                console.log('resultCode:' + result['resultCode']);
-                console.log('resultMessage:' + result['resultMessage']);
-                //
-                if (result['resultCode'] == 0) {
-                    // 删除问题对应的DOM对象
-                    getBranchDocument(branchId).animate({'opacity': 0}, 1000, callback = function () {
-                        refreshQuestionDocument(questionId);
-                        //$(this).remove();
-                    });
-
-                } else {
+        // 定义用户确认后的具体删除动作
+        questionDeleteConfirmAction = function () {
+            // 准备提交到服务器的数据
+            data = {}
+            data['id'] = id
+            $.ajax({
+                url: action, data: data, type: "post", dataType: "json", async: true,
+                // 通讯成功，解析返回结果做进一步处理
+                success: function (result) {
+                    if (result['resultCode'] == 0) {
+                        // 删除问题对应的DOM对象
+                        getQuestionDocument(id).animate({'opacity': 0}, 1500, callback = function () {
+                            $(this).remove();
+                        });
+                    } else {
+                        // 出错处理(暂缺)
+                    }
+                },
+                // 失败说明网络有问题或者服务器有问题
+                error: function (xhr, status, errorThrown) {
+                    console.log('network error!');
                     // 出错处理(暂缺)
                 }
-            },
-            // 失败说明网络有问题或者服务器有问题
-            error: function (xhr, status, errorThrown) {
-                console.log('network error!');
-                // 出错处理(暂缺)
-            },
-            complete: function (xhr, status) {
-                console.log('initBranchDeleteConfirmButtonAction:complete');
-                confirmButton.attr('disabled', false);
-                $('#branchDeleteConfirmDialog').modal('hide');
-            }
-        });
+            });
+        }
+        // 显示确定对话框
+        showConfirmDialog('您确认要删除这个选项吗?', questionDeleteConfirmAction);
     });
 }
+
 
 /***************************************
  *          绑定选项删除事件           *
  ***************************************/
 function initBranchDeleteAction(scope) {
+
     scope.find('.btn-delete-branch').on('click', function () {
-        // 要删除的选项信息放到确定按钮的data中,以便在点确定按钮的时间函数中可以直接用$(this).data来访问
-        $('#branchDeleteConfirmButton').data('binding-action', $(this).data('binding-action'));
-        $('#branchDeleteConfirmButton').data('binding-id', $(this).data('binding-id'));
-        // 将对象框显示出来
-        $('#branchDeleteConfirmDialog').modal('show');
+        // 读取控件的数据绑定信息
+        action = $(this).data('binding-action');
+        branchId = $(this).data('binding-id');
+        questionId = getBranchQuestionId(branchId);
+
+        // 定义用户确认删除后的具体删除动作
+        branchDeleteConfirmAction = function () {
+            data = {}
+            data['id'] = branchId
+            $.ajax({
+                url: action, data: data, type: "post", dataType: "json", async: true,
+                success: function (result) {
+                    if (result['resultCode'] == 0) {
+                        // 删除问题对应的DOM对象
+                        getBranchDocument(branchId).animate({'opacity': 0}, 1000, callback = function () {
+                            refreshQuestionDocument(questionId);
+                        });
+                    } else {
+                        // 这里失败说明调用服务出错 出错处理(暂缺)
+                    }
+                },
+                error: function (xhr, status, errorThrown) {
+                    console.log('network error!');
+                    //这里失败说明网络有问题 出错处理(暂缺)
+                }
+            });
+        }
+        // 显示确定对话框
+        showConfirmDialog('您确认要删除这个选项吗?', branchDeleteConfirmAction);
     });
 }
-
 
 /***************************************
  *          绑定选项删除事件           *
@@ -407,28 +361,18 @@ function myConfirmAction() {
 }
 
 function myCallConfirmDialog() {
-    confirmDialog('测试提示内容', myConfirmAction, '测试标题', 'glyphicon glyphicon-tag');
+    showConfirmDialog('测试提示内容', myConfirmAction, '测试标题', 'glyphicon glyphicon-tag');
 }
 
-
-
-
-function confirmDialog(message, action, title, icon) {
+function showConfirmDialog(message, action, title, icon) {
 
     // 处理参数的默认值
-    if (message == undefined) {
-        message = '请确认';
-    }
-    if (action == undefined) {
-        action = function () {
-        };
-    }
-    if (icon == undefined) {
-        icon = 'glyphicon-exclamation-sign';
-    }
-    if (title == undefined) {
-        title = '请确认';
-    }
+    message = message || '请确认';
+    action = action || function () {
+    };
+    icon = icon || 'glyphicon-exclamation-sign';
+    title = title || '请确认';
+
 
     // 找到对话框
     // 如果找不到需要自动加载(暂缺)
@@ -445,7 +389,10 @@ function confirmDialog(message, action, title, icon) {
     // 将确认后要做的动作绑定到确认按钮上
     // 问题:要清楚原来的事件列表
     function confirmButtonAction() {
+        button = $(this);
+        button.attr('disabled', true);
         action();
+        button.attr('disabled', false);
         dialog.modal('hide');
     }
 
@@ -758,9 +705,9 @@ $(document).ready(function () {
     // 并初始化switch和selec
     initial($('body'));
     // 初始问题确认删除按钮事件
-    initQuestionDeleteConfirmButtonAction();
+    //initQuestionDeleteConfirmButtonAction();
     // 初始化选项确认删除按钮事件
-    initBranchDeleteConfirmButtonAction();
+    //initBranchDeleteConfirmButtonAction();
     // 初始化问题的排序功能
     initQuestionSortable();
 });
