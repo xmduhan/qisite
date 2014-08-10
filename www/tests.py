@@ -16,7 +16,7 @@ class DjangoReverseTest(TestCase):
     def setUp(self):
         setup_test_environment()
         self.client = Client()
-        self.viewname = 'www:djangoReverse'
+        self.viewname = 'www:service.django.reverse'
         self.url = reverse(self.viewname)
 
     def test_no_viewname(self):
