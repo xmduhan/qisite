@@ -1,5 +1,6 @@
 from django.conf.urls import patterns, url
 import views
+import services
 
 urlpatterns = patterns(
     '',
@@ -8,4 +9,5 @@ urlpatterns = patterns(
     url(r'^help$', views.help, name='help'),
     url(r'^dialog/confirmDialog$', views.confirmDialog, name='confirmDialog'),
     url(r'^dialog/messageDialog$', views.messageDialog, name='messageDialog'),
+    url(r'^django/reverse$', services.djangoReverse, name='djangoReverse'),
 )

@@ -105,6 +105,8 @@ REST_FRAMEWORK = {
     'PAGINATE_BY': 10
 }
 
+URLS_JS_GENERATED_FILE = '/static/django/django-urls.js'
+
 #smsSend = sms.send
 smsSend = sms.sendTest
 

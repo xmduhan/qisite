@@ -25,6 +25,8 @@ from datetime import datetime
 from django.db.models.fields import BooleanField
 from django.db.models.fields.related import ForeignKey
 #from django.db import transaction
+from www.utils import packageResult, dictToJsonResponse, packageResponse
+
 
 class RESULT_CODE:
     SUCCESS = 0
@@ -53,28 +55,6 @@ def getForeignObject(field, id):
         根据一个外键定义和一个对象id找到对应的对象实例
     '''
     return field.rel.to.objects.get(id=id)
-
-
-def packageResult(resultCode, resultMessage, others={}):
-    '''
-        将错误信息打包成为一个字典
-    '''
-    result = {}
-    result['resultCode'] = resultCode
-    result['resultMessage'] = resultMessage
-    result = dict(result.items() + others.items())
-    return result
-
-
-def dictToJsonResponse(result):
-    '''
-        将一个字典转化为json结构的http返回数据
-    '''
-    return HttpResponse(json.dumps(result))
-
-
-def packageResponse(resultCode, resultMessage, others={}):
-    return dictToJsonResponse(packageResult(resultCode, resultMessage, others))
 
 
 def jsonBoolean2Python(jsonStringValue):

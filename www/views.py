@@ -3,6 +3,7 @@
 from django.template import loader, Context, RequestContext
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_protect
+from django.core.urlresolvers import reverse
 
 
 def index(request):
@@ -27,3 +28,6 @@ def messageDialog(request):
     template = loader.get_template('www/dialog/messageDialog.html')
     context = RequestContext(request, {'session': request.session})
     return HttpResponse(template.render(context))
+
+
+
