@@ -124,6 +124,7 @@ function saveFieldValue(control, value) {
 function loadNewQuestionDocument(questionId) {
     // action = "/survey/view/question/edit/" + encodeURIComponent(questionId);
     // 这里注意不能使用encodeURIComponent，因为reverse本身就会对参数进行encode
+    // 这里是使用reverse还是存在不必要的性能损耗
     action = django.reverse('survey:view.question.edit', [questionId]);
 
     $.ajax({
@@ -202,8 +203,8 @@ function initQuestionAddAction(scope) {
  *         更新修改问题的DOM信息       *
  ***************************************/
 function refreshQuestionDocument(questionId) {
-    //logger.debug('refreshQuestionDocument is call id=' + questionId);
     //action = "/survey/view/question/edit/" + encodeURIComponent(questionId);
+    // 这里是使用reverse还是存在不必要的性能损耗
     action = django.reverse('survey:view.question.edit', [questionId]);
 
     $.ajax({
