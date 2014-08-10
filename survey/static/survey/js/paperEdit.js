@@ -122,7 +122,10 @@ function saveFieldValue(control, value) {
  *          加载新增问题的DOM          *
  ***************************************/
 function loadNewQuestionDocument(questionId) {
-    action = "/survey/view/question/edit/" + encodeURIComponent(questionId)
+    // action = "/survey/view/question/edit/" + encodeURIComponent(questionId);
+    // 这里注意不能使用encodeURIComponent，因为reverse本身就会对参数进行encode
+    action = django.reverse('survey:view.question.edit', [questionId]);
+
     $.ajax({
         url: action,
         type: "get",
@@ -199,8 +202,10 @@ function initQuestionAddAction(scope) {
  *         更新修改问题的DOM信息       *
  ***************************************/
 function refreshQuestionDocument(questionId) {
-    logger.debug('refreshQuestionDocument is call id=' + questionId);
-    action = "/survey/view/question/edit/" + encodeURIComponent(questionId);
+    //logger.debug('refreshQuestionDocument is call id=' + questionId);
+    //action = "/survey/view/question/edit/" + encodeURIComponent(questionId);
+    action = django.reverse('survey:view.question.edit', [questionId]);
+
     $.ajax({
         url: action,
         type: "get",
@@ -353,8 +358,6 @@ function initBranchDeleteAction(scope) {
         showConfirmDialog('您确认要删除这个选项吗?', branchDeleteConfirmAction);
     });
 }
-
-
 
 
 /***************************************

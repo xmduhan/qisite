@@ -105,7 +105,8 @@ function showConfirmDialog(message, action, title, icon) {
     dialogDomId = '#confirmDialog';
     if ($(dialogDomId).length == 0) {
         logger.debug('showConfirmDialog:加载对话框')
-        domResult = loadDomcument('/www/dialog/confirmDialog');
+        url = django.reverse('www:view.dialog.confirmDialog');
+        domResult = loadDomcument(url);
         $('body').append(domResult);
     }
     // 如果找不到需要自动加载(暂缺)
@@ -147,7 +148,8 @@ function showMessageDialog(message, title, icon) {
     dialogDomId = '#messageDialog';
     if ($(dialogDomId).length == 0) {
         logger.debug('showConfirmDialog:加载对话框')
-        domResult = loadDomcument('/www/dialog/messageDialog');
+        url = django.reverse('www:view.dialog.messageDialog');
+        domResult = loadDomcument(url);
         logger.debug(domResult);
         $('body').append(domResult);
     }
