@@ -35,7 +35,7 @@ function initBootstrapSelect(scope) {
     scope.find('.bootstrap-select').find('button').attr('title', '');
     // 每次mouseover事件发生时都去掉一次，这样就没有机会套弹出这个title提示了。
     scope.find('.bootstrap-select').find('button').on('mouseover', function () {
-        console.log('bootstrap-select.button.mouseover is call');
+        logger.debug('bootstrap-select.button.mouseover is call');
         $(this).attr('title', '');
     });
 }
@@ -49,12 +49,12 @@ function initDataBinding(scope) {
     exclusion = specialForBinding.join(',');
     // 俘获文本框修改信息
     scope.find(".data-binding-field").not(exclusion).on("change", function (event) {
-        console.log('text edit is changed(' + $(this).val() + ')');
+        logger.debug('text edit is changed(' + $(this).val() + ')');
         saveFieldValue(this, $(this).val());
     });
     // 俘获开关控件的变动信息
     scope.find('.data-binding-field.bootstrap-switch').on('switchChange.bootstrapSwitch', function (event, state) {
-        console.log('switch is changed(' + state + ')');
+        logger.debug('switch is changed(' + state + ')');
         saveFieldValue(this, state);
     });
 }
@@ -63,21 +63,21 @@ function initDataBinding(scope) {
  *       保存绑定字段数据到数据库      *
  ***************************************/
 function displayRefreshIcon(control) {
-    console.log('displayRefreshIcon is called');
+    logger.debug('displayRefreshIcon is called');
     //icon = itemSaved.closest('.data-binding-refresh-icon');
     icon = $(control).closest('.panel').find('.data-binding-refresh-icon');
-    //console.log(icon);
+    //logger.debug(icon);
     icon.stop(true, true);
     icon.css('opacity', 1);
     icon.animate({'opacity': 0}, 3000);
 }
 
 function disableFinishButton() {
-    console.log('disableFinishButton() is called');
+    logger.debug('disableFinishButton() is called');
     $('#finishButton').attr('disabled', true);
 }
 function enableFinishButton() {
-    console.log('enableFinishButton() is called');
+    logger.debug('enableFinishButton() is called');
     $('#finishButton').attr('disabled', false);
 }
 
@@ -85,7 +85,7 @@ function saveFieldValue(control, value) {
     // 保存期间禁止完成按钮
     disableFinishButton();
     // 从控件中读取数据
-    console.log('saveFieldValue is called');
+    logger.debug('saveFieldValue is called');
     id = $(control).data('binding-id')
     field_name = $(control).data('binding-field-name')
     action = $(control).data('binding-action')
@@ -101,14 +101,14 @@ function saveFieldValue(control, value) {
         async: true,
         // 通讯成功，解析返回结果做进一步处理
         success: function (result) {
-            console.log('save successfully');
-            console.log('resultCode:' + result['resultCode']);
-            console.log('resultMessage:' + result['resultMessage']);
+            logger.debug('save successfully');
+            logger.debug('resultCode:' + result['resultCode']);
+            logger.debug('resultMessage:' + result['resultMessage']);
             displayRefreshIcon(control);
         },
         // 失败说明网络有问题或者服务器有问题
         error: function (xhr, status, errorThrown) {
-            console.log('save error');
+            logger.debug('save error');
         },
         complete: function (xhr, status) {
             // 保存操作完成使完成按钮可用
@@ -129,8 +129,8 @@ function loadNewQuestionDocument(questionId) {
         async: true,
         // 通讯成功，解析返回结果做进一步处理
         success: function (result) {
-            console.log('loadNewQuestionDocument:success');
-            //console.log(result);
+            logger.debug('loadNewQuestionDocument:success');
+            //logger.debug(result);
             // 把问题的DOM补充到页面中
             $('#questionBox').append(result);
             // 重新绑定初始化的操作
@@ -141,7 +141,7 @@ function loadNewQuestionDocument(questionId) {
         },
         // 失败说明网络有问题或者服务器有问题
         error: function (xhr, status, errorThrown) {
-            console.log('loadNewQuestionDocument:error');
+            logger.debug('loadNewQuestionDocument:error');
         }
     });
 }
@@ -159,7 +159,7 @@ function initQuestionAddAction(scope) {
         action = $(this).data('binding-action')
         data = {}
         data['paper'] = paperId;
-        console.log('paper=' + paperId);
+        logger.debug('paper=' + paperId);
         // 向服务器提交数据
         $.ajax({
             url: action,
@@ -169,12 +169,12 @@ function initQuestionAddAction(scope) {
             async: true,
             // 通讯成功，解析返回结果做进一步处理
             success: function (result) {
-                console.log('save successfully');
-                console.log('resultCode:' + result['resultCode']);
-                console.log('resultMessage:' + result['resultMessage']);
+                logger.debug('save successfully');
+                logger.debug('resultCode:' + result['resultCode']);
+                logger.debug('resultMessage:' + result['resultMessage']);
                 //
                 if (result['resultCode'] == 0) {
-                    console.log('id:' + result['id']);
+                    logger.debug('id:' + result['id']);
                     loadNewQuestionDocument(result['id']);
                     $('#addQuestionDialog').modal('hide');
                 } else {
@@ -183,11 +183,11 @@ function initQuestionAddAction(scope) {
             },
             // 失败说明网络有问题或者服务器有问题
             error: function (xhr, status, errorThrown) {
-                console.log('network error!');
+                logger.debug('network error!');
                 // 出错处理(暂缺)
             },
             complete: function (xhr, status) {
-                //console.log("The request is complete!");
+                //logger.debug("The request is complete!");
                 // 恢复按钮状态
                 $(".btn-paper-add-question").attr('disabled', false);
             }
@@ -199,7 +199,7 @@ function initQuestionAddAction(scope) {
  *         更新修改问题的DOM信息       *
  ***************************************/
 function refreshQuestionDocument(questionId) {
-    console.log('refreshQuestionDocument is call id=' + questionId);
+    logger.debug('refreshQuestionDocument is call id=' + questionId);
     action = "/survey/view/question/edit/" + encodeURIComponent(questionId);
     $.ajax({
         url: action,
@@ -207,9 +207,9 @@ function refreshQuestionDocument(questionId) {
         async: true,
         // 通讯成功，解析返回结果做进一步处理
         success: function (result) {
-            console.log('refreshQuestionDocument:success');
-            //console.log(result);
-            //console.log("#question:" + questionId);
+            logger.debug('refreshQuestionDocument:success');
+            //logger.debug(result);
+            //logger.debug("#question:" + questionId);
             // 替换question的document内容
             questionDocument = getQuestionDocument(questionId);
             questionDocument.replaceWith(result);
@@ -218,7 +218,7 @@ function refreshQuestionDocument(questionId) {
         },
         // 失败说明网络有问题或者服务器有问题
         error: function (xhr, status, errorThrown) {
-            console.log('refreshQuestionDocument:error');
+            logger.debug('refreshQuestionDocument:error');
         }
     });
 }
@@ -228,7 +228,7 @@ function refreshQuestionDocument(questionId) {
  ***************************************/
 function initBranchAddAction(scope) {
     scope.find('.btn-question-add-branch').on('click', function () {
-        console.log('btn-question-add-branch is call');
+        logger.debug('btn-question-add-branch is call');
         // 将按钮禁用，待question的DOM重新加载后，按钮会自动恢复。
         $(this).attr('disabled', true);
         // 准备提交到服务器的数据
@@ -236,7 +236,7 @@ function initBranchAddAction(scope) {
         action = $(this).data('binding-action')
         data = {}
         data['question'] = questionId;
-        console.log('question=' + questionId);
+        logger.debug('question=' + questionId);
         // 向服务器提交数据
         $.ajax({
             url: action,
@@ -246,9 +246,9 @@ function initBranchAddAction(scope) {
             async: true,
             // 通讯成功，解析返回结果做进一步处理
             success: function (result) {
-                console.log('save successfully');
-                console.log('resultCode:' + result['resultCode']);
-                console.log('resultMessage:' + result['resultMessage']);
+                logger.debug('save successfully');
+                logger.debug('resultCode:' + result['resultCode']);
+                logger.debug('resultMessage:' + result['resultMessage']);
                 //
                 if (result['resultCode'] == 0) {
                     // 更新问题的DOM信息
@@ -259,11 +259,11 @@ function initBranchAddAction(scope) {
             },
             // 失败说明网络有问题或者服务器有问题
             error: function (xhr, status, errorThrown) {
-                console.log('network error!');
+                logger.debug('network error!');
                 // 出错处理(暂缺)
             },
             complete: function (xhr, status) {
-                //console.log("The request is complete!");
+                //logger.debug("The request is complete!");
             }
         });
     });
@@ -285,7 +285,7 @@ function initQuestionDeleteAction(scope) {
 
         // 定义用户确认后的具体删除动作
         questionDeleteConfirmAction = function () {
-            console.log('questionDeleteConfirmAction is called');
+            logger.debug('questionDeleteConfirmAction is called');
             // 准备提交到服务器的数据
             data = {}
             data['id'] = id
@@ -304,7 +304,7 @@ function initQuestionDeleteAction(scope) {
                 },
                 // 失败说明网络有问题或者服务器有问题
                 error: function (xhr, status, errorThrown) {
-                    console.log('network error!');
+                    logger.debug('network error!');
                     // 出错处理(暂缺)
                 }
             });
@@ -328,7 +328,7 @@ function initBranchDeleteAction(scope) {
 
         // 定义用户确认删除后的具体删除动作
         branchDeleteConfirmAction = function () {
-            console.log('branchDeleteConfirmAction is called');
+            logger.debug('branchDeleteConfirmAction is called');
             data = {}
             data['id'] = branchId
             $.ajax({
@@ -344,7 +344,7 @@ function initBranchDeleteAction(scope) {
                     }
                 },
                 error: function (xhr, status, errorThrown) {
-                    console.log('network error!');
+                    logger.debug('network error!');
                     //这里失败说明网络有问题 出错处理(暂缺)
                 }
             });
@@ -357,14 +357,6 @@ function initBranchDeleteAction(scope) {
 /***************************************
  *          绑定选项删除事件           *
  ***************************************/
-
-function myConfirmAction() {
-    console.log('myConfirmAction is called');
-}
-
-function myCallConfirmDialog() {
-    showConfirmDialog('测试提示内容', myConfirmAction, '测试标题', 'glyphicon glyphicon-tag');
-}
 
 function showConfirmDialog(message, action, title, icon) {
 
@@ -437,9 +429,9 @@ function findPopoverDataElement(e) {
 }
 // 鼠标进入事件
 function popoverOnMouseOver() {
-    //console.log('mouseover is call');
+    //logger.debug('mouseover is call');
     dataElement = findPopoverDataElement(this);
-    //console.log(dataElement);
+    //logger.debug(dataElement);
     $(this).popover('destroy');
     $(this).popover({
         trigger: 'manual',
@@ -454,7 +446,7 @@ function popoverOnMouseOver() {
 
 // 鼠标移出事件
 function popoverOnMouseLeave(e) {
-    //console.log('mouseleave is call');
+    //logger.debug('mouseleave is call');
     $(this).popover('destroy');
 }
 
@@ -511,7 +503,7 @@ OptionDecoder.prototype.branchReachableQuestion = function (question) {
         selected = 'selected = "selected"';
     }
     // 根据不同的问题类型显示不同的图标
-    console.log('question["type"]=' + question['type']);
+    logger.debug('question["type"]=' + question['type']);
     switch (question['type']) {
         case 'EndValid':
             iconName = "glyphicon-ok";
@@ -561,7 +553,7 @@ function getSelectOptionsHtml(action, parameters, decoder) {
         option = decoder(question);
         selectOptionsHtml += option;
     }
-    console.log(selectOptionsHtml);
+    logger.debug(selectOptionsHtml);
     return selectOptionsHtml;
 }
 
@@ -576,7 +568,7 @@ function initBindingDropdown(scope) {
     // 后来改用了click时间似乎就可以了，但如何保证click时间比bootstrap中定义的来得早？还不完全清楚
     // 但目前来看是能正常工作了。
     scope.find('.bootstrap-select-binding-dropdown').find('button').on('click', function (event) {
-        console.log('mouseenter is called');
+        logger.debug('mouseenter is called');
         // 找到对应的数据节点并读取信息
         dataElement = $(this).parent().prev();
         action = dataElement.data('binding-dropdown-action');
@@ -599,7 +591,7 @@ function initBindingDropdown(scope) {
             $('.bootstrap-select').find('button').attr('title', '');
         } else {
             // 如果请求列表失败，则让select控件保持原来的状态，不做处理。
-            console.log('initBindingDropdown:获取选项列表失败');
+            logger.debug('initBindingDropdown:获取选项列表失败');
         }
     });
 }
@@ -609,7 +601,7 @@ function initBindingDropdown(scope) {
  ***************************************/
 function initQuestionTitleSynchronization(scope) {
     scope.find(".question-text-editor").on("change", function (event) {
-        console.log('question title need change');
+        logger.debug('question title need change');
         titlePanel = $(this).parents('.panel').find('.question-title-panel-text');
         titlePanel.html($(this).val());
     });
@@ -621,11 +613,11 @@ function initQuestionTitleSynchronization(scope) {
 function initQuestionSortable() {
     $("#questionBox").sortable({
         update: function (event, ui) {
-            console.log('sortupdate() is called');
+            logger.debug('sortupdate() is called');
             id = ui.item.attr('id');
             index = ui.item.index();
-            console.log('quetionId=' + id);
-            console.log('newIndex=' + index);
+            logger.debug('quetionId=' + id);
+            logger.debug('newIndex=' + index);
         },
         handle: '.panel-heading'
     });
@@ -637,13 +629,13 @@ function initQuestionSortable() {
  ***************************************/
 
 function lightDeleteButton(button) {
-    console.log('mouseenter() is called');
+    logger.debug('mouseenter() is called');
     $(button).stop(true, true);
     $(button).animate({'color': '#e50a22'}, 800);
 }
 
 function slakeDeleteButton(button) {
-    console.log('mouseleave() is called');
+    logger.debug('mouseleave() is called');
     $(button).stop(true, true);
     $(button).animate({'color': '#421410'}, 800);
 }

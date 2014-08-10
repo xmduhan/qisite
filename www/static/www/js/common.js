@@ -28,9 +28,24 @@ function shake(obj, cycle, n) {
 /***************************************
  *          定义日志工具               *
  ***************************************/
+function FakeLogger() {
+}
+
+FakeLogger.prototype.log = function () {
+}
+
+FakeLogger.prototype.debug = function () {
+}
+
+FakeLogger.prototype.error = function () {
+}
+
+FakeLogger.prototype.warn = function () {
+}
 
 function Logger() {
     this.logger = console;
+    //this.logger = new FakeLogger();
 }
 
 Logger.prototype.log = function (msg) {
@@ -50,3 +65,12 @@ Logger.prototype.error = function (msg) {
 }
 
 logger = new Logger();
+
+/***************************************
+ *            确认对话框               *
+ ***************************************/
+
+
+
+
+
