@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 # Create your views here.
-from django.template import loader, Context, RequestContext
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_protect
 from django.core.urlresolvers import reverse
 from www.utils import packageResponse
 
