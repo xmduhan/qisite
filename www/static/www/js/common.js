@@ -133,5 +133,38 @@ function showConfirmDialog(message, action, title, icon) {
 }
 
 
+/***************************************
+ *            消息提示框               *
+ ***************************************/
+function showMessageDialog(message, title, icon) {
+
+    // 处理参数的默认值
+    message = message || '请确认';
+    icon = icon || 'glyphicon-exclamation-sign';
+    title = title || '请注意';
+
+    // 尝试寻找对话框如果不存在则动态加载
+    dialogDomId = '#messageDialog';
+    if ($(dialogDomId).length == 0) {
+        logger.debug('showConfirmDialog:加载对话框')
+        domResult = loadDomcument('/www/dialog/messageDialog');
+        logger.debug(domResult);
+        $('body').append(domResult);
+    }
+    // 如果找不到需要自动加载(暂缺)
+    dialog = $(dialogDomId);
+
+    // 生成对话框标题
+    formation = '<span class="glyphicon %s"></span> %s';
+    titleContent = sprintf(formation, icon, title);
+    dialog.find('#title').html(titleContent);
+
+    // 生成提示内容
+    dialog.find('#content').html(message);
+
+    //  显示对话框
+    dialog.modal('show');
+}
+
 
 

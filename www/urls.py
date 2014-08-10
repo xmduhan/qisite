@@ -7,4 +7,5 @@ urlpatterns = patterns(
     url(r'^index$', views.index, name='index'),
     url(r'^help$', views.help, name='help'),
     url(r'^dialog/confirmDialog$', views.confirmDialog, name='confirmDialog'),
+    url(r'^dialog/messageDialog$', views.messageDialog, name='messageDialog'),
 )

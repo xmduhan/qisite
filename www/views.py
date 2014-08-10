@@ -21,3 +21,9 @@ def confirmDialog(request):
     template = loader.get_template('www/dialog/confirmDialog.html')
     context = RequestContext(request, {'session': request.session})
     return HttpResponse(template.render(context))
+
+
+def messageDialog(request):
+    template = loader.get_template('www/dialog/messageDialog.html')
+    context = RequestContext(request, {'session': request.session})
+    return HttpResponse(template.render(context))
