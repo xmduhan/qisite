@@ -15,3 +15,9 @@ def help(request):
     template = loader.get_template('www/help.html')
     context = RequestContext(request, {'session': request.session})
     return HttpResponse(template.render(context))
+
+
+def confirmDialog(request):
+    template = loader.get_template('www/dialog/confirmDialog.html')
+    context = RequestContext(request, {'session': request.session})
+    return HttpResponse(template.render(context))

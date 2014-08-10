@@ -354,43 +354,7 @@ function initBranchDeleteAction(scope) {
     });
 }
 
-/***************************************
- *          绑定选项删除事件           *
- ***************************************/
 
-function showConfirmDialog(message, action, title, icon) {
-
-    // 处理参数的默认值
-    message = message || '请确认';
-    action = action || function () {
-    };
-    icon = icon || 'glyphicon-exclamation-sign';
-    title = title || '请确认';
-
-    // 找到对话框
-    // 如果找不到需要自动加载(暂缺)
-    dialog = $('#confirmDialog');
-    button = dialog.find('#confirmButton');
-    // 生成对话框标题
-    formation = '<span class="glyphicon %s"></span> %s';
-    titleContent = sprintf(formation, icon, title);
-    dialog.find('#title').html(titleContent);
-
-    // 生成提示内容
-    dialog.find('#content').html(message);
-
-    // 将确认后要做的动作绑定到确认按钮上
-    button.unbind('click');
-    button.on('click', function () {
-        button.attr('disabled', true);
-        action();
-        button.attr('disabled', false);
-        dialog.modal('hide');
-    });
-
-    //  显示对话框
-    dialog.modal('show');
-}
 
 
 /***************************************
