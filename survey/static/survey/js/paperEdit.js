@@ -159,9 +159,9 @@ function initQuestionAddAction(scope) {
         // 禁用所有新增按钮
         $(".btn-paper-add-question").attr('disabled', true);
         // 准备提交到服务器的数据
-        paperId = $(this).data('binding-id')
-        action = $(this).data('binding-action')
-        data = {}
+        paperId = $(this).data('binding-id');
+        action = $(this).data('binding-action');
+        data = {};
         data['paper'] = paperId;
         logger.debug('paper=' + paperId);
         // 向服务器提交数据
@@ -446,8 +446,8 @@ function initQuestionCollapse(scope) {
     scope.find('#collapse-all-question-show').on('click', function (e) {
         $('.question-body').collapse('show');
     });
-    scope.find('.collapse-this-question').on('dblclick', function (e) {
-        $(this).parent().find('.question-body').collapse('toggle');
+    scope.find('.panel-collapsable').on('dblclick', function (e) {
+        $(this).parent().find('.panel-body').collapse('toggle');
     });
 }
 
@@ -661,7 +661,7 @@ function initial(scope) {
 
 $(document).ready(function () {
     // 绑定body中的所有相关控件的事件
-    // 并初始化switch和selec
+    // 并初始化switch和select
     initial($('body'));
     // 初始化问题的排序功能
     initQuestionSortable();

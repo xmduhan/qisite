@@ -1,13 +1,14 @@
 {# 问卷信息 #}
 <div class="panel panel-default">
     {# panel标题 #}
-    <div class="panel-heading">
+    <div class="panel-heading panel-collapsable">
         <span class="glyphicon glyphicon-list-alt"></span>
         <span class="glyphicon glyphicon-save data-binding-refresh-icon" style="opacity:0"></span>
         问卷
     </div>
+
     {# panel内容 #}
-    <div class="panel-body">
+    <div class="panel-body in">
         <div class="well well-lg">
             {# 问卷的标题 #}
             <div class="row">
@@ -139,11 +140,19 @@
 {# end panel #}
 
 {# 问题内容框 #}
-<div class="well" id="questionBox">
-    {% for question in paper.getQuestionSetInOrder %}
-        {% include "survey/question/questionEdit.html" with question=question only %}
-    {% endfor %}
+<div class="panel panel-default">
+    <div class="panel-heading panel-collapsable">
+        <span class="glyphicon glyphicon-list-alt"></span>
+        问题
+    </div>
+    <div class="panel-body in" id="questionBox">
+        {% for question in paper.getQuestionSetInOrder %}
+            {% include "survey/question/questionEdit.html" with question=question only %}
+        {% endfor %}
+    </div>
 </div>
+
+
 <p></p>
 
 

@@ -10,3 +10,6 @@ span.glyphicon-link {
     font-size: 1.2em;
 }
 
+.input-group-addon {
+    /*width: 10%;*/
+}
