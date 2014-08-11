@@ -10,6 +10,22 @@ span.glyphicon-link {
     font-size: 1.2em;
 }
 
-.input-group-addon {
-    /*width: 10%;*/
+.width50 {
+    width: 50%;
+}
+
+.width60 {
+    width: 60%;
+}
+
+.width59 {
+    width: 59%;
+}
+
+.width70 {
+    width: 70%;
+}
+
+.spinner {
+    text-align: center;
 }

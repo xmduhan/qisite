@@ -8,4 +8,6 @@ urlpatterns = patterns(
     url(r'^demo03$', views.demo03, name='demo03'),
     url(r'^demo04$', views.demo04, name='demo04'),
     url(r'^demo05$', views.demo05, name='demo05'),
+    url(r'^demo06$', views.demo06, name='demo06'),
+    url(r'^demo07$', views.demo07, name='demo07'),
 )

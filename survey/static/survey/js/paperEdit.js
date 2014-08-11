@@ -610,20 +610,26 @@ function slakeDeleteButton(button) {
 
 function initDeleteButtonColorChange(scope) {
     // 为问题删除按钮绑定事件
-    $(".btn-delete-question").on('mouseenter', function (event) {
+    scope.find(".btn-delete-question").on('mouseenter', function (event) {
         lightDeleteButton(this);
     });
-    $(".btn-delete-question").on('mouseleave', function (event) {
+    scope.find(".btn-delete-question").on('mouseleave', function (event) {
         slakeDeleteButton(this);
     });
     // 为选项删除按钮绑定事件
-    $(".btn-delete-branch").on('mouseenter', function (event) {
+    scope.find(".btn-delete-branch").on('mouseenter', function (event) {
         lightDeleteButton(this);
     });
-    $(".btn-delete-branch").on('mouseleave', function (event) {
+    scope.find(".btn-delete-branch").on('mouseleave', function (event) {
         slakeDeleteButton(this);
     });
 }
+
+
+function initSpinner(scope) {
+    scope.find('.spinner').spinner();
+}
+
 
 /***************************************
  *        所有空间初始化操作工作       *
@@ -654,6 +660,8 @@ function initial(scope) {
     initQuestionTitleSynchronization(scope);
     // 初始化删除按钮的颜色变化
     initDeleteButtonColorChange(scope);
+    // 初始化
+    initSpinner(scope);
 }
 /***************************************
  *          全局初始化加载操作         *

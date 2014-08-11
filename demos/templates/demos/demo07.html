@@ -3,10 +3,10 @@
 <head>
     <title></title>
     {% include "www/commoncss.html" %}
-    <link rel="stylesheet" href="/static/survey/css/paperEdit.css">
+    {#  <link rel="stylesheet" href="/static/survey/css/paperEdit.css"> #}
 </head>
 <body>
-
+{% comment %}
 
 {% include "www/navbar.html" with position='survey' %}
 <div class="container" style="padding-top: 30px;">
@@ -36,7 +36,7 @@
                 {# 定向调查 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon  width50">
+                            <span class="input-group-addon  addon-sm">
                                   定向调查
                             </span>
                         <input class="bootstrap-switch " type="checkbox"/>
@@ -45,7 +45,7 @@
                 {# 是否分享 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon  width50">
+                            <span class="input-group-addon  addon-sm">
                                   是否分享
                             </span>
                         <input class="bootstrap-switch " type="checkbox"/>
@@ -54,7 +54,7 @@
                 {# 查看结果 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50">
+                            <span class="input-group-addon addon-sm ">
                                   查看结果
                             </span>
                         <input class="bootstrap-switch " type="checkbox"/>
@@ -63,7 +63,7 @@
                 {# 允许重填 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon  width50">
+                            <span class="input-group-addon  addon-sm">
                                   允许重填
                             </span>
                         <input class="bootstrap-switch " type="checkbox"/>
@@ -77,25 +77,25 @@
                 {# IP限制 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50 ">
+                            <span class="input-group-addon  addon-sm">
                                   IP限制
                             </span>
-                        <input class="spinner" type="text" size="9"/>
+                        <input class="spinner" type="text"/>
                     </div>
                 </div>
                 {# MAC限制 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon  width50">
+                            <span class="input-group-addon  addon-sm">
                                   MAC限制
                             </span>
-                        <input class="spinner" type="text" size="9"/>
+                        <input class="" type="text"/>
                     </div>
                 </div>
                 {# 发布时间 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50 ">
+                            <span class="input-group-addon addon-sm ">
                                   发布时间
                             </span>
                         <input class="bootstrap-switch " type="checkbox"/>
@@ -104,7 +104,7 @@
                 {# 结束时间 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50">
+                            <span class="input-group-addon addon-sm ">
                                   结束时间
                             </span>
                         <input class="bootstrap-switch " type="checkbox"/>
@@ -118,37 +118,37 @@
                 {# 奖金 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50">
+                            <span class="input-group-addon addon-sm ">
                                   奖金
                             </span>
-                        <input class="spinner" type="text" size="9"/>
+                        <input class="bootstrap-switch " type="checkbox"/>
                     </div>
                 </div>
                 {# 手续费 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50">
+                            <span class="input-group-addon addon-sm ">
                                   手续费
                             </span>
-                        <input class="spinner" type="text" size="9"/>
+                        <input class="bootstrap-switch " type="checkbox"/>
                     </div>
                 </div>
                 {# 样本上限 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50">
+                            <span class="input-group-addon addon-sm ">
                                   样本上限
                             </span>
-                        <input class="spinner" type="text" size="9"/>
+                        <input class="bootstrap-switch " type="checkbox"/>
                     </div>
                 </div>
                 {# 调查费 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50">
+                            <span class="input-group-addon addon-sm ">
                                   调查费
                             </span>
-                        <input class="spinner" type="text" size="9"/>
+                        <input class="bootstrap-switch " type="checkbox"/>
                     </div>
                 </div>
             </div>
@@ -159,10 +159,10 @@
                 {# 参与密码 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50">
+                            <span class="input-group-addon addon-sm ">
                                   参与密码
                             </span>
-                        <input type="text" size="9"/>
+                        <input class="bootstrap-switch " type="checkbox"/>
                     </div>
                 </div>
             </div>
@@ -172,11 +172,11 @@
 
     {% include "survey/paperEditDom.html" with paper=survey.paper only %}
 </div>
-
+{% endcomment %}
 <input type="text" class="spinner"/>
 {% include "www/commonjs.html" %}
-<script src="/static/survey/js/surveyEdit.js"></script>
-<script src="/static/survey/js/paperEdit.js"></script>
+{#  <script src="/static/survey/js/surveyEdit.js"></script> #}
+{# <script src="/static/survey/js/paperEdit.js"></script> #}
 
 </body>
 </html>

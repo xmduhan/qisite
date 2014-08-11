@@ -31,3 +31,15 @@ def demo05(request):
     template = loader.get_template('demos/demo05.html')
     context = Context({})
     return HttpResponse(template.render(context))
+
+
+def demo06(request):
+    template = loader.get_template('demos/demo06.html')
+    context = Context({})
+    return HttpResponse(template.render(context))
+
+
+def demo07(request):
+    template = loader.get_template('demos/demo07.html')
+    context = Context({})
+    return HttpResponse(template.render(context))
