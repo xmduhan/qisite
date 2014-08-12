@@ -664,9 +664,9 @@ function initial(scope) {
     // 初始化删除按钮的颜色变化
     initDeleteButtonColorChange(scope);
     // 初始化数字编辑控件
-    initSpinner(scope);
+    //initSpinner(scope);
     // 初始化日期选择控件
-    initDatetimepicker(scope);
+    //initDatetimepicker(scope);
 }
 /***************************************
  *          全局初始化加载操作         *
