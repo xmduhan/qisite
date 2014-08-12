@@ -45,7 +45,7 @@ function initBootstrapSelect(scope) {
  ***************************************/
 function initDataBinding(scope) {
     // 生成需要特殊处理的类型
-    specialForBinding = ['.bootstrap-switch'];
+    specialForBinding = ['.bootstrap-switch', '.spinner'];
     exclusion = specialForBinding.join(',');
     // 俘获文本框修改信息
     scope.find(".data-binding-field").not(exclusion).on("change", function (event) {
@@ -56,6 +56,11 @@ function initDataBinding(scope) {
     scope.find('.data-binding-field.bootstrap-switch').on('switchChange.bootstrapSwitch', function (event, state) {
         logger.debug('switch is changed(' + state + ')');
         saveFieldValue(this, state);
+    });
+    // 俘获spinner控件的spinchange事件
+    scope.find('.data-binding-field.spinner').on('spinchange', function (event, ui) {
+        logger.debug('spinner is changed(' + $(this).val() + ')');
+        saveFieldValue(this, $(this).val());
     });
 }
 

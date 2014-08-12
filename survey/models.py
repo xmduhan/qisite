@@ -262,6 +262,10 @@ class Survey(TimeModel):
         verbose_name = "调查"
         verbose_name_plural = "[10].调查"
 
+    def getIdSigned(self):
+        signer = Signer()
+        return signer.sign(self.id)
+
 
 class TargetCust(TimeModel):
     name = models.CharField('姓名', max_length=50)

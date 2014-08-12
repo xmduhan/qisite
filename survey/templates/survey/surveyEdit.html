@@ -36,37 +36,50 @@
                 {# 定向调查 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon  width50">
-                                  定向调查
-                            </span>
-                        <input class="bootstrap-switch " type="checkbox"/>
+                        <span class="input-group-addon  width50">定向调查</span>
+                        <input class="bootstrap-switch data-binding-field" type="checkbox"
+                               {% if survey.targetOnly %}checked{% endif %}
+                                {# 数据绑定信息 #}
+                               data-binding-action="{% url 'survey:service.survey.modify' %}"
+                               data-binding-id="{{ survey.getIdSigned }}"
+                               data-binding-field-name="targetOnly"/>
                     </div>
                 </div>
                 {# 是否分享 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon  width50">
-                                  是否分享
-                            </span>
-                        <input class="bootstrap-switch " type="checkbox"/>
+                        <span class="input-group-addon  width50">是否分享</span>
+                        <input class="bootstrap-switch data-binding-field" type="checkbox"
+                               {% if survey.shared %}checked{% endif %}
+                                {# 数据绑定信息 #}
+                               data-binding-action="{% url 'survey:service.survey.modify' %}"
+                               data-binding-id="{{ survey.getIdSigned }}"
+                               data-binding-field-name="shared"/>
+
                     </div>
                 </div>
                 {# 查看结果 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50">
-                                  查看结果
-                            </span>
-                        <input class="bootstrap-switch " type="checkbox"/>
+                        <span class="input-group-addon width50">查看结果</span>
+                        <input class="bootstrap-switch data-binding-field" type="checkbox"
+                               {% if survey.viewResult %}checked{% endif %}
+                                {# 数据绑定信息 #}
+                               data-binding-action="{% url 'survey:service.survey.modify' %}"
+                               data-binding-id="{{ survey.getIdSigned }}"
+                               data-binding-field-name="viewResult"/>
                     </div>
                 </div>
                 {# 允许重填 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon  width50">
-                                  允许重填
-                            </span>
-                        <input class="bootstrap-switch " type="checkbox"/>
+                        <span class="input-group-addon  width50">允许重填</span>
+                        <input class="bootstrap-switch data-binding-field" type="checkbox"
+                               {% if survey.resubmit %}checked{% endif %}
+                                {# 数据绑定信息 #}
+                               data-binding-action="{% url 'survey:service.survey.modify' %}"
+                               data-binding-id="{{ survey.getIdSigned }}"
+                               data-binding-field-name="resubmit"/>
                     </div>
                 </div>
             </div>
@@ -77,19 +90,27 @@
                 {# IP限制 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50 ">
-                                  IP限制
-                            </span>
-                        <input class="spinner" type="text" size="8"/>
+                        <span class="input-group-addon width50 ">IP限制</span>
+                        <input class="spinner data-binding-field" type="text" size="8"
+                               value="{{ survey.ipLimit }}"
+                                {# 数据绑定信息 #}
+                               data-binding-action="{% url 'survey:service.survey.modify' %}"
+                               data-binding-id="{{ survey.getIdSigned }}"
+                               data-binding-field-name="ipLimit"
+                                />
                     </div>
                 </div>
                 {# MAC限制 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon  width50">
-                                  MAC限制
-                            </span>
-                        <input class="spinner" type="text" size="8"/>
+                        <span class="input-group-addon  width50">MAC限制</span>
+                        <input class="spinner data-binding-field" type="text" size="8"
+                               value="{{ survey.macLimit }}"
+                                {# 数据绑定信息 #}
+                               data-binding-action="{% url 'survey:service.survey.modify' %}"
+                               data-binding-id="{{ survey.getIdSigned }}"
+                               data-binding-field-name="macLimit"
+                                />
                     </div>
                 </div>
                 {# 发布时间 #}
@@ -116,37 +137,53 @@
                 {# 奖金 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50">
-                                  奖金
-                            </span>
-                        <input class="spinner" type="text" size="8"/>
+                        <span class="input-group-addon width50">奖金</span>
+                        <input class="spinner data-binding-field" type="text" size="8"
+                               value="{{ survey.bonus }}"
+                                {# 数据绑定信息 #}
+                               data-binding-action="{% url 'survey:service.survey.modify' %}"
+                               data-binding-id="{{ survey.getIdSigned }}"
+                               data-binding-field-name="bonus"
+                                />
                     </div>
                 </div>
                 {# 手续费 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50">
-                                  手续费
-                            </span>
-                        <input class="spinner" type="text" size="8"/>
-                    </div>
-                </div>
-                {# 样本上限 #}
-                <div class="col-md-3">
-                    <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50">
-                                  样本上限
-                            </span>
-                        <input class="spinner" type="text" size="8"/>
+                        <span class="input-group-addon width50">手续费</span>
+                        <input class="spinner data-binding-field" type="text" size="8"
+                               value="{{ survey.fee }}"
+                                {# 数据绑定信息 #}
+                               data-binding-action="{% url 'survey:service.survey.modify' %}"
+                               data-binding-id="{{ survey.getIdSigned }}"
+                               data-binding-field-name="fee"
+                                />
                     </div>
                 </div>
                 {# 调查费 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50">
-                                  调查费
-                            </span>
-                        <input class="spinner" type="text" size="8"/>
+                        <span class="input-group-addon width50">调查费</span>
+                        <input class="spinner data-binding-field" type="text" size="8"
+                               value="{{ survey.hardCost }}"
+                                {# 数据绑定信息 #}
+                               data-binding-action="{% url 'survey:service.survey.modify' %}"
+                               data-binding-id="{{ survey.getIdSigned }}"
+                               data-binding-field-name="hardCost"
+                                />
+                    </div>
+                </div>
+                {# 样本上限 #}
+                <div class="col-md-3">
+                    <div class="input-group input-group-sm ">
+                        <span class="input-group-addon width50">样本上限</span>
+                        <input class="spinner data-binding-field" type="text" size="8"
+                               value="{{ survey.validSampleLimit }}"
+                                {# 数据绑定信息 #}
+                               data-binding-action="{% url 'survey:service.survey.modify' %}"
+                               data-binding-id="{{ survey.getIdSigned }}"
+                               data-binding-field-name="validSampleLimit"
+                                />
                     </div>
                 </div>
             </div>
@@ -157,10 +194,12 @@
                 {# 参与密码 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50">
-                                  参与密码
-                            </span>
-                        <input type="text" class="form-control" size="10"/>
+                        <span class="input-group-addon width50">参与密码</span>
+                        <input type="text" class="form-control data-binding-field" size="10"
+                               value="{{ survey.password }}"
+                               data-binding-action="{% url 'survey:service.survey.modify' %}"
+                               data-binding-id="{{ survey.getIdSigned }}"
+                               data-binding-field-name="password"/>
                     </div>
                 </div>
             </div>
