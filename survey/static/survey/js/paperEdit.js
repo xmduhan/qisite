@@ -446,7 +446,7 @@ function initQuestionCollapse(scope) {
     scope.find('#collapse-all-question-show').on('click', function (e) {
         $('.question-body').collapse('show');
     });
-    scope.find('.panel-collapsable').on('dblclick', function (e) {
+    scope.find('.panel-collapsible').on('dblclick', function (e) {
         $(this).parent().find('.panel-body').collapse('toggle');
     });
 }
@@ -630,6 +630,9 @@ function initSpinner(scope) {
     scope.find('.spinner').spinner();
 }
 
+function initDatetimepicker(scope) {
+    scope.find('.datetimepicker').datetimepicker({language: 'zh-CN'});
+}
 
 /***************************************
  *        所有空间初始化操作工作       *
@@ -660,8 +663,10 @@ function initial(scope) {
     initQuestionTitleSynchronization(scope);
     // 初始化删除按钮的颜色变化
     initDeleteButtonColorChange(scope);
-    // 初始化
+    // 初始化数字编辑控件
     initSpinner(scope);
+    // 初始化日期选择控件
+    initDatetimepicker(scope);
 }
 /***************************************
  *          全局初始化加载操作         *

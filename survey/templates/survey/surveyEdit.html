@@ -23,7 +23,7 @@
     <div class="panel panel-default">
 
         {# 调查标题栏 #}
-        <div class="panel-heading panel-collapsable">
+        <div class="panel-heading panel-collapsible">
             <span class="glyphicon glyphicon-globe"></span>
             <span class="glyphicon glyphicon-save data-binding-refresh-icon" style="opacity:0"></span>
             调查
@@ -80,7 +80,7 @@
                             <span class="input-group-addon width50 ">
                                   IP限制
                             </span>
-                        <input class="spinner" type="text" size="9"/>
+                        <input class="spinner" type="text" size="8"/>
                     </div>
                 </div>
                 {# MAC限制 #}
@@ -89,25 +89,32 @@
                             <span class="input-group-addon  width50">
                                   MAC限制
                             </span>
-                        <input class="spinner" type="text" size="9"/>
+                        <input class="spinner" type="text" size="8"/>
                     </div>
                 </div>
                 {# 发布时间 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50 ">
-                                  发布时间
-                            </span>
-                        <input class="bootstrap-switch " type="checkbox"/>
+                        {% comment %}
+                        <span class="input-group-addon width40 ">发布时间</span>
+                        <input type="text" class="form-control datetimepicker" size="13"/>
+                        <span class="input-group-addon  width10"><i class="glyphicon glyphicon-calendar"></i></span>
+                        {% endcomment %}
+                        <span class="input-group-addon">问卷名称</span>
+                        <input type="text" class="form-control "/>
+
                     </div>
                 </div>
                 {# 结束时间 #}
                 <div class="col-md-3">
                     <div class="input-group input-group-sm ">
-                            <span class="input-group-addon width50">
-                                  结束时间
-                            </span>
-                        <input class="bootstrap-switch " type="checkbox"/>
+                        {% comment %}
+                        <span class="input-group-addon width40">结束时间</span>
+                        <input type="text" class="form-control datetimepicker" size="13"/>
+                        <span class="input-group-addon  width10"><i class="glyphicon glyphicon-calendar"></i></span>
+                        {% endcomment %}
+                        <span class="input-group-addon ">问卷名称</span>
+                        <input type="text" class="form-control datetimepicker"/>
                     </div>
                 </div>
             </div>
@@ -121,7 +128,7 @@
                             <span class="input-group-addon width50">
                                   奖金
                             </span>
-                        <input class="spinner" type="text" size="9"/>
+                        <input class="spinner" type="text" size="8"/>
                     </div>
                 </div>
                 {# 手续费 #}
@@ -130,7 +137,7 @@
                             <span class="input-group-addon width50">
                                   手续费
                             </span>
-                        <input class="spinner" type="text" size="9"/>
+                        <input class="spinner" type="text" size="8"/>
                     </div>
                 </div>
                 {# 样本上限 #}
@@ -139,7 +146,7 @@
                             <span class="input-group-addon width50">
                                   样本上限
                             </span>
-                        <input class="spinner" type="text" size="9"/>
+                        <input class="spinner" type="text" size="8"/>
                     </div>
                 </div>
                 {# 调查费 #}
@@ -148,7 +155,7 @@
                             <span class="input-group-addon width50">
                                   调查费
                             </span>
-                        <input class="spinner" type="text" size="9"/>
+                        <input class="spinner" type="text" size="8"/>
                     </div>
                 </div>
             </div>
@@ -162,7 +169,7 @@
                             <span class="input-group-addon width50">
                                   参与密码
                             </span>
-                        <input type="text" size="9"/>
+                        <input type="text" class="form-control" size="10"/>
                     </div>
                 </div>
             </div>
@@ -173,7 +180,7 @@
     {% include "survey/paperEditDom.html" with paper=survey.paper only %}
 </div>
 
-<input type="text" class="spinner"/>
+
 {% include "www/commonjs.html" %}
 <script src="/static/survey/js/surveyEdit.js"></script>
 <script src="/static/survey/js/paperEdit.js"></script>

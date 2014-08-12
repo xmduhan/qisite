@@ -10,6 +10,26 @@ span.glyphicon-link {
     font-size: 1.2em;
 }
 
+.height14px {
+    height: 20px;
+}
+
+.width10 {
+    width: 10%;
+}
+
+.width20 {
+    width: 20%;
+}
+
+.width30 {
+    width: 30%;
+}
+
+.width40 {
+    width: 40%;
+}
+
 .width50 {
     width: 50%;
 }
@@ -18,14 +38,19 @@ span.glyphicon-link {
     width: 60%;
 }
 
-.width59 {
-    width: 59%;
-}
-
 .width70 {
     width: 70%;
 }
 
+.width80 {
+    width: 80%;
+}
+
+.width90 {
+    width: 90%;
+}
+
 .spinner {
     text-align: center;
+    background-color: rgba(255, 255, 255, 1);
 }
