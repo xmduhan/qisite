@@ -14,39 +14,45 @@
 {# 页面主体 #}
 <div class="container" style="padding-top: 30px;">
     {# 完成按钮 #}
-    <a id="finishButton" href="{% url 'survey:view.paper.list' %}"
-       type="button" class="btn btn-success ">
-        <span class="glyphicon glyphicon-ok"></span>
-        完成
-    </a>
-    {# 新增问题按钮 #}
-    <button class="btn btn-primary " data-toggle="modal" data-target="#addQuestionDialog">
-        <span class="glyphicon glyphicon-plus"></span>
-        新增问题
-    </button>
+    <div class="row">
+        <div class="col-md-6">
+            <a id="finishButton" href="{% url 'survey:view.paper.list' %}"
+               type="button" class="btn btn-success ">
+                <span class="glyphicon glyphicon-ok"></span>
+                完成
+            </a>
+            {# 新增问题按钮 #}
+            <button class="btn btn-primary " data-toggle="modal" data-target="#addQuestionDialog">
+                <span class="glyphicon glyphicon-plus"></span>
+                新增问题
+            </button>
+        </div>
 
-    {# 右侧按钮组 #}
-    <div class="btn-group pull-right">
-        {# 帮助按钮 #}
-        <button class="btn btn-default ">
-            <span class="glyphicon glyphicon-question-sign"></span>
-            帮助
-        </button>
-        {# 预览按钮 #}
-        <button class="btn btn-default ">
-            <span class="glyphicon glyphicon-eye-open"></span>
-            预览
-        </button>
-        {# 折叠按钮 #}
-        <button id='collapse-all-question-hide' class="btn btn-default">
-            <span class="glyphicon glyphicon-collapse-up"></span>
-            折叠
-        </button>
-        {# 展开按钮 #}
-        <button id='collapse-all-question-show' class="btn btn-default ">
-            <span class="glyphicon glyphicon-collapse-down"></span>
-            展开
-        </button>
+        {# 右侧按钮组 #}
+        <div class="col-md-6">
+            <div class="btn-group pull-right">
+                {# 帮助按钮 #}
+                <button class="btn btn-default ">
+                    <span class="glyphicon glyphicon-question-sign"></span>
+                    帮助
+                </button>
+                {# 预览按钮 #}
+                <button class="btn btn-default ">
+                    <span class="glyphicon glyphicon-eye-open"></span>
+                    预览
+                </button>
+                {# 折叠按钮 #}
+                <button id='collapse-all-question-hide' class="btn btn-default">
+                    <span class="glyphicon glyphicon-collapse-up"></span>
+                    折叠
+                </button>
+                {# 展开按钮 #}
+                <button id='collapse-all-question-show' class="btn btn-default ">
+                    <span class="glyphicon glyphicon-collapse-down"></span>
+                    展开
+                </button>
+            </div>
+        </div>
     </div>
     <p></p>
 
@@ -64,12 +70,7 @@
     </div>
 
 </div>
-
-
 {# end <div class="container"> #}
-
-
-<p/>
 
 
 {% comment %}
