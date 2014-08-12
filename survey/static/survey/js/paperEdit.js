@@ -631,7 +631,7 @@ function initSpinner(scope) {
 }
 
 function initDatetimepicker(scope) {
-    scope.find('.datetimepicker').datetimepicker({language: 'zh-CN'});
+    scope.find('.datetimepicker').datepicker();
 }
 
 /***************************************

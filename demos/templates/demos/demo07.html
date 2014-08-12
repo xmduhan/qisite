@@ -14,17 +14,13 @@
 
 {% include "www/commonjs.html" %}
 <script type="text/javascript">
-    $(".form_datetime").datetimepicker({format: 'yyyy-mm-dd hh:ii'});
+    $(".form_datetime").datepicker();
 </script>
 
 <script>
-    $(function () {
-        $("#datepicker").datepicker($.datepicker.regional[ "zh-CN" ]);
-        $("#locale").change(function () {
-            $("#datepicker").datepicker("option",
-                    $.datepicker.regional[ $(this).val() ]);
-        });
-    });
+
+    $("#datepicker").datepicker();
+
 </script>
 </body>
 </html>
