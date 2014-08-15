@@ -73,8 +73,8 @@ class Paper(TimeModel):
         newPaper.createTime = datetime.now()
         newPaper.modifyTime = datetime.now()
         if user:
-            newPaper.createBy(user)
-            newPaper.modifyBy(user)
+            newPaper.createBy = user
+            newPaper.modifyBy = user
         newPaper.id = None
         newPaper.save()
 
@@ -87,22 +87,23 @@ class Paper(TimeModel):
             questionContrast[question] = newQuestion
 
         # 将选项指向新拷贝出来的问题
-        for question in newPaper.question_set():
-            for branch in question.branch_set():
+        for question in newPaper.question_set.all():
+            for branch in question.branch_set.all():
                 if branch.nextQuestion in questionContrast:
                     branch.nextQuestion = questionContrast[branch.nextQuestion]
-
+                    branch.save()
         return newPaper
 
-    def createPaperInstance(self):
+    def createPaperInstance(self, user):
         '''
         通过一个模板paper创建调查问卷的实例
         '''
         if self.type != 'T':
             raise Exception('非模板Paper对象不能创建Instance')
-        newPaper = self.copy()
+        newPaper = self.copy(user)
         newPaper.type = 'I'
         newPaper.save()
+        return newPaper
 
 
 class PaperCatalog(TimeModel):
@@ -205,8 +206,8 @@ class Question(TimeModel):
         newQuestion.createTime = datetime.now()
         newQuestion.modifyTime = datetime.now()
         if user:
-            newQuestion.createBy(user)
-            newQuestion.modifyBy(user)
+            newQuestion.createBy = user
+            newQuestion.modifyBy = user
         newQuestion.id = None
         newQuestion.save()
         # 拷贝问题所属选项信息
@@ -304,8 +305,8 @@ class Branch(TimeModel):
         newBranch.createTime = datetime.now()
         newBranch.modifyTime = datetime.now()
         if user:
-            newBranch.createBy(user)
-            newBranch.modifyBy(user)
+            newBranch.createBy = user
+            newBranch.modifyBy = user
         newBranch.id = None
         newBranch.save()
         return newBranch
