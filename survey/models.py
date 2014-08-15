@@ -312,7 +312,7 @@ class Branch(TimeModel):
 
 
 class Survey(TimeModel):
-    paper = models.ForeignKey('Paper', verbose_name="问卷", null=True, blank=True, on_delete=models.SET_NULL)
+    paper = models.ForeignKey('Paper', verbose_name="问卷", null=True, blank=True)
     # 目标客户清单 targetcust_set (ok) (已在目标客户中设置外键)
     targetOnly = models.BooleanField('定向调查', default=False)
     state = models.CharField("状态", max_length=5)
