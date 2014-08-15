@@ -94,9 +94,15 @@ class Paper(TimeModel):
 
         return newPaper
 
-        #def createPaperInstance(self):
-        #    if self.type != 'T':
-        #        raise Exception('非模板Paper对象不能创建Instance')
+    def createPaperInstance(self):
+        '''
+        通过一个模板paper创建调查问卷的实例
+        '''
+        if self.type != 'T':
+            raise Exception('非模板Paper对象不能创建Instance')
+        newPaper = self.copy()
+        newPaper.type = 'I'
+        newPaper.save()
 
 
 class PaperCatalog(TimeModel):
