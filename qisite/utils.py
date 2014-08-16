@@ -65,7 +65,7 @@ def updateModelInstance(modelInst, dataDict, excludeFields=defaultExcludeFields)
                 value = None
 
         # 处理日期
-        if type(field)
+        #if type(field)
 
         exec ('modelInst.%s = value' % field.name)
 
