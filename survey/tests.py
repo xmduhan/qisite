@@ -1464,14 +1464,61 @@ class PaperCreateInstanceTest(TestCase):
     def setUp(self):
         setup_test_environment()
         self.user = User.objects.get(code='duhan')
-        self.paper = Paper.objects.get(createBy=self.user, title=u'网购客户满意度调查')
+        self.paper = Paper.objects.get(title=u'网购客户满意度调查')
 
     def test_createPaperInstance(self):
         newPaper = self.paper.createPaperInstance(self.user)
         #  检查对象是否是新创建的
         self.assertNotEqual(newPaper, self.paper)
         # 检查对象内容是否和原来一样
-        self.assertEqual(newPaper.title,self.paper.title)
-        # 检查所有的问题和选项都是新创建的
-        for question in newPaper.question_set.all():
-            self.assertNotIn(question, self.paper.question_set.all())
+        self.assertEqual(newPaper.title, self.paper.title)
+
+        # 获取原问卷的问题和选项列表
+        oldQuestionList = list(self.paper.question_set.all())
+        self.assertEqual(len(oldQuestionList), 4)
+        oldBranchList = []
+        for question in oldQuestionList:
+            oldBranchList.extend(list(question.branch_set.all()))
+        self.assertEqual(len(oldBranchList), 11)
+
+        # 获取新的问卷的问题和选项列表
+        newQuestionList = list(newPaper.question_set.all())
+        self.assertEqual(len(newQuestionList), len(oldQuestionList))
+        newBranchList = []
+        for question in newQuestionList:
+            newBranchList.extend(list(question.branch_set.all()))
+        self.assertEqual(len(newBranchList), len(oldBranchList))
+
+        # 计算新问题列表和旧问题列表间的交集
+        intersection = set(oldQuestionList).intersection(set(newQuestionList))
+        self.assertEqual(len(intersection), 0)
+
+        # 计算新选项列表和旧选项列表间的交集
+        intersection = set(oldBranchList).intersection(set(newBranchList))
+        self.assertEqual(len(intersection), 0)
+
+        # 确定新问题的创建时间都比旧的要大
+        for newQuestion in newQuestionList:
+            for oldQuestion in oldQuestionList:
+                self.assertGreater(question.createTime, oldQuestion.createTime)
+
+        # 确定新选项的创建时间都比旧的要大
+        for newBranch in newBranchList:
+            for oldBranch in oldBranchList:
+                self.assertGreater(newBranch.createTime, oldBranch.createTime)
+
+        # 检查问卷跳转结构
+        question1 = newPaper.question_set.get(ord=0)
+        branch1_1 = question1.branch_set.get(ord=0)
+        branch1_2 = question1.branch_set.get(ord=1)
+        question2 = newPaper.question_set.get(ord=1)
+        branch2_1 = question2.branch_set.get(ord=0)
+        branch2_2 = question2.branch_set.get(ord=1)
+        branch2_3 = question2.branch_set.get(ord=2)
+        question3 = newPaper.question_set.get(ord=2)
+        question4 = newPaper.question_set.get(ord=3)
+        self.assertEqual(branch1_1.nextQuestion, None)
+        self.assertEqual(branch1_2.nextQuestion.type, 'EndInvalid')
+        self.assertEqual(branch2_1.nextQuestion.type, 'EndValid')
+        self.assertEqual(branch2_2.nextQuestion, question3)
+        self.assertEqual(branch2_3.nextQuestion, question4)

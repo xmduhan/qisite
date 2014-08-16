@@ -83,7 +83,7 @@ class Paper(TimeModel):
         for question in self.question_set.all():
             newQuestion = question.copy(user)
             newQuestion.paper = newPaper
-            newPaper.save()
+            newQuestion.save()
             questionContrast[question] = newQuestion
 
         # 将选项指向新拷贝出来的问题
@@ -92,6 +92,7 @@ class Paper(TimeModel):
                 if branch.nextQuestion in questionContrast:
                     branch.nextQuestion = questionContrast[branch.nextQuestion]
                     branch.save()
+
         return newPaper
 
     def createPaperInstance(self, user):
@@ -215,6 +216,7 @@ class Question(TimeModel):
             newBranch = branch.copy(user)
             newBranch.question = newQuestion
             newBranch.save()
+
         return newQuestion
 
 
@@ -309,6 +311,7 @@ class Branch(TimeModel):
             newBranch.modifyBy = user
         newBranch.id = None
         newBranch.save()
+
         return newBranch
 
 
