@@ -5,6 +5,7 @@ from datetime import datetime
 from numstyle import NumStyle, defaultQuestionNumStyle, defaultBranchNumStyle
 from django.core.exceptions import ValidationError
 from django.core.signing import Signer
+import copy
 
 
 class TimeModel(models.Model):
@@ -21,6 +22,7 @@ class Paper(TimeModel):
 
     #PAPER_STYLE = ( ('F', '平展'), ('P', '分页'))
     QUESTION_NUM_STYLE = (('123', '1.2.3.……'), ('(1)(2)(3)', '(1).(2).(3).……'), ('Q1Q2Q3', 'Q1.Q2.Q3.……'))
+    PAPER_TYPE = ( ('T', '模板'), ('I', '实例'))
     title = models.CharField('问卷标题', max_length=500)
     description = models.CharField('问卷说明', max_length=500, blank=True)
     # 题目集 question_set (ok) (已在Question中设置外键引用)
@@ -30,6 +32,7 @@ class Paper(TimeModel):
     lookBack = models.BooleanField('返回修改', default=False)
     #style = models.CharField('展现方式', max_length=5, choices=PAPER_STYLE) #使用paging字段取代
     paging = models.BooleanField('分页答题', default=True)
+    type = models.CharField('问题类型', choices=PAPER_TYPE, max_length=10, default='T')
     createBy = models.ForeignKey(
         account.models.User, verbose_name="创建者", related_name='paperCreated_set', blank=True, null=True)
     modifyBy = models.ForeignKey(
@@ -60,6 +63,47 @@ class Paper(TimeModel):
     def getIdSigned(self):
         signer = Signer()
         return signer.sign(self.id)
+
+    def copy(self, user=None):
+        '''
+        拷贝问卷信息
+        '''
+        # 拷贝问题对象本身的信息
+        newPaper = copy.copy(self)
+        newPaper.createTime = datetime.now()
+        newPaper.modifyTime = datetime.now()
+        if user:
+            newPaper.createBy = user
+            newPaper.modifyBy = user
+        newPaper.id = None
+        newPaper.save()
+
+        # 号码问卷的所有问题
+        questionContrast = {}
+        for question in self.question_set.all():
+            newQuestion = question.copy(user)
+            newQuestion.paper = newPaper
+            newPaper.save()
+            questionContrast[question] = newQuestion
+
+        # 将选项指向新拷贝出来的问题
+        for question in newPaper.question_set.all():
+            for branch in question.branch_set.all():
+                if branch.nextQuestion in questionContrast:
+                    branch.nextQuestion = questionContrast[branch.nextQuestion]
+                    branch.save()
+        return newPaper
+
+    def createPaperInstance(self, user):
+        '''
+        通过一个模板paper创建调查问卷的实例
+        '''
+        if self.type != 'T':
+            raise Exception('非模板Paper对象不能创建Instance')
+        newPaper = self.copy(user)
+        newPaper.type = 'I'
+        newPaper.save()
+        return newPaper
 
 
 class PaperCatalog(TimeModel):
@@ -153,6 +197,26 @@ class Question(TimeModel):
         signer = Signer()
         return signer.sign(self.id)
 
+    def copy(self, user=None):
+        '''
+        拷贝一个问题
+        '''
+        # 拷贝问题对象本身的信息
+        newQuestion = copy.copy(self)
+        newQuestion.createTime = datetime.now()
+        newQuestion.modifyTime = datetime.now()
+        if user:
+            newQuestion.createBy = user
+            newQuestion.modifyBy = user
+        newQuestion.id = None
+        newQuestion.save()
+        # 拷贝问题所属选项信息
+        for branch in self.branch_set.all():
+            newBranch = branch.copy(user)
+            newBranch.question = newQuestion
+            newBranch.save()
+        return newQuestion
+
 
 class QuestionCatalog(TimeModel):
     name = models.CharField("目录名称", max_length=100)
@@ -236,9 +300,20 @@ class Branch(TimeModel):
         signer = Signer()
         return signer.sign(self.id)
 
+    def copy(self, user=None):
+        newBranch = copy.copy(self)
+        newBranch.createTime = datetime.now()
+        newBranch.modifyTime = datetime.now()
+        if user:
+            newBranch.createBy = user
+            newBranch.modifyBy = user
+        newBranch.id = None
+        newBranch.save()
+        return newBranch
+
 
 class Survey(TimeModel):
-    paper = models.ForeignKey('Paper', verbose_name="问卷", null=True, blank=True, on_delete=models.SET_NULL)
+    paper = models.ForeignKey('Paper', verbose_name="问卷", null=True, blank=True)
     # 目标客户清单 targetcust_set (ok) (已在目标客户中设置外键)
     targetOnly = models.BooleanField('定向调查', default=False)
     state = models.CharField("状态", max_length=5)

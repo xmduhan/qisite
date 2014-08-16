@@ -362,7 +362,6 @@ class SurveyModelTest(TestCase):
         self.assertEquals(len(questionList), 2)
 
 
-
 class PaperAddTest(TestCase):
     '''
         对问卷修改服务(paperAdd)的测试
@@ -1457,3 +1456,22 @@ class AddDefaultBranchTest(TestCase):
         '''
         client = self.client
         client.session
+
+
+class PaperCreateInstanceTest(TestCase):
+    fixtures = ['initial_data.json']
+
+    def setUp(self):
+        setup_test_environment()
+        self.user = User.objects.get(code='duhan')
+        self.paper = Paper.objects.get(createBy=self.user, title=u'网购客户满意度调查')
+
+    def test_createPaperInstance(self):
+        newPaper = self.paper.createPaperInstance(self.user)
+        #  检查对象是否是新创建的
+        self.assertNotEqual(newPaper, self.paper)
+        # 检查对象内容是否和原来一样
+        self.assertEqual(newPaper.title,self.paper.title)
+        # 检查所有的问题和选项都是新创建的
+        for question in newPaper.question_set.all():
+            self.assertNotIn(question, self.paper.question_set.all())
