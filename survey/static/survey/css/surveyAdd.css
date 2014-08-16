@@ -1,0 +1,25 @@
+.content-box {
+    position: relative;
+    padding: 45px 15px 15px;
+    margin: 0 -15px 15px;
+    border-color: #e5e5e5 #eee #eee;
+    border-style: solid;
+    border-width: 1px 1px;
+    /*-webkit-box-shadow: inset 0 3px 6px rgba(0, 0, 0, .05);*/
+    /* box-shadow: inset 0 3px 6px rgba(0, 0, 0, .05)*/
+}
+
+.box-label {
+    border-color: #e5e5e5 #eee #eee;
+    border-style: solid;
+    border-width: 1px 1px;
+}
+
+.spinner {
+    text-align: center;
+    background-color: rgba(255, 255, 255, 1);
+}
+
+.width50 {
+    width: 50%;
+}

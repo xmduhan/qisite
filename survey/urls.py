@@ -8,6 +8,8 @@ urlpatterns = patterns(
     ####################################
     #              页面               #
     ####################################
+    # 新增页面
+    url(r'^view/survey/add/(?P<paperId>\d+)$', views.surveyAdd, name='view.survey.add'),
     ## 列表页面
     url(r'^view/survey/list/$', views.surveyList, name='view.survey.list'),
     url(r'^view/survey/list/(?P<page>\d+)$', views.surveyList, name='view.survey.list'),

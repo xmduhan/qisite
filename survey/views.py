@@ -110,6 +110,20 @@ def paperEdit(request, paperId):
         raise Http404
 
 
+def surveyAdd(request, paperId):
+    '''
+        通过一个问卷发起一次调查
+    '''
+    paperList = Paper.objects.filter(id=paperId)
+    if paperList:
+        paper = paperList[0]
+        template = loader.get_template('survey/surveyAdd.html')
+        context = RequestContext(request, {'session': request.session, 'paper': paper})
+        return HttpResponse(template.render(context))
+    else:
+        raise Http404
+
+
 def custListList(request):
     '''
         列出用户的客户清单

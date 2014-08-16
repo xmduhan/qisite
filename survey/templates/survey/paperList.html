@@ -63,7 +63,11 @@
                             </a>
                         </td>
                         {# 发起调查 #}
-                        <td><span class="glyphicon glyphicon glyphicon-new-window"></span></td>
+                        <td>
+                            <a href="{% url 'survey:view.survey.add' paper.id %}">
+                                <span class="glyphicon glyphicon glyphicon-new-window"></span>
+                            </a>
+                        </td>
                         {# 删除 #}
                         <td>
                             <span class="glyphicon glyphicon-remove-circle btn-paper-delete"
