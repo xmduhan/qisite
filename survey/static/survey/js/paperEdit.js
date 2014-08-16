@@ -630,15 +630,34 @@ function initDeleteButtonColorChange(scope) {
     });
 }
 
+/***************************************
+ *         初始化数字调节控件          *
+ ***************************************/
 
 function initSpinner(scope) {
     scope.find('.spinner').spinner();
 }
 
+/***************************************
+ *         初始日期选择控件            *
+ ***************************************/
+
 function initDatetimepicker(scope) {
     scope.find('.datetimepicker').datepicker();
 }
 
+/***************************************
+ *         初始表单提交按钮            *
+ ***************************************/
+function initFormSubmitButton(scope) {
+    logger.debug('initFormSubmitButton is called');
+    scope.find('.form-submit-button').on('click', function () {
+        logger.debug('form-submit-button.click is called');
+        formId = $(this).data('form-id');
+        form = $('#' + formId);
+        form.submit();
+    });
+}
 /***************************************
  *        所有空间初始化操作工作       *
  ***************************************/
@@ -672,6 +691,8 @@ function initial(scope) {
     initSpinner(scope);
     // 初始化日期选择控件
     initDatetimepicker(scope);
+    // 初始化表单提交按钮
+    initFormSubmitButton(scope);
 }
 /***************************************
  *          全局初始化加载操作         *

@@ -6,6 +6,7 @@ from numstyle import NumStyle, defaultQuestionNumStyle, defaultBranchNumStyle
 from django.core.exceptions import ValidationError
 from django.core.signing import Signer
 import copy
+from dateutil.relativedelta import relativedelta
 
 
 class TimeModel(models.Model):
@@ -315,6 +316,10 @@ class Branch(TimeModel):
         return newBranch
 
 
+def oneYearLater():
+    return datetime.now() + relativedelta(years=1)
+
+
 class Survey(TimeModel):
     paper = models.ForeignKey('Paper', verbose_name="问卷", null=True, blank=True)
     # 目标客户清单 targetcust_set (ok) (已在目标客户中设置外键)
@@ -322,13 +327,15 @@ class Survey(TimeModel):
     state = models.CharField("状态", max_length=5)
     shared = models.BooleanField('是否分享', default=False)
     viewResult = models.BooleanField('查看结果', default=True)
+    anonymous = models.BooleanField('查看结果', default=False)
     resubmit = models.BooleanField('是否允许重填', default=True)
     password = models.CharField("参与密码", max_length=10, blank=True)
     ipLimit = models.IntegerField("IP限制", default=5)
     macLimit = models.IntegerField("MAC限制", default=5)
     publishTime = models.DateTimeField("发布时间", default=datetime.now)
-    endTime = models.DateTimeField("结束时间", default=datetime.now)
+    endTime = models.DateTimeField("结束时间", default=oneYearLater)
     #参与者约束	constraints	对象集 (hold)
+    pay = models.BooleanField('查看结果', default=True)
     hardCost = models.FloatField('调查费', default=0)
     bonus = models.FloatField('奖金', default=0)
     fee = models.FloatField('手续费', default=0)

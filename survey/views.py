@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 # Create your views here.
 
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.template import Context, loader, RequestContext
 from account.models import User
 from models import *
@@ -9,6 +9,8 @@ from django.core.signing import Signer, BadSignature
 import services
 from qisite.definitions import USER_SESSION_NAME
 from django.core.paginator import Paginator
+from qisite.utils import updateModelInstance
+from django.core.urlresolvers import reverse
 
 
 def getCurrent(request):
@@ -40,7 +42,6 @@ def surveyList(request, page=1):
     template = loader.get_template('survey/surveyList.html')
     context = RequestContext(request, {"surveyList": thisPageSurveyList, 'session': request.session})
     return HttpResponse(template.render(context))
-
 
 
 def surveyEdit(request, surveyId):
@@ -122,6 +123,36 @@ def surveyAdd(request, paperId):
         return HttpResponse(template.render(context))
     else:
         raise Http404
+
+
+def surveyAddAction(request):
+    # 读取问卷标识
+    paperIdSigned = request.REQUEST['paperId']
+
+    # 验证问卷的数字签名
+    sign = Signer()
+    paperId = sign.unsign(paperIdSigned)
+    print  'paperId=', paperId
+
+    # 检查用户的登录状态
+    user = getCurrent(request)
+    if user == None:
+        raise Exception(u'没有登录')
+
+    # 读取问卷并创建实例
+    paper = Paper.objects.get(id=paperId)
+    paperInstance = paper.createPaperInstance(user)
+
+    # 创建survey对象
+    survey = Survey()
+    updateModelInstance(survey, request.REQUEST)
+    survey.paper = paper
+    survey.createBy = user
+    survey.modifyBy = user
+    survey.save()
+
+    # 返回调查列表
+    return HttpResponseRedirect(reverse('survey:view.survey.list'))
 
 
 def custListList(request):
