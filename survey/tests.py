@@ -1468,8 +1468,11 @@ class PaperCreateInstanceTest(TestCase):
 
     def test_createPaperInstance(self):
         newPaper = self.paper.createPaperInstance(self.user)
-        #  检查对象是否是新创建的
+        # 检查对象是否是新创建的
         self.assertNotEqual(newPaper, self.paper)
+        # 检查文件类型是否是实例
+        self.assertNotEqual(self.paper.type, newPaper.type)
+        self.assertEqual(newPaper.type, 'I')
         # 检查对象内容是否和原来一样
         self.assertEqual(newPaper.title, self.paper.title)
 
