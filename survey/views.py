@@ -11,6 +11,7 @@ from qisite.definitions import USER_SESSION_NAME
 from django.core.paginator import Paginator
 from qisite.utils import updateModelInstance
 from django.core.urlresolvers import reverse
+from django.db import transaction
 
 
 def getCurrent(request):
@@ -125,6 +126,7 @@ def surveyAdd(request, paperId):
         raise Http404
 
 
+@transaction.atomic
 def surveyAddAction(request):
     # 读取问卷标识
     paperIdSigned = request.REQUEST['paperId']

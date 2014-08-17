@@ -5,7 +5,7 @@ when you run "manage.py test".
 
 Replace this with more appropriate tests for your application.
 """
-
+from __future__ import division
 from django.test import TestCase
 from models import *
 import account.models
@@ -1695,9 +1695,5 @@ class UpdateModelInstanceTest(TestCase):
         survey.save()
         survey = self.reloadSurvey()
         self.assertEqual(survey.publishTime, date2)
-
-
-
-
 
 
