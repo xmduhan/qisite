@@ -14,13 +14,14 @@ from django.test.utils import setup_test_environment
 from django.test import Client
 from django.core.urlresolvers import reverse
 from services import RESULT_CODE, RESULT_MESSAGE
-
+from dateutil import parser
 from account.models import User
 import json, random, string
 from django.contrib.auth.hashers import make_password
 from account.tests import loginForTest, phoneForTest, passwordForTest
 from django.core.signing import Signer
 from django.db import transaction
+from qisite.utils import updateModelInstance
 
 
 class TransactionTest(TestCase):
@@ -1459,6 +1460,9 @@ class AddDefaultBranchTest(TestCase):
 
 
 class PaperCreateInstanceTest(TestCase):
+    '''
+    通过问卷模板创建一个新的问卷的测试用例
+    '''
     fixtures = ['initial_data.json']
 
     def setUp(self):
@@ -1525,3 +1529,175 @@ class PaperCreateInstanceTest(TestCase):
         self.assertEqual(branch2_1.nextQuestion.type, 'EndValid')
         self.assertEqual(branch2_2.nextQuestion, question3)
         self.assertEqual(branch2_3.nextQuestion, question4)
+
+
+class UpdateModelInstanceTest(TestCase):
+    '''
+    updateModelInstance(通过字段更新数据模型实例的过程)的测试用例
+    '''
+    fixtures = ['initial_data.json']
+
+    def setUp(self):
+        admin = User.objects.get(code='admin')
+        user = User.objects.get(code='duhan')
+        paper = Paper.objects.get(title=u'网购客户满意度调查')
+        survey = Survey()
+        survey.createBy = admin
+        survey.modifyBy = admin
+        survey.save()
+        self.survey = survey
+        self.admin = admin
+        self.user = user
+        self.paper = paper
+
+    def reloadSurvey(self):
+        self.survey = Survey.objects.get(id=self.survey.id)
+        return self.survey
+
+    def test_update_string(self):
+        '''
+        尝试对字符串字段进行修改
+        '''
+        survey = self.reloadSurvey()
+        survey.state = '1'
+        updateModelInstance(survey, {'state': '2'})
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.state, '2')
+        # 如果传入是一个数字
+        updateModelInstance(survey, {'state': 3})
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.state, '3')
+
+    def test_update_number(self):
+        '''
+        尝试更新一个整型的字段
+        '''
+        survey = self.reloadSurvey()
+        survey.bonus = 1
+        # 测试正常修改值是否生效
+        updateModelInstance(survey, {'bonus': 2})
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.bonus, 2)
+        # 如果传入是一个字符串
+        updateModelInstance(survey, {'bonus': '3'})
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.bonus, 3)
+
+    def test_update_bool(self):
+        '''
+        测试更新一个bool变量
+        '''
+        survey = self.reloadSurvey()
+        # 测试正常修改值是否生效
+        survey.shared = False
+        updateModelInstance(survey, {'shared': True})
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.shared, True)
+        # 测试传入'false'(来自json)字符串情况
+        survey.shared = False
+        updateModelInstance(survey, {'shared': 'true'})
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.shared, True)
+        # 测试传入'on'字符串情况
+        survey.shared = False
+        updateModelInstance(survey, {'shared': 'on'})
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.shared, True)
+        # 测试传入'是'字符串情况
+        survey.shared = False
+        updateModelInstance(survey, {'shared': '是'})
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.shared, True)
+
+    def test_tamper_createBy(self):
+        '''
+        测试数据篡改保护
+        '''
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.createBy, self.admin)
+        # 测试默认参数情况数据是无法篡改的
+        updateModelInstance(survey, {'createBy': self.user})
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.createBy, self.admin)
+        # 特殊要求不要进行过滤,就可以修改
+        updateModelInstance(survey, {'createBy': self.user}, excludeFields=[])
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.createBy, self.user)
+
+    def test_foreignKey_load(self):
+        '''
+        测试外键的加载
+        '''
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.paper, None)
+        # 放入一个id
+        updateModelInstance(survey, {'paper': self.paper.id})
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.paper, self.paper)
+        # 测试修改成一个空字符串
+        updateModelInstance(survey, {'paper': ''})
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.paper, None)
+        # 测试放入一个字符串id
+        updateModelInstance(survey, {'paper': str(self.paper.id)})
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.paper, self.paper)
+        # 测试使用'null'(可能来自json)
+        updateModelInstance(survey, {'paper': 'null'})
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.paper, None)
+
+    def test_load_signed_id(self):
+        '''
+        测试加载经过数字签名的外键id
+        '''
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.paper, None)
+        # 加载一个经过数字签名的id
+        signer = Signer()
+        paperIdSigned = signer.sign(self.paper.id)
+        updateModelInstance(survey, {'paper': paperIdSigned}, tryUnsigned=True)
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.paper, self.paper)
+
+    def test_update_time(self):
+        '''
+        测试日期格式字段的处理
+        '''
+        # 使用字符串进行修改
+        survey = self.reloadSurvey()
+        dateString1 = '2014-01-01'
+        date1 = parser.parse(dateString1)
+        updateModelInstance(survey, {'publishTime': dateString1})
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.publishTime, date1)
+
+        # 使用日期变量进行修改
+        dateString2 = '2014-02-01'
+        date2 = parser.parse(dateString2)
+        updateModelInstance(survey, {'publishTime': date2})
+        survey.save()
+        survey = self.reloadSurvey()
+        self.assertEqual(survey.publishTime, date2)
+
+
+
+
+
+
