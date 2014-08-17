@@ -68,7 +68,7 @@ def paperList(request, page=1):
     # 读取用户
     user = getCurrent(request)
     # 读取用户所创建的问卷，并做分页处理
-    paperCreateSet = user.paperCreated_set.all().order_by('-modifyTime')
+    paperCreateSet = user.paperCreated_set.filter(type='T').order_by('-modifyTime')
     paginator = Paginator(paperCreateSet, perPage)
     # 对page的异常值进行处理
     if page < 1: page = 1
@@ -146,7 +146,7 @@ def surveyAddAction(request):
     # 创建survey对象
     survey = Survey()
     updateModelInstance(survey, request.REQUEST)
-    survey.paper = paper
+    survey.paper = paperInstance
     survey.createBy = user
     survey.modifyBy = user
     survey.save()
