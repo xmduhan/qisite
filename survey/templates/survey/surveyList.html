@@ -45,7 +45,7 @@
                 {# 表格内容 #}
                 {% if surveyList %}
                     {% for survey in surveyList %}
-                        <tr>
+                        <tr id='survey-{{ survey.getIdSigned | cut:':' }}'>
                             {# 标号 #}
                             <td>{{ forloop.counter }}</td>
                             {# 调查问卷的标题 #}
@@ -66,7 +66,9 @@
                             {# 发布/暂停调查 #}
                             <td><span class="glyphicon glyphicon-play "></span></td>
                             {# 删除调查 #}
-                            <td><span class="glyphicon glyphicon-remove-circle"></span></td>
+                            <td><span class="glyphicon glyphicon-remove-circle btn-delete-survey"
+                                      data-binding-action="{% url 'survey:service.survey.delete' %}"
+                                      data-binding-id="{{ survey.getIdSigned }}"></span></td>
                         </tr>
                     {% endfor %}
                 {% else %}

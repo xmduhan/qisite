@@ -149,12 +149,53 @@ def surveyModify(request):
     return dictToJsonResponse(result)
 
 
+def _surveyDelete(requestData, user):
+    '''
+    问卷删除的具体处理函数
+    '''
+    # 检查是否提供了id
+    keys = requestData.keys()
+    if 'id' not in keys:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_ID)
+    idSigned = requestData['id']
+
+    # 对id进行数字签名的检查
+    try:
+        signer = Signer()
+        id = signer.unsign(idSigned)
+    except BadSignature:
+        # 篡改发现处理
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.BAD_SAGNATURE)
+
+    # 检查对象是否还存在,并将对象锁定
+    surveyList = Survey.objects.filter(id=id).select_for_update()
+    if len(surveyList) == 0:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.OBJECT_NOT_EXIST)
+    survey = surveyList[0]
+
+    # 检查当前用户是否有权限修改
+    if survey.createBy.id != user.id:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_PRIVILEGE)
+
+    # 执行删除
+    survey.delete()
+
+    # 返回成功
+    return packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS)
+
+
 def surveyDelete(request):
-    pass
-
-
-def _paperAdd(data, user):
-    pass
+    '''
+        问卷调查服务
+    '''
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
+        return dictToJsonResponse(result)
+    user = request.session[USER_SESSION_NAME]
+    requestData = request.REQUEST
+    result = _surveyDelete(requestData, user)
+    return dictToJsonResponse(result)
 
 
 def _paperAdd(requestData, user):

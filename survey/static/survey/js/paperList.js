@@ -46,9 +46,9 @@ function initPaperAddButton() {
 }
 
 /***************************************
- *          绑定问题删除事件           *
+ *          绑定问卷删除事件           *
  ***************************************/
-function initQuestionDeleteAction() {
+function initPaperDeleteAction() {
     $('.btn-paper-delete').on('click', function () {
         console.log('.btn-paper-delete.click is call');
         // 要删除的选项信息放到确定按钮的data中,以便在点确定按钮的时间函数中可以直接用$(this).data来访问
@@ -151,7 +151,7 @@ $(document).ready(function () {
     // 新增按钮事件处理
     initPaperAddButton();
     // 初始化删除按钮点击事件
-    initQuestionDeleteAction();
+    initPaperDeleteAction();
     // 初始化删除按钮的确认事件
     initPaperDeleteConfirmButtonAction();
     // 删除按钮的颜色变化效果
