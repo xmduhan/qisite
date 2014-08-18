@@ -41,9 +41,9 @@
                             {# 标号 #}
                             <td>{{ forloop.counter }}</td>
                             {# 调查问卷的标题 #}
-                            <td>{{ survey.paper.title }}</td>
+                            <td>{{ survey.paper.title | truncatechars:20 }}</td>
                             {# 调查问卷的描述 #}
-                            <td>{{ survey.paper.description }}</td>
+                            <td>{{ survey.paper.description | truncatechars:30 }}</td>
                             {# 创建时间 #}
                             <td>{{ survey.createTime | date:"Y-m-d H:i" }}</td>
                             {# 发布时间 #}

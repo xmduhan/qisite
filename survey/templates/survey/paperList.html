@@ -49,9 +49,9 @@
                         {# 标号 #}
                         <td>{{ forloop.counter }}</td>
                         {# 问卷标题 #}
-                        <td>{{ paper.title }}</td>
+                        <td>{{ paper.title | truncatechars:20 }}</td>
                         {# 问卷说明 #}
-                        <td>{{ paper.description }}</td>
+                        <td>{{ paper.description | truncatechars:30 }}</td>
                         {# 问题数量 #}
                         <td>{{ paper.question_set.count }}</td>
                         {# 修改时间 #}
