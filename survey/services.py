@@ -178,7 +178,9 @@ def _surveyDelete(requestData, user):
         return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_PRIVILEGE)
 
     # 执行删除
-    survey.delete()
+    # 调查的删除不是直接删除，而是将状态改为P，有些信息还要以备后查
+    survey.state = 'P'
+    survey.save()
 
     # 返回成功
     return packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS)

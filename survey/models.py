@@ -324,7 +324,7 @@ class Survey(TimeModel):
     paper = models.ForeignKey('Paper', verbose_name="问卷", null=True, blank=True)
     # 目标客户清单 targetcust_set (ok) (已在目标客户中设置外键)
     targetOnly = models.BooleanField('定向调查', default=False)
-    state = models.CharField("状态", max_length=5)
+    state = models.CharField("状态", max_length=5, default='A')
     shared = models.BooleanField('是否分享', default=False)
     viewResult = models.BooleanField('查看结果', default=True)
     anonymous = models.BooleanField('查看结果', default=False)

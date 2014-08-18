@@ -81,7 +81,7 @@ function initSurveyDeleteAction(scope) {
             });
         }
         // 显示确定对话框
-        showConfirmDialog('您确认要删除这个选项吗?', surveyDeleteConfirmAction);
+        showConfirmDialog('您确认要删除这个调查吗?', surveyDeleteConfirmAction);
     });
 }
 

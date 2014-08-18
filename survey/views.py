@@ -32,7 +32,7 @@ def surveyList(request, page=1):
     if type(page) != int: page = int(page)
     # 读取用户
     user = getCurrent(request)
-    surveyCreateSet = user.surveyCreated_set.all().order_by('-modifyTime')
+    surveyCreateSet = user.surveyCreated_set.filter(state='A').order_by('-modifyTime')
     paginator = Paginator(surveyCreateSet, perPage)
     # 对page的异常值进行处理
     if page < 1: page = 1

@@ -363,6 +363,100 @@ class SurveyModelTest(TestCase):
         self.assertEquals(len(questionList), 2)
 
 
+class SurveyDeleteTest(TestCase):
+    '''
+        问卷删除服务的测试用例
+    '''
+    fixtures = ['initial_data.json']
+
+    def setUp(self):
+        setup_test_environment()
+        # 创建用户并且用其登陆
+        self.client = Client()
+        self.user = User.objects.get(code='duhan')
+        self.paper = Paper.objects.get(title=u'网购客户满意度调查', type='I')
+        self.survey = Survey.objects.get(paper=self.paper)
+        self.paper_other = Paper.objects.get(title=u'净推介值调查', type='I')
+        self.survey_other = Survey.objects.get(paper=self.paper_other)
+        loginForTest(self.client, self.user.phone, '123456')
+        # 准备提交的测试数据
+        signer = Signer()
+        self.data_valid = {'id': self.survey.getIdSigned()}
+        self.data_bad_signature = {'id': self.survey.id}
+        self.data_no_privilege = {'id': self.survey_other.getIdSigned()}
+        #
+        self.serviceUrl = reverse('survey:service.survey.delete')
+
+
+    def test_no_login(self):
+        '''
+            测试没有登录的情况
+        '''
+        client = Client()
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)
+
+    def test_no_id(self):
+        '''
+            测试没有提供id的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, {})
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_ID)
+
+    def test_bad_signature(self):
+        '''
+            测试没有进行数字签名的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_bad_signature)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
+
+    def test_not_exist(self):
+        '''
+            测试对象不存在的情况
+        '''
+        self.paper.delete()
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.OBJECT_NOT_EXIST)
+
+    def test_no_no_privilege(self):
+        '''
+            测试没有权限修改的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_no_privilege)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
+
+    def test_success(self):
+        '''
+            成功删除
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
+        # 确认数据已经不能存在了
+        surveyList = Survey.objects.filter(id=self.survey.id)
+        # 删除文件不是直接删除，仅标识状态
+        self.assertEqual(len(surveyList), 1)
+        # 确认状态为删除状态
+        survey = surveyList[0]
+        self.assertEqual(survey.state, 'P')
+
+
 class PaperAddTest(TestCase):
     '''
         对问卷修改服务(paperAdd)的测试
@@ -1468,7 +1562,7 @@ class PaperCreateInstanceTest(TestCase):
     def setUp(self):
         setup_test_environment()
         self.user = User.objects.get(code='duhan')
-        self.paper = Paper.objects.get(title=u'网购客户满意度调查')
+        self.paper = Paper.objects.get(title=u'网购客户满意度调查', type='T')
 
     def test_createPaperInstance(self):
         newPaper = self.paper.createPaperInstance(self.user)
@@ -1540,7 +1634,7 @@ class UpdateModelInstanceTest(TestCase):
     def setUp(self):
         admin = User.objects.get(code='admin')
         user = User.objects.get(code='duhan')
-        paper = Paper.objects.get(title=u'网购客户满意度调查')
+        paper = Paper.objects.get(title=u'网购客户满意度调查', type='T')
         survey = Survey()
         survey.createBy = admin
         survey.modifyBy = admin
