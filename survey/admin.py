@@ -9,7 +9,7 @@ class PaperAdmin(admin.ModelAdmin):
         'title', 'description', 'inOrder', 'questionNumStyle', 'lookBack', 'paging',
         'createBy', 'modifyBy', 'createTime', 'modifyTime'
     ]
-    list_display = ('title', 'description', 'inOrder', 'lookBack', 'createBy', 'createTime')
+    list_display = ('title', 'description', 'type', 'lookBack', 'createBy', 'createTime')
 
 
 admin.site.register(Paper, PaperAdmin)

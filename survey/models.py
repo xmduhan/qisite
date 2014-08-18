@@ -34,6 +34,8 @@ class Paper(TimeModel):
     #style = models.CharField('展现方式', max_length=5, choices=PAPER_STYLE) #使用paging字段取代
     paging = models.BooleanField('分页答题', default=True)
     type = models.CharField('问题类型', choices=PAPER_TYPE, max_length=10, default='T')
+    survey = models.ForeignKey('Survey', related_name='paperReversed_set', verbose_name="调查", null=True,
+                               blank=True)  # 执行调查的反向链接，用于自动删除
     createBy = models.ForeignKey(
         account.models.User, verbose_name="创建者", related_name='paperCreated_set', blank=True, null=True)
     modifyBy = models.ForeignKey(
@@ -321,10 +323,11 @@ def oneYearLater():
 
 
 class Survey(TimeModel):
-    paper = models.ForeignKey('Paper', verbose_name="问卷", null=True, blank=True)
+    paper = models.ForeignKey('Paper', related_name='survey_set', verbose_name="问卷", null=True, blank=True)
     # 目标客户清单 targetcust_set (ok) (已在目标客户中设置外键)
     targetOnly = models.BooleanField('定向调查', default=False)
     state = models.CharField("状态", max_length=5, default='A')
+    paused = models.BooleanField('暂停', default=False)
     shared = models.BooleanField('是否分享', default=False)
     viewResult = models.BooleanField('查看结果', default=True)
     anonymous = models.BooleanField('查看结果', default=False)

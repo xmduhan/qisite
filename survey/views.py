@@ -144,6 +144,7 @@ def surveyAddAction(request):
     # 读取问卷并创建实例
     paper = Paper.objects.get(id=paperId)
     paperInstance = paper.createPaperInstance(user)
+    paperInstance.survey
 
     # 创建survey对象
     survey = Survey()
@@ -152,6 +153,10 @@ def surveyAddAction(request):
     survey.createBy = user
     survey.modifyBy = user
     survey.save()
+
+    # 设置文件到调查的反向连接，主要用于级联删除时使用
+    paperInstance.survey = survey
+    paperInstance.save()
 
     # 返回调查列表
     return HttpResponseRedirect(reverse('survey:view.survey.list'))
