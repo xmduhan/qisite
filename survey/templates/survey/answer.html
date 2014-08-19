@@ -2,6 +2,7 @@
 <html>
 <head>
     <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     {# 加载相关的css #}
     {% include "www/commoncss.html" %}
 </head>
@@ -24,13 +25,13 @@
             <div class="col-md-12">
                 <div class="panel panel-info ">
                     <div class="panel-heading">
-                        {{ question.ord }} {{ question.text }} <br>
+                        {{ question.getNum }} {{ question.text }} <br>
                     </div>
                     <div class="panel-body">
                         {% for branch in question.getBranchSetInOrder %}
                             <div class="radio">
                                 <input type="radio" name="option{{ question.id }}" id="optionsRadios1" value="option1">
-                                {{ branch.ord }} {{ branch.text }}
+                                {{ branch.getNum }} {{ branch.text }}
                             </div>
                         {% endfor %}
                         <br>
