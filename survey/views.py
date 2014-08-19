@@ -199,6 +199,16 @@ def questionEdit(request, questionId):
     return HttpResponse(template.render(context))
 
 
-
-
+def answer(request, surveyId):
+    '''
+        编辑调查
+    '''
+    surveyList = Survey.objects.filter(id=surveyId)
+    if surveyList:
+        survey = surveyList[0]
+        template = loader.get_template('survey/answer.html')
+        context = RequestContext(request, {'session': request.session, 'survey': survey, 'paper': survey.paper})
+        return HttpResponse(template.render(context))
+    else:
+        raise Http404
 

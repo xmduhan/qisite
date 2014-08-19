@@ -177,9 +177,13 @@
         </div>
         <div class="col-md-1"></div>
     </div>
+
+
+    {#  底部按钮 #}
     <div class="row">
         <div class="col-md-2" align="center"></div>
         <div class="col-md-2" align="center"></div>
+        {# 发布按钮 #}
         <div class="col-md-2" align="center">
             <div class="btn btn-primary form-submit-button"
                  data-form-id="surveyAdd">
@@ -187,6 +191,7 @@
                 发布
             </div>
         </div>
+        {# 取消按钮 #}
         <div class="col-md-2" align="center">
             <a id="finishButton" href="{% url 'survey:view.paper.list' %}"
                type="button" class="btn btn-default ">

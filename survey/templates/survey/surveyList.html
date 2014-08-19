@@ -56,7 +56,11 @@
                                 </a>
                             </td>
                             {# 发布/暂停调查 #}
-                            <td><span class="glyphicon glyphicon-play "></span></td>
+                            <td>
+                                <a href="{% url 'survey:view.answer' survey.id %}">
+                                    <span class="glyphicon glyphicon-play "></span>
+                                </a>
+                            </td>
                             {# 删除调查 #}
                             <td><span class="glyphicon glyphicon-remove-circle btn-delete-survey"
                                       data-binding-action="{% url 'survey:service.survey.delete' %}"
