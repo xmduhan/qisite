@@ -218,4 +218,5 @@ def answerSubmit(request):
 
     '''
     print request.REQUEST
+    print request.POST
     return HttpResponse('ok')
