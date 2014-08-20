@@ -22,13 +22,11 @@
                         {{ paper.description }}
                     </div>
                     <input type="hidden" name="surveyId" value="{{ survey.getIdSigned }}">
-                    <input type="hidden" name="alist" value="1"/>
-                    <input type="hidden" name="alist" value="2"/>
-                    <input type="hidden" name="alist" value="3"/>
                 </div>
             </div>
             <br>
             {% for question in paper.getQuestionSetInOrder %}
+                <input type="hidden" name="questionList" value="{{ question.getIdSigned }}"/>
                 <div class="col-md-12">
                     <div class="panel panel-info ">
                         <div class="panel-heading">
@@ -38,9 +36,9 @@
                             {% for branch in question.getBranchSetInOrder %}
                                 <div class="radio">
                                     <input type="radio"
-                                           name="branch"
-                                           id="branch{{ forloop.counter }}"
-                                           value="branch.{{ branch.getIdSigned }}">
+                                           name="{{ question.getIdSigned }}"
+                                           value="{{ branch.getIdSigned }}"
+                                           {% if forloop.first %}required{% endif %}>
                                     {{ branch.getNum }} {{ branch.text }}
                                 </div>
                             {% endfor %}

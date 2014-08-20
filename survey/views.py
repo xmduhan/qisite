@@ -219,4 +219,5 @@ def answerSubmit(request):
     '''
     print request.REQUEST
     print request.POST
+    print request.POST.getlist('questionList')
     return HttpResponse('ok')
