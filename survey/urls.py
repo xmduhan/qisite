@@ -24,6 +24,7 @@ urlpatterns = patterns(
     url(r'^view/question/edit/(?P<questionId>\S+)$', views.questionEdit, name='view.question.edit'),
     ## 答卷
     url(r'^view/answer/(?P<surveyId>\d+)$', views.answer, name='view.answer'),
+    url(r'^view/answer/submit$', views.answerSubmit, name='view.answer.submit'),
     ####################################
     #              服务               #
     ####################################

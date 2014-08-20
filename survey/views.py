@@ -212,3 +212,10 @@ def answer(request, surveyId):
     else:
         raise Http404
 
+
+def answerSubmit(request):
+    '''
+
+    '''
+    print request.REQUEST
+    return HttpResponse('ok')
