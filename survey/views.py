@@ -14,13 +14,17 @@ from django.core.urlresolvers import reverse
 from django.db import transaction
 
 
-def getCurrent(request):
+def getCurrentUser(request):
     #userList = User.objects.filter(name='杜涵')
     #if len(userList) > 0:
     #    return userList[0]
     #else:
     #    return None
     return request.session.get(USER_SESSION_NAME, None)
+
+
+def getAnonymousUser(request):
+    return User.objects.get(code='anonymous')
 
 
 def surveyList(request, page=1):
@@ -31,7 +35,7 @@ def surveyList(request, page=1):
     # 确定page类型为整型
     if type(page) != int: page = int(page)
     # 读取用户
-    user = getCurrent(request)
+    user = getCurrentUser(request)
     surveyCreateSet = user.surveyCreated_set.filter(state='A').order_by('-modifyTime')
     paginator = Paginator(surveyCreateSet, perPage)
     # 对page的异常值进行处理
@@ -67,7 +71,7 @@ def paperList(request, page=1):
     # 确定page类型为整型
     if type(page) != int: page = int(page)
     # 读取用户
-    user = getCurrent(request)
+    user = getCurrentUser(request)
     # 读取用户所创建的问卷，并做分页处理
     paperCreateSet = user.paperCreated_set.filter(type='T').order_by('-modifyTime')
     paginator = Paginator(paperCreateSet, perPage)
@@ -137,7 +141,7 @@ def surveyAddAction(request):
     print  'paperId=', paperId
 
     # 检查用户的登录状态
-    user = getCurrent(request)
+    user = getCurrentUser(request)
     if user == None:
         raise Exception(u'没有登录')
 
@@ -166,7 +170,7 @@ def custListList(request):
     '''
         列出用户的客户清单
     '''
-    user = getCurrent(request)
+    user = getCurrentUser(request)
     custListList = user.custListCreated_set.all()
     template = loader.get_template('survey/custListList.html')
     context = RequestContext(request, {'custListList': custListList, 'session': request.session})
@@ -177,7 +181,7 @@ def questionEdit(request, questionId):
     '''
         生成问题编辑DOM片段的view服务
     '''
-    user = getCurrent(request)
+    user = getCurrentUser(request)
 
     # 检查数字签名
     try:
@@ -217,7 +221,63 @@ def answerSubmit(request):
     '''
 
     '''
-    print request.REQUEST
-    print request.POST
-    print request.POST.getlist('questionList')
-    return HttpResponse('ok')
+
+    # 尝试获取用户
+    user = getCurrentUser(request)
+    if not user:
+        user = getAnonymousUser()
+
+    surveyIdSigned = request.REQUEST.get('surveyId')
+    if not surveyIdSigned:
+        return HttpResponse(u'缺少surveyId')
+
+    signer = Signer()
+
+    try:
+        surveyId = signer.unsign(surveyIdSigned)
+    except:
+        return HttpResponse(u'surveyId:无效数字签名')
+
+    try:
+        survey = Survey.objects.get(id=surveyId, state='A')
+    except:
+        return HttpResponse(u'surveyId:对象不存在')
+
+    paper = survey.paper
+    questionIdList = request.REQUEST.getlist('questionIdList')
+
+    if paper.question_set.count() != len(questionIdList):
+        return HttpResponse(u'提交问题的数量和问卷不一致')
+
+    # 添加样本对象
+    sample = Sample(user=user, ipAddress='1', macAddress='1', paper=paper, createBy=user, modifyBy=user)
+    sample.save()
+
+    for questionIdSigned in questionIdList:
+        try:
+            branchIdSinged = request.REQUEST.get(questionIdSigned)
+            questionId = signer.unsign(questionIdSigned)
+            branchId = signer.unsign(branchIdSinged)
+        except:
+            return HttpResponse(u'无效数字签名')
+
+        try:
+            question = Question.objects.get(id=questionId)
+            branch = Question.objects.get(id=branchId)
+        except:
+            return HttpResponse(u'数据已经不存在')
+
+        if question.paper != paper:
+            return HttpResponse(u'提交问题的问题此问卷无关')
+
+        branch_set = list(question.branch_set.all())
+        if branch not in branch_set:
+            return HttpResponse(u'提交答案不在选项范围内')
+
+        # 将数据写到样本项信息中去
+        sampleItem = SampleItem(question=question, content=None, score=0, sample=sample, createBy=user, modifyBy=user)
+        sampleItem.save()
+        sampleItem.branch_set.add(branch)
+        sampleItem.save()
+
+    return HttpResponse(u'提交成功，感谢你的参与')

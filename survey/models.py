@@ -378,8 +378,8 @@ class Sample(TimeModel):
                              blank=True)  # 这里是否设置一个related_name
     ipAddress = models.CharField('受访IP', max_length=50)
     macAddress = models.CharField('受访MAC', max_length=50)
-    finished = models.BooleanField('是否完成')
-    isValid = models.BooleanField('是否完成')
+    finished = models.BooleanField('是否完成',default=True)
+    isValid = models.BooleanField('是否有效',default=True)
     paper = models.ForeignKey(Paper, verbose_name='所属问卷')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='sampleCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='sampleModified_set')
@@ -395,8 +395,10 @@ class SampleItem(TimeModel):
     content = models.CharField('内容', max_length=500, blank=True, null=True)
     score = models.FloatField('得分', default=0)
     sample = models.ForeignKey(Sample, verbose_name='所属样本')
-    createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='sampleItemCreated_set')
-    modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='sampleItemModified_set')
+    createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='sampleItemCreated_set',
+                                 null=True, blank=True)
+    modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='sampleItemModified_set',
+                                 null=True, blank=True)
 
     class Meta:
         verbose_name = "样本项"

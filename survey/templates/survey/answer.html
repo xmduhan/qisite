@@ -26,7 +26,7 @@
             </div>
             <br>
             {% for question in paper.getQuestionSetInOrder %}
-                <input type="hidden" name="questionList" value="{{ question.getIdSigned }}"/>
+                <input type="hidden" name="questionIdList" value="{{ question.getIdSigned }}"/>
                 <div class="col-md-12">
                     <div class="panel panel-info ">
                         <div class="panel-heading">
