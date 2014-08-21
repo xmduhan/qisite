@@ -25,6 +25,9 @@ urlpatterns = patterns(
     ## 答卷
     url(r'^view/answer/(?P<surveyId>\d+)$', views.answer, name='view.answer'),
     url(r'^view/answer/submit$', views.answerSubmit, name='view.answer.submit'),
+    ## 样本导出
+    url(r'^view/sample/export/(?P<surveyId>\d+)$', views.sampleExport, name='view.sample.export'),
+
     ####################################
     #              服务               #
     ####################################

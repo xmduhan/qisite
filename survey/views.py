@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 # Create your views here.
 
-from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.http import HttpResponse, Http404, HttpResponseRedirect, StreamingHttpResponse
 from django.template import Context, loader, RequestContext
 from account.models import User
 from models import *
@@ -12,7 +12,8 @@ from django.core.paginator import Paginator
 from qisite.utils import updateModelInstance
 from django.core.urlresolvers import reverse
 from django.db import transaction
-from django.core.urlresolvers import resolve
+import csv
+from io import BytesIO
 
 
 def getCurrentUser(request):
@@ -299,3 +300,54 @@ def answerSubmit(request):
     template = loader.get_template('survey/answerSubmit.html')
     context = RequestContext(request, {'session': request.session})
     return HttpResponse(template.render(context))
+
+
+def sampleExport(request, surveyId):
+    #surveyList = Survey.objects.filter(id=surveyId)
+    #if surveyList:
+    #    survey = surveyList[0]
+    #    template = loader.get_template('survey/sampleExport.html')
+    #    context = RequestContext(request, {'session': request.session, 'survey': survey, 'paper': survey.paper})
+    #    return HttpResponse(template.render(context))
+    #else:
+    #    raise Http404
+
+    survey = Survey.objects.get(id=surveyId)
+    paper = survey.paper
+    questionList = list(paper.question_set.order_by('ord'))
+    # 检查权限
+
+    # 开始导出csv文件
+    buffer = BytesIO()
+    writer = csv.writer(buffer)
+    # 打印表头
+    header = ['']
+    for question in questionList:
+        questionText = ''.join([question.getNum(), question.text])
+        questionTextEncoded = unicode(questionText).encode('gbk')
+        header.append(questionTextEncoded)
+    writer.writerow(header)
+
+    # 逐行打印数据
+    for i, sample in enumerate(paper.sample_set.all()):
+        print sample
+        row = [str(i + 1)]
+        sampleItemDict = {sampleItem.question: sampleItem for sampleItem in sample.sampleitem_set.all()}
+        for question in questionList:
+            sampleItem = sampleItemDict.get(question)
+            if sampleItem:
+                branchTextList = []
+                for branch in sampleItem.branch_set.all():
+                    branchText = ''.join([branch.getNum(), branch.text, ''])
+                    branchTextList.append(branchText)
+                allBranchText = ' '.join(branchTextList)
+                allBranchTextEncoded = unicode(allBranchText).encode('gbk')
+                row.append(allBranchTextEncoded)
+            else:
+                row.append('')
+        writer.writerow(row)
+    response = StreamingHttpResponse(buffer.getvalue(), content_type="text/csv")
+    response['Content-Disposition'] = 'attachment; filename="samples.csv"'
+    return response
+
+

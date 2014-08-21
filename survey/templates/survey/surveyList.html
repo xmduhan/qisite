@@ -61,6 +61,12 @@
                                     <span class="glyphicon glyphicon-play "></span>
                                 </a>
                             </td>
+                            {# 临时导出按钮 #}
+                            <td>
+                                <a href="{% url 'survey:view.sample.export' survey.id %}">
+                                    <span class="glyphicon glyphicon-download"></span>
+                                </a>
+                            </td>
                             {# 删除调查 #}
                             <td><span class="glyphicon glyphicon-remove-circle btn-delete-survey"
                                       data-binding-action="{% url 'survey:service.survey.delete' %}"
