@@ -303,35 +303,33 @@ def answerSubmit(request):
 
 
 def sampleExport(request, surveyId):
-    #surveyList = Survey.objects.filter(id=surveyId)
-    #if surveyList:
-    #    survey = surveyList[0]
-    #    template = loader.get_template('survey/sampleExport.html')
-    #    context = RequestContext(request, {'session': request.session, 'survey': survey, 'paper': survey.paper})
-    #    return HttpResponse(template.render(context))
-    #else:
-    #    raise Http404
-
+    # 读取调查对象
     survey = Survey.objects.get(id=surveyId)
+
+    # 检查权限
+    user = getCurrentUser(request)
+    if survey.createBy != user:
+        raise Exception('没有权限查看')
+
+    # 读取问卷相关信息
     paper = survey.paper
     questionList = list(paper.question_set.order_by('ord'))
-    # 检查权限
 
     # 开始导出csv文件
     buffer = BytesIO()
     writer = csv.writer(buffer)
+    encoding = 'gb18030'
     # 打印表头
-    header = ['']
+    header = ['', 'IP']
     for question in questionList:
         questionText = ''.join([question.getNum(), question.text])
-        questionTextEncoded = unicode(questionText).encode('gbk')
+        questionTextEncoded = unicode(questionText).encode(encoding)
         header.append(questionTextEncoded)
     writer.writerow(header)
 
     # 逐行打印数据
     for i, sample in enumerate(paper.sample_set.all()):
-        print sample
-        row = [str(i + 1)]
+        row = [str(i + 1), sample.ipAddress]
         sampleItemDict = {sampleItem.question: sampleItem for sampleItem in sample.sampleitem_set.all()}
         for question in questionList:
             sampleItem = sampleItemDict.get(question)
@@ -341,7 +339,7 @@ def sampleExport(request, surveyId):
                     branchText = ''.join([branch.getNum(), branch.text, ''])
                     branchTextList.append(branchText)
                 allBranchText = ' '.join(branchTextList)
-                allBranchTextEncoded = unicode(allBranchText).encode('gbk')
+                allBranchTextEncoded = unicode(allBranchText).encode(encoding)
                 row.append(allBranchTextEncoded)
             else:
                 row.append('')
