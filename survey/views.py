@@ -23,7 +23,7 @@ def getCurrentUser(request):
     return request.session.get(USER_SESSION_NAME, None)
 
 
-def getAnonymousUser(request):
+def getAnonymousUser():
     return User.objects.get(code='anonymous')
 
 
@@ -217,11 +217,11 @@ def answer(request, surveyId):
         raise Http404
 
 
+@transaction.atomic
 def answerSubmit(request):
     '''
 
     '''
-
     # 尝试获取用户
     user = getCurrentUser(request)
     if not user:
@@ -262,8 +262,10 @@ def answerSubmit(request):
             return HttpResponse(u'无效数字签名')
 
         try:
+            print 'questionId=', questionId
+            print 'branchId=', branchId
             question = Question.objects.get(id=questionId)
-            branch = Question.objects.get(id=branchId)
+            branch = Branch.objects.get(id=branchId)
         except:
             return HttpResponse(u'数据已经不存在')
 
