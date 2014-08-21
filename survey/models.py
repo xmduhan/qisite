@@ -377,7 +377,7 @@ class Sample(TimeModel):
     user = models.ForeignKey(account.models.User, verbose_name="参与用户", null=True,
                              blank=True)  # 这里是否设置一个related_name
     ipAddress = models.CharField('受访IP', max_length=50)
-    macAddress = models.CharField('受访MAC', max_length=50)
+    #macAddress = models.CharField('受访MAC', max_length=50) web端实际无法获得该字段
     finished = models.BooleanField('是否完成',default=True)
     isValid = models.BooleanField('是否有效',default=True)
     paper = models.ForeignKey(Paper, verbose_name='所属问卷')

@@ -12,6 +12,7 @@ from django.core.paginator import Paginator
 from qisite.utils import updateModelInstance
 from django.core.urlresolvers import reverse
 from django.db import transaction
+from django.core.urlresolvers import resolve
 
 
 def getCurrentUser(request):
@@ -217,69 +218,84 @@ def answer(request, surveyId):
         raise Http404
 
 
-@transaction.atomic
 def answerSubmit(request):
     '''
-
+    问卷一次型提交服务
     '''
-    # 尝试获取用户
-    user = getCurrentUser(request)
-    if not user:
-        user = getAnonymousUser()
-
-    surveyIdSigned = request.REQUEST.get('surveyId')
-    if not surveyIdSigned:
-        return HttpResponse(u'缺少surveyId')
-
-    signer = Signer()
-
     try:
-        surveyId = signer.unsign(surveyIdSigned)
-    except:
-        return HttpResponse(u'surveyId:无效数字签名')
+        with transaction.atomic():
+            # 尝试获取用户
+            user = getCurrentUser(request)
+            if not user:
+                user = getAnonymousUser()
 
-    try:
-        survey = Survey.objects.get(id=surveyId, state='A')
-    except:
-        return HttpResponse(u'surveyId:对象不存在')
+            # 获取客户端的地址信息
+            ipAddress = request.META['REMOTE_ADDR']
 
-    paper = survey.paper
-    questionIdList = request.REQUEST.getlist('questionIdList')
+            surveyIdSigned = request.REQUEST.get('surveyId')
+            if not surveyIdSigned:
+                raise Exception(u'缺少surveyId')
 
-    if paper.question_set.count() != len(questionIdList):
-        return HttpResponse(u'提交问题的数量和问卷不一致')
+            signer = Signer()
+            try:
+                surveyId = signer.unsign(surveyIdSigned)
+            except:
+                raise Exception(u'surveyId:无效数字签名')
 
-    # 添加样本对象
-    sample = Sample(user=user, ipAddress='1', macAddress='1', paper=paper, createBy=user, modifyBy=user)
-    sample.save()
+            try:
+                survey = Survey.objects.get(id=surveyId, state='A')
+            except:
+                raise Exception(u'surveyId:对象不存在')
 
-    for questionIdSigned in questionIdList:
-        try:
-            branchIdSinged = request.REQUEST.get(questionIdSigned)
-            questionId = signer.unsign(questionIdSigned)
-            branchId = signer.unsign(branchIdSinged)
-        except:
-            return HttpResponse(u'无效数字签名')
+            paper = survey.paper
+            questionIdList = request.REQUEST.getlist('questionIdList')
 
-        try:
-            print 'questionId=', questionId
-            print 'branchId=', branchId
-            question = Question.objects.get(id=questionId)
-            branch = Branch.objects.get(id=branchId)
-        except:
-            return HttpResponse(u'数据已经不存在')
+            if paper.question_set.count() != len(questionIdList):
+                raise Exception(u'提交问题的数量和问卷不一致')
 
-        if question.paper != paper:
-            return HttpResponse(u'提交问题的问题此问卷无关')
+            # 添加样本对象
+            sample = Sample(user=user, ipAddress=ipAddress, paper=paper, createBy=user, modifyBy=user)
+            sample.save()
 
-        branch_set = list(question.branch_set.all())
-        if branch not in branch_set:
-            return HttpResponse(u'提交答案不在选项范围内')
+            for questionIdSigned in questionIdList:
+                branchIdSinged = request.REQUEST.get(questionIdSigned)
+                if not branchIdSinged:
+                    raise Exception(u'请完整填写问卷中的所有问题')
 
-        # 将数据写到样本项信息中去
-        sampleItem = SampleItem(question=question, content=None, score=0, sample=sample, createBy=user, modifyBy=user)
-        sampleItem.save()
-        sampleItem.branch_set.add(branch)
-        sampleItem.save()
+                try:
+                    questionId = signer.unsign(questionIdSigned)
+                    branchId = signer.unsign(branchIdSinged)
+                except:
+                    raise Exception(u'无效数字签名')
 
-    return HttpResponse(u'提交成功，感谢你的参与')
+                try:
+                    print 'questionId=', questionId
+                    print 'branchId=', branchId
+                    question = Question.objects.get(id=questionId)
+                    branch = Branch.objects.get(id=branchId)
+                except:
+                    raise Exception(u'数据已经不存在')
+
+                if question.paper != paper:
+                    raise Exception(u'提交问题的问题此问卷无关')
+
+                branch_set = list(question.branch_set.all())
+                if branch not in branch_set:
+                    raise Exception(u'提交答案不在选项范围内')
+
+                # 将数据写到样本项信息中去
+                sampleItem = SampleItem(
+                    question=question, content=None, score=0, sample=sample, createBy=user, modifyBy=user)
+                sampleItem.save()
+                sampleItem.branch_set.add(branch)
+                sampleItem.save()
+
+    except Exception as e:
+        template = loader.get_template('survey/answerError.html')
+        context = RequestContext(
+            request, {'session': request.session, 'errorMessage': e.message, 'surveyId': surveyId})
+        return HttpResponse(template.render(context))
+
+    template = loader.get_template('survey/answerSubmit.html')
+    context = RequestContext(request, {'session': request.session})
+    return HttpResponse(template.render(context))
