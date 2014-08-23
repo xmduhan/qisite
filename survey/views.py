@@ -118,6 +118,20 @@ def paperEdit(request, paperId):
         raise Http404
 
 
+def custListEdit(request, custListId):
+    '''
+    客户清单编辑
+    '''
+    custListList = CustList.objects.filter(id=custListId)
+    if custListList:
+        custList = custListList[0]
+        template = loader.get_template('survey/custListEdit.html')
+        context = RequestContext(request, {'session': request.session, 'custList': custList})
+        return HttpResponse(template.render(context))
+    else:
+        raise Http404
+
+
 def surveyAdd(request, paperId):
     '''
         通过一个问卷发起一次调查
@@ -168,14 +182,29 @@ def surveyAddAction(request):
     return HttpResponseRedirect(reverse('survey:view.survey.list'))
 
 
-def custListList(request):
+def custListList(request, page=1):
     '''
         列出用户的客户清单
     '''
+    perPage = 10
+    # 确定page类型为整型
+    if type(page) != int: page = int(page)
+    # 读取用户
     user = getCurrentUser(request)
-    custListList = user.custListCreated_set.all()
+    # 读取用户所创建的问卷，并做分页处理
+    custListCreateSet = user.custListCreated_set.all().order_by('-modifyTime')
+    paginator = Paginator(custListCreateSet, perPage)
+    # 对page的异常值进行处理
+    if page < 1: page = 1
+    if page > paginator.num_pages: page = paginator.num_pages
+    # 读取当前分页数据
+    thisPageCustListList = paginator.page(page)
+    # 通过模板生成返回内容
     template = loader.get_template('survey/custListList.html')
-    context = RequestContext(request, {'custListList': custListList, 'session': request.session})
+    context = RequestContext(request, {
+        "custListList": thisPageCustListList,
+        'session': request.session
+    })
     return HttpResponse(template.render(context))
 
 

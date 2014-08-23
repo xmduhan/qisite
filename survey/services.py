@@ -18,7 +18,7 @@ import json
 from django.http import HttpResponse
 from django.forms import ValidationError
 from django.core.signing import Signer, BadSignature
-from models import Paper, Question, Branch, Survey
+from models import Paper, Question, Branch, Survey, CustList
 from qisite.definitions import USER_SESSION_NAME, USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME, \
     CREATE_TIME_FIELD_NAME, MODIFY_TIME_FIELD_NAME
 from datetime import datetime
@@ -952,3 +952,108 @@ def getReachableQuestionListForSelect(request):
         'type': None
     })
     return packageResponse(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'questionList': questionList})
+
+
+def _custListAdd(requestData, user):
+    '''
+        新增一个问卷的具体处理过程
+    '''
+    # 获取custList模型中的所有属性
+    keys = requestData.keys()
+    data = {}
+    #fields = zip(*CustList._meta.get_fields_with_model())[0]
+    for field in getModelFields(CustList):
+        # 跳过系统自动增加的字段
+        if field.auto_created:
+            continue
+        # 读取request数据
+        value = requestData.get(field.name, None)
+
+        # 特殊处理json的Boolean型的变量
+        if type(field) == BooleanField:
+            value = jsonBoolean2Python(value)
+
+        # 对创建人和修改人的信息进行特殊处理
+        if field.name in [USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME]:
+            value = user
+        # 如果调用者没有显示执行字段值为空，则不增加到data中去，让模型的默认值发挥作用
+        # 字段代码不能早于对createBy和modifyBy的处理
+        if value is None and field.name not in keys:
+            continue
+        # 将校验的数据添加到data，准备为创建数据库用
+        data[field.name] = value
+    custList = CustList(**data)
+
+    # 校验数据
+    try:
+        custList.full_clean()
+    except ValidationError as exception:
+        return packageResult(
+            RESULT_CODE.ERROR, RESULT_MESSAGE.VALIDATION_ERROR, {'validationMessage': exception.message_dict})
+    # 保存到数据库
+    custList.save()
+    return packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'custListId': custList.id})
+
+
+def custListAdd(request):
+    '''
+        创建问卷的功能服务
+    '''
+
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
+        return dictToJsonResponse(result)
+    user = request.session[USER_SESSION_NAME]
+    requestData = request.REQUEST
+    result = _custListAdd(requestData, user)
+    return dictToJsonResponse(result)
+
+
+def _custListDelete(requestData, user):
+    '''
+    问卷删除的具体处理函数
+    '''
+    # 检查是否提供了id
+    keys = requestData.keys()
+    if 'id' not in keys:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_ID)
+    idSigned = requestData['id']
+
+    # 对id进行数字签名的检查
+    try:
+        signer = Signer()
+        id = signer.unsign(idSigned)
+    except BadSignature:
+        # 篡改发现处理
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.BAD_SAGNATURE)
+
+    # 检查对象是否还存在,并将对象锁定
+    custListList = CustList.objects.filter(id=id).select_for_update()
+    if len(custListList) == 0:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.OBJECT_NOT_EXIST)
+    custList = custListList[0]
+
+    # 检查当前用户是否有权限修改
+    if custList.createBy.id != user.id:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_PRIVILEGE)
+
+    # 执行删除
+    custList.delete()
+
+    # 返回成功
+    return packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS)
+
+
+def custListDelete(request):
+    '''
+        问卷调查服务
+    '''
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
+        return dictToJsonResponse(result)
+    user = request.session[USER_SESSION_NAME]
+    requestData = request.REQUEST
+    result = _custListDelete(requestData, user)
+    return dictToJsonResponse(result)

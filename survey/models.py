@@ -378,8 +378,8 @@ class Sample(TimeModel):
                              blank=True)  # 这里是否设置一个related_name
     ipAddress = models.CharField('受访IP', max_length=50)
     #macAddress = models.CharField('受访MAC', max_length=50) web端实际无法获得该字段
-    finished = models.BooleanField('是否完成',default=True)
-    isValid = models.BooleanField('是否有效',default=True)
+    finished = models.BooleanField('是否完成', default=True)
+    isValid = models.BooleanField('是否有效', default=True)
     paper = models.ForeignKey(Paper, verbose_name='所属问卷')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='sampleCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='sampleModified_set')
@@ -407,13 +407,17 @@ class SampleItem(TimeModel):
 
 class CustList(TimeModel):
     name = models.CharField('清单名称', max_length=50)
-    descrition = models.CharField('清单说明', max_length=200)
+    descrition = models.CharField('清单说明', max_length=200, blank=True, null=True, default='')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='custListCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='custListModified_set')
 
     class Meta:
         verbose_name = "客户清单"
         verbose_name_plural = "[14].客户清单"
+
+    def getIdSigned(self):
+        signer = Signer()
+        return signer.sign(self.id)
 
 
 class CustListItem(TimeModel):

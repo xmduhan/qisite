@@ -1791,3 +1791,57 @@ class UpdateModelInstanceTest(TestCase):
         self.assertEqual(survey.publishTime, date2)
 
 
+class custListAddTest(TestCase):
+    '''
+        对问卷修改服务(custListAdd)的测试
+    '''
+    fixtures = ['initial_data.json']
+
+
+    def setUp(self):
+        setup_test_environment()
+        # 创建用户并且用其登陆
+        user = User.objects.get(code='duhan')
+        self.client = Client()
+        loginForTest(self.client, user.phone, '123456')
+        # 设定service url
+        self.serviceUrl = reverse('survey:service.custList.add')
+
+        # 准备要提交的数据
+        self.data_valid = {'name': 'test'}
+        self.date_no_title = {'test': '123'}
+        #self.data_tamper = {'id': 'createBy':}
+
+    def test_add_custList_no_login(self):
+        '''
+            测试没有登录就调用服务的情况
+        '''
+        # 创建一个新的Client，而不是使用self.client，因为self.client已经在setUP中登录了。
+        client = Client()
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)  # 没有登录错误
+
+
+    def test_add_custList_no_title(self):
+        '''
+            测试没有提供清单名称的情况
+        '''
+        client = self.client
+        # 调用问卷添加服务
+        response = client.post(self.serviceUrl, self.date_no_title)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.VALIDATION_ERROR)  # 数据校验错
+        self.assertIn('name', result['validationMessage'])  # 校验错误信息中含title
+
+    def test_add_custList_success(self):
+        '''
+            测试成功添加的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
