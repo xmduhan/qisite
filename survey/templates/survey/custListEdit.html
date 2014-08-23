@@ -2,8 +2,115 @@
 <html>
 <head>
     <title></title>
+    {# 加载相关的css #}
+    {% include "www/commoncss.html" %}
+    <link rel="stylesheet" href="/static/survey/css/paperEdit.css">
 </head>
 <body>
-{{ custList.id }} {{ custList.name }}
+{# 顶部的导航栏 #}
+{% include "www/navbar.html" with position='list' %}
+
+{# 页面主体 #}
+<div class="container" style="padding-top: 30px;">
+    <div class="row">
+        <div class="col-md-6">
+            <a id="finishButton" href="{% url 'survey:view.custList.list' %}"
+               type="button" class="btn btn-success ">
+                <span class="glyphicon glyphicon-ok"></span>
+                完成
+            </a>
+        </div>
+    </div>
+    <p></p>
+
+    <div class="panel panel-default">
+        <div class="panel-heading panel-collapsible">
+            <span class="glyphicon glyphicon-th-list"></span>
+            <span class="glyphicon glyphicon-save data-binding-refresh-icon" style="opacity:0"></span>
+            客户清单
+        </div>
+        <div class="panel-body in">
+            {# 清单名称 #}
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">清单名称</span>
+                        <input id=type="text" class="form-control data-binding-field" placeholder="请填写客户清单的名称"
+                               value="{{ custList.name }}"
+                               data-binding-action="{% url 'survey:service.custList.modify' %}"
+                               data-binding-id="{{ custList.getIdSigned }}"
+                               data-binding-field-name="name">
+                    </div>
+                </div>
+            </div>
+
+            {# 清单描述 #}
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-addon">清单描述</span>
+                        <input id=type="text" class="form-control data-binding-field" placeholder="请填写客户清单的名称"
+                               value="{{ custList.descrition }}"
+                               data-binding-action="{% url 'survey:service.custList.modify' %}"
+                               data-binding-id="{{ custList.getIdSigned }}"
+                               data-binding-field-name="descrition">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <p></p>
+
+    <div class="row">
+        <div class="col-md-1 ">
+            <button id="addCustListItem" class="btn btn-primary btn-block " data-toggle="modal"
+                    data-target="#addCustListItem">
+                <span class="glyphicon glyphicon-plus"></span>
+                新增
+            </button>
+        </div>
+    </div>
+    <p></p>
+
+    {# 数据表格 #}
+    <table class="table table-striped table table-hover ">
+        {# 表头 #}
+        <thead class="thead">
+        <tr>
+            <th>#</th>
+            <th>客户名称</th>
+            <th>手机号</th>
+            <th>电子邮件</th>
+            <th>创建时间</th>
+            <th></th>
+        </tr>
+        </thead>
+        {# 表格内容 #}
+        {# 表格内容 #}
+        {% for custListItem in custList.custListItem_set.all %}
+            <tr id='custListItem-{{ custList.getIdSigned | cut:':' }}'>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ custListItem.name }}</td>
+                <td>{{ custListItem.phone }}</td>
+                <td>{{ custListItem.email }}</td>
+                <td>{{ custListItem.createTime | date:"Y-m-d H:i" }}</td>
+                {# 删除按钮 #}
+                <td align="center">
+                    <span class="glyphicon glyphicon-remove-circle btn-custList-delete"
+                          data-binding-action="{% url 'survey:service.custList.delete' %}"
+                          data-binding-id="{{ custList.getIdSigned }}"></span>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+    <p></p>
+
+
+</div>
+
+{# 加载Javascript程序 #}
+{% include "www/commonjs.html" %}
+<script src="/static/survey/js/paperEdit.js"></script>
+
 </body>
 </html>

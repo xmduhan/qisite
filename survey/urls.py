@@ -12,12 +12,12 @@ urlpatterns = patterns(
     url(r'^view/survey/add/(?P<paperId>\d+)$', views.surveyAdd, name='view.survey.add'),
     url(r'^view/survey/add/action/', views.surveyAddAction, name='view.survey.add.action'),
     ## 列表页面
+    url(r'^view/paper/list/$', views.paperList, name='view.paper.list'),
+    url(r'^view/paper/list/(?P<page>\d+)$', views.paperList, name='view.paper.list'),
     url(r'^view/survey/list/$', views.surveyList, name='view.survey.list'),
     url(r'^view/survey/list/(?P<page>\d+)$', views.surveyList, name='view.survey.list'),
     url(r'^view/custList/list/$', views.custListList, name='view.custList.list'),
     url(r'^view/custList/list/(?P<page>\d+)$', views.custListList, name='view.custList.list'),
-    url(r'^view/paper/list/$', views.paperList, name='view.paper.list'),
-    url(r'^view/paper/list/(?P<page>\d+)$', views.paperList, name='view.paper.list'),
     ## 编辑页面
     url(r'^view/survey/edit/(?P<surveyId>\d+)$', views.surveyEdit, name='view.survey.edit'),
     url(r'^view/paper/edit/(?P<paperId>\d+)$', views.paperEdit, name='view.paper.edit'),
@@ -57,5 +57,5 @@ urlpatterns = patterns(
     ## custList
     url(r'^service/custList/add$', services.custListAdd, name='service.custList.add'),
     url(r'^service/custList/delete$', services.custListDelete, name='service.custList.delete'),
-    #url(r'^service/custList/modify$', services.custListModify, name='service.custList.modify'),
+    url(r'^service/custList/modify$', services.custListModify, name='service.custList.modify'),
 )

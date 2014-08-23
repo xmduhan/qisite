@@ -423,7 +423,7 @@ class SurveyDeleteTest(TestCase):
         '''
             测试对象不存在的情况
         '''
-        self.paper.delete()
+        self.survey.delete()
         client = self.client
         response = client.post(self.serviceUrl, self.data_valid)
         result = json.loads(response.content)

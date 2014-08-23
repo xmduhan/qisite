@@ -1057,3 +1057,81 @@ def custListDelete(request):
     requestData = request.REQUEST
     result = _custListDelete(requestData, user)
     return dictToJsonResponse(result)
+
+
+def _custListModify(requestData, user):
+    '''
+      处理问卷修改的具体过程
+    '''
+    # 检查是否提供了id
+    keys = requestData.keys()
+    if 'id' not in keys:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_ID)
+    idSigned = requestData['id']
+    print idSigned
+
+    # 对id进行数字签名的检查
+    try:
+        signer = Signer()
+        id = signer.unsign(idSigned)
+    except BadSignature:
+        # 篡改发现处理
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.BAD_SAGNATURE)
+
+    # 检查对象是否还存在,并将对象锁定
+    custListList = CustList.objects.filter(id=id).select_for_update()
+    if len(custListList) == 0:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.OBJECT_NOT_EXIST)
+    custList = custListList[0]
+
+    # 检查当前用户是否有权限修改
+    if custList.createBy.id != user.id:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_PRIVILEGE)
+
+    # 遍历每一个字段，检查是否提供修改信息，如果有则将器修改
+    fields = zip(*CustList._meta.get_fields_with_model())[0]
+    for field in fields:
+        # 不能修改自动增加字段和id字段
+        if field.auto_created or field.name == 'id':
+            continue
+        # 对应字段没有提供修改信息就跳过。
+        if field.name not in keys:
+            continue
+        # 创建与修改的时间和用户不能由客户端来修改
+        if field.name in [USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME, CREATE_TIME_FIELD_NAME,
+                          MODIFY_TIME_FIELD_NAME]:
+            continue
+        # 读取客户提供的新值
+        value = requestData.get(field.name, None)
+        # 特殊处理json的Boolean型的变量
+        if type(field) == BooleanField:
+            value = jsonBoolean2Python(value)
+        # 执行修改
+        exec ('custList.%s = value' % field.name)
+
+    # 特殊处理最近修改时间和最近修改用户
+    custList.modifyBy = user
+    custList.modifyTime = datetime.now()
+
+    # 进行数据校验
+    try:
+        custList.full_clean()
+    except ValidationError as exception:
+        return packageResult(
+            RESULT_CODE.ERROR, RESULT_MESSAGE.VALIDATION_ERROR, {'validationMessage': exception.message_dict}
+        )
+    # 写到数据库
+    custList.save()
+    # 返回成功
+    return packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS)
+
+
+def custListModify(request):
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
+        return dictToJsonResponse(result)
+    user = request.session[USER_SESSION_NAME]
+    requestData = request.REQUEST
+    result = _custListModify(requestData, user)
+    return dictToJsonResponse(result)

@@ -41,6 +41,7 @@
                     <th>创建时间</th>
                     <th></th>
                     <th></th>
+
                 </tr>
                 </thead>
                 {# 表格内容 #}
@@ -58,14 +59,20 @@
                         <td>{{ custList.createTime | date:"Y-m-d H:i" }}</td>
                         {# 编辑按钮 #}
                         <td>
+
                             <a href="{% url 'survey:view.custList.edit' custList.id %}">
                                 <span class="glyphicon glyphicon-edit"></span>
                             </a>
+
+
                         </td>
                         {# 删除按钮 #}
-                        <td><span class="glyphicon glyphicon-remove-circle btn-custList-delete"
+                        <td>
+                            <span class="glyphicon glyphicon-remove-circle btn-custList-delete"
                                   data-binding-action="{% url 'survey:service.custList.delete' %}"
-                                  data-binding-id="{{ custList.getIdSigned }}"></span></td>
+                                  data-binding-id="{{ custList.getIdSigned }}"></span>
+                        </td>
+
                     </tr>
                 {% endfor %}
             </table>
