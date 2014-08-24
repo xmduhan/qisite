@@ -37,6 +37,14 @@ function initAddCustListItemConfirm() {
                     location.reload();
                 } else {
                     // 出错处理(暂缺)
+                    //validationMessage = result['validationMessage']
+                    //logger.debug('validationMessage:' + validationMessage);
+                    //if (validationMessage != undefined) {
+                    //    for (errorItem in validationMessage) {
+                    //        logger.debug(errorItem + '=' + validationMessage[errorItem]);
+                    //    }
+                    //}
+                    showMessageDialog('请完整填清单项信息', '出错');
                 }
             },
             // 失败说明网络有问题或者服务器有问题
