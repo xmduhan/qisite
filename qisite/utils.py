@@ -7,6 +7,7 @@ from django.core.signing import Signer, BadSignature
 from definitions import USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME, CREATE_TIME_FIELD_NAME, \
     MODIFY_TIME_FIELD_NAME
 from dateutil import parser
+
 defaultExcludeFields = ['id', USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME, CREATE_TIME_FIELD_NAME,
                         MODIFY_TIME_FIELD_NAME]
 

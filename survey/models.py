@@ -8,6 +8,11 @@ from django.core.signing import Signer
 import copy
 from dateutil.relativedelta import relativedelta
 
+import re
+
+
+phonePattern = re.compile(r'^((13[0-9])|(15[^4,\D])|(14[57])|(17[0])|(18[0,0-9]))\d{8}$')
+
 
 class TimeModel(models.Model):
     createTime = models.DateTimeField("创建时间", default=datetime.now)
@@ -426,7 +431,7 @@ class CustList(TimeModel):
 class CustListItem(TimeModel):
     name = models.CharField('客户名称', max_length=50)
     phone = models.CharField('手机号', max_length=50)
-    email = models.CharField('电子邮件', max_length=100)
+    email = models.CharField('电子邮件', max_length=100, blank=True, null=True, default='')
     custList = models.ForeignKey(CustList, verbose_name='所属清单', related_name="custListItem_set")
     defineInfo_set = models.ManyToManyField('DefineInfo', verbose_name='附件信息', blank=True, null=True)
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='custListItemCreated_set')
@@ -435,6 +440,12 @@ class CustListItem(TimeModel):
     class Meta:
         verbose_name = "客户清单项"
         verbose_name_plural = "[15].客户清单项"
+
+    def clean(self):
+        #print 'clean_phone is called'
+        if not phonePattern.match(self.phone):
+            raise ValidationError(u'phone:手机号码的格式不正确')
+
 
 
 class DefineInfo(TimeModel):

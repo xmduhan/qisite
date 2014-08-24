@@ -1937,3 +1937,127 @@ class CustListDeleteTest(TestCase):
         custListList = CustList.objects.filter(id=self.custList.id)
         self.assertEqual(len(custListList), 0)
 
+
+class CustListItemAddTest(TestCase):
+    '''
+        对问卷修改服务(custListAdd)的测试
+    '''
+    fixtures = ['initial_data.json']
+
+    def setUp(self):
+        setup_test_environment()
+        # 读取测试用户和清单
+        user = User.objects.get(code='duhan')
+        custList = user.custListCreated_set.get(name=u'2013年发展的客户')
+        user_other = User.objects.get(code='zhangjianhua')
+        custList_other = user_other.custListCreated_set.get(name=u'EMBA同学名单')
+
+        # 创建客户端
+        self.client = Client()
+        loginForTest(self.client, user.phone, '123456')
+        # 设定service url
+        self.serviceUrl = reverse('survey:service.custListItem.add')
+
+        # 准备要提交的数据
+        self.data_valid = {'custList': custList.getIdSigned(), 'name': 'test01', 'phone': user.phone}
+        self.data_no_id = {'name': 'test01', 'phone': user.phone}
+        self.data_no_name = {'custList': custList.getIdSigned()}
+        self.data_no_phone = {'custList': custList.getIdSigned(), 'name': 'test01'}
+        self.data_bad_signature = {'custList': custList.id, 'name': 'test01'}
+        self.data_no_privilege = {'custList': custList_other.getIdSigned(), 'name': 'test01', 'phone': user.phone}
+        self.data_bad_phone = {'custList': custList.getIdSigned(), 'name': 'test01', 'phone': '123456'}
+        self.data_bad_email = {'custList': custList.getIdSigned(), 'name': 'test01', 'email': '123456'}
+
+    def test_add_custListItem_no_login(self):
+        '''
+            测试没有登录就调用服务的情况
+        '''
+        # 创建一个新的Client，而不是使用self.client，因为self.client已经在setUP中登录了。
+        client = Client()
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)  # 没有登录错误
+
+    def test_add_custListItem_no_id(self):
+        '''
+        测试没有提供custListId的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_no_id)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_ID)  # 没有提供id
+
+
+    def test_add_custListItem_bad_signature(self):
+        '''
+        测试非法的数字签名的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_bad_signature)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
+
+
+    def test_add_custListItem_no_name(self):
+        '''
+            测试没有提供清单名称的情况
+        '''
+        client = self.client
+        # 调用问卷添加服务
+        response = client.post(self.serviceUrl, self.data_no_name)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.VALIDATION_ERROR)  # 数据校验错
+        self.assertIn('name', result['validationMessage'])  # 校验错误信息中含name
+
+
+    def test_add_custListItem_no_phone(self):
+        '''
+        测试没有提供phone的情况
+        '''
+        client = self.client
+        # 调用问卷添加服务
+        response = client.post(self.serviceUrl, self.data_no_phone)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.VALIDATION_ERROR)  # 数据校验错
+        self.assertIn('phone', result['validationMessage'])  # 校验错误信息中含name
+
+    def test_add_custListItem_bad_phone(self):
+        '''
+        测试提供的是非法的手机号码情况
+        '''
+        client = self.client
+        # 调用问卷添加服务
+        response = client.post(self.serviceUrl, self.data_bad_phone)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.VALIDATION_ERROR)  # 数据校验错
+        print result['validationMessage']
+        self.assertIn('phone', result['validationMessage'])  # 校验错误信息中含name
+
+    def test_add_custListItem_no_privilege(self):
+        '''
+        测试没有权限修改的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_no_privilege)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_PRIVILEGE)  # 没有权限
+
+    def test_add_custListItem_success(self):
+        '''
+            测试成功添加的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
+        custListItemId = result['custListItemId']
+        custListItemList = CustListItem.objects.filter(id=custListItemId)
+        self.assertEqual(len(custListItemList), 1)

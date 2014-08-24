@@ -58,4 +58,7 @@ urlpatterns = patterns(
     url(r'^service/custList/add$', services.custListAdd, name='service.custList.add'),
     url(r'^service/custList/delete$', services.custListDelete, name='service.custList.delete'),
     url(r'^service/custList/modify$', services.custListModify, name='service.custList.modify'),
+
+    ## custListItem
+    url(r'^service/custListItem/add$', services.custListItemAdd, name='service.custListItem.add'),
 )

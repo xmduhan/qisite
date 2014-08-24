@@ -18,14 +18,16 @@ import json
 from django.http import HttpResponse
 from django.forms import ValidationError
 from django.core.signing import Signer, BadSignature
-from models import Paper, Question, Branch, Survey, CustList
+from models import Paper, Question, Branch, Survey, CustList, CustListItem
 from qisite.definitions import USER_SESSION_NAME, USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME, \
     CREATE_TIME_FIELD_NAME, MODIFY_TIME_FIELD_NAME
+from qisite.utils import updateModelInstance
 from datetime import datetime
 from django.db.models.fields import BooleanField
 from django.db.models.fields.related import ForeignKey
 #from django.db import transaction
 from www.utils import packageResult, dictToJsonResponse, packageResponse
+
 
 
 class RESULT_CODE:
@@ -1134,4 +1136,66 @@ def custListModify(request):
     user = request.session[USER_SESSION_NAME]
     requestData = request.REQUEST
     result = _custListModify(requestData, user)
+    return dictToJsonResponse(result)
+
+
+def _custListItemAdd(requestData, user):
+    '''
+        新增一个问卷的具体处理过程
+    '''
+    # 检查custListId是否存在
+    custListIdSigned = requestData.get('custList')
+    if not custListIdSigned:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_ID)
+
+    # 进行数字签名的检查
+    try:
+        signer = Signer()
+        custListId = signer.unsign(custListIdSigned)
+    except:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.BAD_SAGNATURE)
+
+    # 尝试读取custList对象
+    try:
+        custList = CustList.objects.get(id=custListId)
+    except:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.OBJECT_NOT_EXIST)
+
+    # 检查用户是否有权限
+    if custList.createBy != user:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_PRIVILEGE)
+
+
+    # 通过request提供的数据创建custListItem对象
+    custListItem = CustListItem()
+    updateModelInstance(custListItem, requestData, tryUnsigned=True)
+
+    # 处理当前用户
+    custListItem.createBy = user
+    custListItem.modifyBy = user
+
+    # 校验数据
+    try:
+        custListItem.full_clean()
+    except ValidationError as exception:
+        return packageResult(
+            RESULT_CODE.ERROR, RESULT_MESSAGE.VALIDATION_ERROR, {'validationMessage': exception.message_dict})
+
+    # 保存到数据库
+    custListItem.save()
+    return packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'custListItemId': custListItem.id})
+
+
+def custListItemAdd(request):
+    '''
+        创建问卷的功能服务
+    '''
+
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
+        return dictToJsonResponse(result)
+    user = request.session[USER_SESSION_NAME]
+    requestData = request.REQUEST
+    result = _custListItemAdd(requestData, user)
     return dictToJsonResponse(result)
