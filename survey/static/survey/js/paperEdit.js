@@ -628,6 +628,14 @@ function initDeleteButtonColorChange(scope) {
     scope.find(".btn-delete-branch").on('mouseleave', function (event) {
         slakeDeleteButton(this);
     });
+
+    // 为选项删除按钮绑定事件
+    scope.find(".btn-delete-custListItem").on('mouseenter', function (event) {
+        lightDeleteButton(this);
+    });
+    scope.find(".btn-delete-custListItem").on('mouseleave', function (event) {
+        slakeDeleteButton(this);
+    });
 }
 
 /***************************************

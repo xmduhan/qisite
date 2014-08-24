@@ -446,6 +446,12 @@ class CustListItem(TimeModel):
         if not phonePattern.match(self.phone):
             raise ValidationError(u'phone:手机号码的格式不正确')
 
+    def getIdSigned(self):
+        signer = Signer()
+        return signer.sign(self.id)
+
+    def __unicode__(self):
+        return self.name
 
 
 class DefineInfo(TimeModel):

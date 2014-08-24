@@ -97,9 +97,9 @@
                 <td>{{ custListItem.createTime | date:"Y-m-d H:i" }}</td>
                 {# 删除按钮 #}
                 <td align="center">
-                    <span class="glyphicon glyphicon-remove-circle btn-custList-delete"
-                          data-binding-action="{% url 'survey:service.custList.delete' %}"
-                          data-binding-id="{{ custList.getIdSigned }}"></span>
+                    <span class="glyphicon glyphicon-remove-circle btn-delete-custListItem"
+                          data-binding-action="{% url 'survey:service.custListItem.delete' %}"
+                          data-binding-id="{{ custListItem.getIdSigned }}"></span>
                 </td>
             </tr>
         {% endfor %}
@@ -124,7 +124,7 @@
                 <form id='custListItemAddForm' class="form-horizontal" role="form"
                       action="{% url 'survey:service.custListItem.add' %}">
                     {# 客户清单标识 #}
-                    <input name='custListId' type="hidden" class="form-control" value="{{ custList.getIdSigned }}">
+                    <input name='custList' type="hidden" class="form-control" value="{{ custList.getIdSigned }}">
 
                     {# 姓名 #}
                     <div class="form-group">

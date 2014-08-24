@@ -17,7 +17,8 @@ function initAddCustListItemConfirm() {
     $('#addCustListItemConfirm').on('click', function () {
         //logger.debug('addCustListItemConfirm() is call');
         data = readFormValue($("#custListItemAddForm"));
-        action = $("#custListItemAddForm").data('binding-action');
+        action = $("#custListItemAddForm").attr('action')
+        logger.debug(action);
         // 向服务器提交数据
         $.ajax({
             url: action,
@@ -30,10 +31,10 @@ function initAddCustListItemConfirm() {
                 logger.debug('save successfully');
                 logger.debug('resultCode:' + result['resultCode']);
                 logger.debug('resultMessage:' + result['resultMessage']);
-                //
+                //logger.debug('validationMessage:' + result['validationMessage']);
                 if (result['resultCode'] == 0) {
                     logger.debug('id:' + result['id']);
-
+                    location.reload();
                 } else {
                     // 出错处理(暂缺)
                 }

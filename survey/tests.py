@@ -2061,3 +2061,94 @@ class CustListItemAddTest(TestCase):
         custListItemId = result['custListItemId']
         custListItemList = CustListItem.objects.filter(id=custListItemId)
         self.assertEqual(len(custListItemList), 1)
+
+
+class CustListItemDeleteTest(TestCase):
+    '''
+        问卷删除服务的测试用例
+    '''
+    fixtures = ['initial_data.json']
+
+    def setUp(self):
+        setup_test_environment()
+        # 创建用户并且用其登陆
+        self.client = Client()
+        self.user = User.objects.get(code='duhan')
+        self.custList = self.user.custListCreated_set.get(name=u'2013年发展的客户')
+        self.custListItem = self.custList.custListItem_set.all()[0]
+        self.user_other = User.objects.get(code='zhangjianhua')
+        self.custList_other = self.user_other.custListCreated_set.get(name=u'EMBA同学名单')
+        self.custListItem_other = self.custList_other.custListItem_set.all()[0]
+        # 登录
+        loginForTest(self.client, self.user.phone, '123456')
+        # 准备提交的测试数据
+        signer = Signer()
+        self.data_valid = {'id': self.custListItem.getIdSigned()}
+        self.data_bad_signature = {'id': self.custListItem.id}
+        self.data_no_privilege = {'id': self.custListItem_other.getIdSigned()}
+        #
+        self.serviceUrl = reverse('survey:service.custListItem.delete')
+
+    def test_no_login(self):
+        '''
+            测试没有登录的情况
+        '''
+        client = Client()
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)
+
+    def test_no_id(self):
+        '''
+            测试没有提供id的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, {})
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_ID)
+
+    def test_bad_signature(self):
+        '''
+            测试没有进行数字签名的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_bad_signature)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
+
+    def test_not_exist(self):
+        '''
+            测试对象不存在的情况
+        '''
+        self.custList.delete()
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.OBJECT_NOT_EXIST)
+
+    def test_no_no_privilege(self):
+        '''
+            测试没有权限修改的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_no_privilege)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
+
+    def test_success(self):
+        '''
+            成功删除
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
+        # 确认数据已经不能存在了
+        custListItemList = CustListItem.objects.filter(id=self.custListItem.id)
+        self.assertEqual(len(custListItemList), 0)
