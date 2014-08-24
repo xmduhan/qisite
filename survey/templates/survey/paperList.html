@@ -83,43 +83,7 @@
     </div>
 
     {# 分页控件 #}
-    <ul class="pager">
-        {# 开头 #}
-        {% if paperList.has_previous %}
-            <li><a href="{% url 'survey:view.paper.list' %}">&laquo;</a></li>
-        {% else %}
-            <li class='disabled'><a href="">&laquo;</a></li>
-        {% endif %}
-
-        {# 下一页 #}
-        {% if paperList.has_previous %}
-            <li><a href="{% url 'survey:view.paper.list' paperList.previous_page_number %}">上一页</a></li>
-        {% else %}
-            <li class='disabled'><a href="">上一页</a></li>
-        {% endif %}
-
-        {# 当前页显示 #}
-        <input class='page-switcher'
-               type='text' size="1"
-               style="text-align:center"
-               value='{{ paperList.number }}'
-               data-binding-action="{% url 'survey:view.paper.list' %}">
-        / {{ paperList.paginator.num_pages }}
-
-        {# 下一页 #}
-        {% if paperList.has_next %}
-            <li><a href="{% url 'survey:view.paper.list' paperList.next_page_number %}">下一页</a></li>
-        {% else %}
-            <li class='disabled'><a href="#">下一页</a></li>
-        {% endif %}
-        {# 最后 #}
-        {% if paperList.has_next %}
-            <li><a href="{% url 'survey:view.paper.list'  paperList.paginator.num_pages %}">&raquo;</a></li>
-        {% else %}
-            <li class='disabled'><a href="#">&raquo;</a></li>
-        {% endif %}
-    </ul>
-
+    {% include "www/pager.html" with pageData=paperList baseUrl=baseUrl only %}
 </div>
 
 

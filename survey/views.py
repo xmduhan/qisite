@@ -46,8 +46,10 @@ def surveyList(request, page=1):
     # 读取当前分页数据
     thisPageSurveyList = paginator.page(page)
     # 通过模板生成返回内容
+    baseUrl = reverse('survey:view.survey.list')
     template = loader.get_template('survey/surveyList.html')
-    context = RequestContext(request, {"surveyList": thisPageSurveyList, 'session': request.session})
+    context = RequestContext(request,
+                             {"surveyList": thisPageSurveyList, 'baseUrl': baseUrl, 'session': request.session})
     return HttpResponse(template.render(context))
 
 
@@ -83,25 +85,14 @@ def paperList(request, page=1):
     # 读取当前分页数据
     thisPagePaperList = paginator.page(page)
     # 通过模板生成返回内容
+    baseUrl = reverse('survey:view.paper.list')
     template = loader.get_template('survey/paperList.html')
     context = RequestContext(request, {
-        "paperList": thisPagePaperList,
+        'paperList': thisPagePaperList,
+        'baseUrl': baseUrl,
         'session': request.session
     })
     return HttpResponse(template.render(context))
-
-
-'''
-from survey.models import *
-from account.models import *
-from django.core.paginator import Paginator
-user = User.objects.filter(phone='13599900875')[0]
-p = Paginator(user.paperCreated_set.all(),5)
-p.num_pages
-p.count
-for i in p.page(2):
-    print i
-'''
 
 
 def paperEdit(request, paperId):
@@ -186,9 +177,11 @@ def custListList(request, page=1):
     # 读取当前分页数据
     thisPageCustListList = paginator.page(page)
     # 通过模板生成返回内容
+    baseUrl = reverse('survey:view.custList.list')
     template = loader.get_template('survey/custListList.html')
     context = RequestContext(request, {
         "custListList": thisPageCustListList,
+        'baseUrl': baseUrl,
         'session': request.session
     })
     return HttpResponse(template.render(context))
