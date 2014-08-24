@@ -89,7 +89,7 @@
         {# 表格内容 #}
         {# 表格内容 #}
         {% for custListItem in custList.custListItem_set.all %}
-            <tr id='custListItem-{{ custList.getIdSigned | cut:':' }}'>
+            <tr id='custListItem-{{ custListItem.getIdSigned | cut:':' }}'>
                 <td>{{ forloop.counter }}</td>
                 <td>{{ custListItem.name }}</td>
                 <td>{{ custListItem.phone }}</td>
