@@ -222,10 +222,14 @@ def custListEdit(request, custListId, page=1):
     # 读取当前分页数据
     thisPageCustListItemList = paginator.page(page)
 
+    baseUrl = reverse('survey:view.custList.edit', args=[custList.id]) + '/'
+    print 'baseUrl=', baseUrl
+
     # 读取模板生成页面
     template = loader.get_template('survey/custListEdit.html')
     context = RequestContext(
-        request, {'session': request.session, 'custList': custList, 'custListItemList': thisPageCustListItemList})
+        request, {'session': request.session, 'custList': custList, 'custListItemList': thisPageCustListItemList,
+                  'baseUrl': baseUrl})
     return HttpResponse(template.render(context))
 
 

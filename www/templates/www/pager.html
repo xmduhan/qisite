@@ -1,0 +1,40 @@
+{# 分页控件 #}
+<ul class="pager">
+    {# 开头 #}
+    {% if pageData.has_previous %}
+        <li><a href="{{ baseUrl }}">&laquo;</a></li>
+    {% else %}
+        <li class='disabled'><a href="">&laquo;</a></li>
+    {% endif %}
+
+    {# 下一页 #}
+    {% if pageData.has_previous %}
+        <li><a href="{{ baseUrl }}{{ pageData.previous_page_number }}">上一页</a>
+        </li>
+    {% else %}
+        <li class='disabled'><a href="">上一页</a></li>
+    {% endif %}
+
+    {# 当前页显示 #}
+    <input class='page-switcher'
+           type='text' size="1"
+           style="text-align:center"
+           value='{{ pageData.number }}'
+           data-binding-action="{{ baseUrl }}">
+    / {{ pageData.paginator.num_pages }}
+
+    {# 下一页 #}
+    {% if pageData.has_next %}
+        <li><a href="{{ baseUrl }}{{ pageData.next_page_number }}">下一页</a></li>
+    {% else %}
+        <li class='disabled'><a href="#">下一页</a></li>
+    {% endif %}
+    {# 最后 #}
+    {% if pageData.has_next %}
+        <li>
+            <a href="{{ baseUrl }}{{ pageData.paginator.num_pages }}">&raquo;</a>
+        </li>
+    {% else %}
+        <li class='disabled'><a href="#">&raquo;</a></li>
+    {% endif %}
+</ul>
