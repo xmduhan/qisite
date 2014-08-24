@@ -666,6 +666,20 @@ function initFormSubmitButton(scope) {
         form.submit();
     });
 }
+
+/***************************************
+ *        绑定页面切换输入框事件       *
+ ***************************************/
+function initPageSwitcher() {
+    $(".page-switcher").on('change', function (event) {
+        action = $(this).data('binding-action');
+        if (action.slice(-1) != '/') {
+            action = action + '/';
+        }
+        action = action + $(this).val();
+        window.location = action
+    });
+}
 /***************************************
  *        所有控件初始化操作工作       *
  ***************************************/
@@ -712,6 +726,8 @@ $(document).ready(function () {
     initial($('body'));
     // 初始化问题的排序功能
     initQuestionSortable();
+    // 初始化分页控件
+    initPageSwitcher();
 });
 
 

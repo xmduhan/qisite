@@ -22,6 +22,7 @@ urlpatterns = patterns(
     url(r'^view/survey/edit/(?P<surveyId>\d+)$', views.surveyEdit, name='view.survey.edit'),
     url(r'^view/paper/edit/(?P<paperId>\d+)$', views.paperEdit, name='view.paper.edit'),
     url(r'^view/custList/edit/(?P<custListId>\d+)$', views.custListEdit, name='view.custList.edit'),
+    url(r'^view/custList/edit/(?P<custListId>\d+)/(?P<page>\d+)$', views.custListEdit, name='view.custList.edit'),
     ## 获取问题编辑
     url(r'^view/question/edit/(?P<questionId>\S+)$', views.questionEdit, name='view.question.edit'),
     ## 答卷

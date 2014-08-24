@@ -118,20 +118,6 @@ def paperEdit(request, paperId):
         raise Http404
 
 
-def custListEdit(request, custListId):
-    '''
-    客户清单编辑
-    '''
-    custListList = CustList.objects.filter(id=custListId)
-    if custListList:
-        custList = custListList[0]
-        template = loader.get_template('survey/custListEdit.html')
-        context = RequestContext(request, {'session': request.session, 'custList': custList})
-        return HttpResponse(template.render(context))
-    else:
-        raise Http404
-
-
 def surveyAdd(request, paperId):
     '''
         通过一个问卷发起一次调查
@@ -205,6 +191,41 @@ def custListList(request, page=1):
         "custListList": thisPageCustListList,
         'session': request.session
     })
+    return HttpResponse(template.render(context))
+
+
+def custListEdit(request, custListId, page=1):
+    '''
+    客户清单编辑
+    '''
+    # 检查对象是否存在
+    custListList = CustList.objects.filter(id=custListId)
+    if not custListList:
+        raise Http404
+    custList = custListList[0]
+
+    # 检查当前用户是否有权限查看该对象
+    user = getCurrentUser(request)
+    if custList.createBy != user:
+        raise Http404
+
+    # 读取数据并分页
+    perPage = 10
+    # 确定page类型为整型
+    if type(page) != int: page = int(page)
+    # 读取所有清单项并分页
+    custListItemSet = custList.custListItem_set.order_by('-modifyTime')
+    paginator = Paginator(custListItemSet, perPage)
+    # 对page的异常值进行处理
+    if page < 1: page = 1
+    if page > paginator.num_pages: page = paginator.num_pages
+    # 读取当前分页数据
+    thisPageCustListItemList = paginator.page(page)
+
+    # 读取模板生成页面
+    template = loader.get_template('survey/custListEdit.html')
+    context = RequestContext(
+        request, {'session': request.session, 'custList': custList, 'custListItemList': thisPageCustListItemList})
     return HttpResponse(template.render(context))
 
 
