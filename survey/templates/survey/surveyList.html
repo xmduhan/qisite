@@ -29,7 +29,8 @@
                     <th>#</th>
                     <th>名称</th>
                     <th>描述</th>
-                    <th>创建时间</th>
+                    <th>清单</th>
+                    <th>修改时间</th>
                     <th>发布时间</th>
                     <th>收集到样本</th>
                     <th colspan="3"></th>
@@ -45,7 +46,8 @@
                             <td>{{ survey.paper.title | truncatechars:20 }}</td>
                             {# 调查问卷的描述 #}
                             <td>{{ survey.paper.description | truncatechars:30 }}</td>
-                            {# 创建时间 #}
+                            <td>{{ survey.custList.name | truncatechars:20 }}</td>
+                            {# 修改时间 #}
                             <td>{{ survey.createTime | date:"Y-m-d H:i" }}</td>
                             {# 发布时间 #}
                             <td>{{ survey.publishTime | date:"Y-m-d H:i" }}</td>

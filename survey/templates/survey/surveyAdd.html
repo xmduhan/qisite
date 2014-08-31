@@ -12,196 +12,221 @@
 {# 顶部的导航栏 #}
 {% include "www/navbar.html" with position='survey' %}
 <div class="container" style="padding-top: 30px;">
-    <div class="row">
-        <div class="col-md-1"></div>
-        {# 表单框 #}
-        <div class="col-md-10">
-            <div class="panel panel-default">
-                <div class="panel-heading panel-collapsible">
-                    <span class="glyphicon glyphicon-globe"></span>
-                    发布调查
-                </div>
-                <div class="panel-body in">
-                    <form id="surveyAdd" class="form-horizontal" role="form"
-                          action="{% url 'survey:view.survey.add.action' %}">
-                        <input name='paperId' type="hidden" value='{{ paper.getIdSigned }}'>
-                        {#  填写限制  #}
-                        <div class="form-group form-group-lg">
-                            <label class="col-md-3 control-label" for="formGroupInputLarge">填写限制</label>
+<div class="row">
+    <div class="col-md-1"></div>
+    {# 表单框 #}
+    <div class="col-md-10">
+        <div class="panel panel-default">
+            <div class="panel-heading panel-collapsible">
+                <span class="glyphicon glyphicon-globe"></span>
+                发布调查
+            </div>
+            <div class="panel-body in">
+                <form id="surveyAdd" class="form-horizontal" role="form"
+                      action="{% url 'survey:view.survey.add.action' %}">
+                    <input name='paperId' type="hidden" value='{{ paper.getIdSigned }}'>
+                    {#  填写限制  #}
+                    <div class="form-group form-group-lg">
+                        <label class="col-md-3 control-label" for="formGroupInputLarge">填写限制</label>
 
-                            <div class="col-md-9">
-                                <div class="row">
-                                    {# 允许重填 #}
-                                    <div class="col-md-4">
-                                        <div class="input-group input-group-sm ">
-                                            <span class="input-group-addon  width50">允许重填</span>
-                                            <input name='resubmit' class="bootstrap-switch " type="checkbox" checked/>
-                                        </div>
+                        <div class="col-md-9">
+                            <div class="row">
+                                {# 允许重填 #}
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-sm ">
+                                        <span class="input-group-addon  width50">允许重填</span>
+                                        <input name='resubmit' class="bootstrap-switch " type="checkbox" checked/>
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="input-group input-group-sm ">
-                                            <span class="input-group-addon width50">参与密码</span>
-                                            <input name='password' type="text" class="form-control " size="10"/>
-                                        </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-sm ">
+                                        <span class="input-group-addon width50">参与密码</span>
+                                        <input name='password' type="text" class="form-control " size="10"/>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        {# 查看权限  #}
-                        <div class="form-group form-group-lg">
-                            <label class="col-md-3 control-label" for="formGroupInputLarge">查看权限</label>
+                    {# 查看权限  #}
+                    <div class="form-group form-group-lg">
+                        <label class="col-md-3 control-label" for="formGroupInputLarge">查看权限</label>
 
-                            <div class="col-md-9">
-                                <div class="row">
-                                    {# 是否分享 #}
-                                    <div class="col-md-4">
-                                        <div class="input-group input-group-sm ">
-                                            <span class="input-group-addon  width50">是否分享</span>
-                                            <input name='shared' class="bootstrap-switch " type="checkbox" checked/>
-                                        </div>
+                        <div class="col-md-9">
+                            <div class="row">
+                                {# 是否分享 #}
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-sm ">
+                                        <span class="input-group-addon  width50">是否分享</span>
+                                        <input name='shared' class="bootstrap-switch " type="checkbox" checked/>
                                     </div>
-                                    {# 查看结果 #}
-                                    <div class="col-md-4">
-                                        <div class="input-group input-group-sm ">
-                                            <span class="input-group-addon  width50">查看结果</span>
-                                            <input name='viewResult' class="bootstrap-switch " type="checkbox" checked/>
-                                        </div>
+                                </div>
+                                {# 查看结果 #}
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-sm ">
+                                        <span class="input-group-addon  width50">查看结果</span>
+                                        <input name='viewResult' class="bootstrap-switch " type="checkbox" checked/>
                                     </div>
-                                    {# 匿名调查 #}
-                                    <div class="col-md-4">
-                                        <div class="input-group input-group-sm ">
-                                            <span class="input-group-addon  width50">匿名调查</span>
-                                            <input name='anonymous' class="bootstrap-switch " type="checkbox"/>
-                                        </div>
+                                </div>
+                                {# 匿名调查 #}
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-sm ">
+                                        <span class="input-group-addon  width50">匿名调查</span>
+                                        <input name='anonymous' class="bootstrap-switch " type="checkbox"/>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        {# 时间限制 #}
-                        <div class="form-group form-group-lg">
-                            <label class="col-md-3 control-label" for="formGroupInputLarge">时间限制</label>
+                    {# 时间限制 #}
+                    <div class="form-group form-group-lg">
+                        <label class="col-md-3 control-label" for="formGroupInputLarge">时间限制</label>
 
-                            <div class="col-md-9">
-                                <div class="row">
-                                    {# 发布时间 #}
-                                    <div class="col-md-4">
-                                        <div class="input-group input-group-sm ">
-                                            <span class="input-group-addon width40 ">发布时间</span>
-                                            <input name='publishTime' type="text" class="form-control datetimepicker"/>
+                        <div class="col-md-9">
+                            <div class="row">
+                                {# 发布时间 #}
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-sm ">
+                                        <span class="input-group-addon width40 ">发布时间</span>
+                                        <input name='publishTime' type="text" class="form-control datetimepicker"/>
                                             <span class="input-group-addon  width20">
                                                 <i class="glyphicon glyphicon-calendar"></i>
                                             </span>
-                                        </div>
                                     </div>
-                                    {# 结束时间 #}
-                                    <div class="col-md-4">
-                                        <div class="input-group input-group-sm ">
-                                            <span class="input-group-addon width40">结束时间</span>
-                                            <input name='endTime' type="text" class="form-control datetimepicker"/>
+                                </div>
+                                {# 结束时间 #}
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-sm ">
+                                        <span class="input-group-addon width40">结束时间</span>
+                                        <input name='endTime' type="text" class="form-control datetimepicker"/>
                                              <span class="input-group-addon  width20">
                                                 <i class="glyphicon glyphicon-calendar"></i>
                                              </span>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
 
-                        {# 客户端限制  #}
-                        <div class="form-group form-group-lg">
-                            <label class="col-md-3 control-label" for="formGroupInputLarge">客户端限制</label>
+                    {# 客户端限制  #}
+                    <div class="form-group form-group-lg">
+                        <label class="col-md-3 control-label" for="formGroupInputLarge">客户端限制</label>
 
-                            <div class="col-md-9">
-                                <div class="row">
-                                    {# IP限制 #}
-                                    <div class="col-md-4">
-                                        <div class="input-group input-group-sm ">
-                                            <span class="input-group-addon width50 ">IP限制</span>
-                                            <input name='ipLimit' class="spinner " type="text" size="8" value="5"/>
-                                        </div>
+                        <div class="col-md-9">
+                            <div class="row">
+                                {# IP限制 #}
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-sm ">
+                                        <span class="input-group-addon width50 ">IP限制</span>
+                                        <input name='ipLimit' class="spinner " type="text" size="8" value="5"/>
                                     </div>
-                                    {# MAC限制 #}
-                                    <div class="col-md-4">
-                                        <div class="input-group input-group-sm ">
-                                            <span class="input-group-addon width50 ">MAC限制</span>
-                                            <input name='macLimit' class="spinner " type="text" size="8" value="5"/>
-                                        </div>
+                                </div>
+                                {# MAC限制 #}
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-sm ">
+                                        <span class="input-group-addon width50 ">MAC限制</span>
+                                        <input name='macLimit' class="spinner " type="text" size="8" value="5"/>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        {# 是否付费  #}
-                        <div class="form-group form-group-lg">
-                            <label class="col-md-3 control-label" for="formGroupInputLarge">付费</label>
+                    {# 是否付费  #}
+                    <div class="form-group form-group-lg">
+                        <label class="col-md-3 control-label" for="formGroupInputLarge">付费</label>
 
-                            <div class="col-md-9">
-                                {# 是否付费 #}
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="input-group input-group-sm ">
-                                            <span class="input-group-addon  width50">是否付费</span>
-                                            <input name='pay' class="bootstrap-switch" type="checkbox"/>
-                                        </div>
+                        <div class="col-md-9">
+                            {# 是否付费 #}
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-sm ">
+                                        <span class="input-group-addon  width50">是否付费</span>
+                                        <input name='pay' class="bootstrap-switch" type="checkbox"/>
                                     </div>
-                                    <div class="col-md-4">
-                                    </div>
+                                </div>
+                                <div class="col-md-4">
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        {# 客户端限制  #}
-                        <div class="form-group form-group-lg">
-                            <label class="col-md-3 control-label" for="formGroupInputLarge">客户群</label>
+                    {# 客户端限制  #}
+                    <div class="form-group form-group-lg">
+                        <label class="col-md-3 control-label" for="formGroupInputLarge">客户群</label>
 
-                            <div class="col-md-9">
-                                <div class="row">
-                                    {# 定向调查 #}
-                                    <div class="col-md-4">
-                                        <div class="input-group input-group-sm ">
-                                            <span class="input-group-addon  width50">定向调查</span>
-                                            <input name='targetOnly' class="bootstrap-switch " type="checkbox"/>
-                                        </div>
+                        <div class="col-md-9">
+                            <div class="row">
+                                {# 定向调查 #}
+                                <div class="col-md-4">
+                                    <div class="input-group input-group-sm ">
+                                        <span class="input-group-addon  width50">定向调查</span>
+                                        <input name='targetOnly' class="bootstrap-switch " type="checkbox"/>
                                     </div>
-                                    <div class="col-md-4">
-                                    </div>
+                                </div>
+                                <div class="col-md-4">
                                 </div>
                             </div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+
+                    {# 关联的清单 #}
+                    <div class="form-group form-group-lg">
+                        <label class="col-md-3 control-label" for="formGroupInputLarge">客户清单</label>
+
+                        <div class="col-md-9">
+                            <div class="row">
+                                {# 定向调查 #}
+                                <div class="col-md-5">
+                                    <div class="input-group input-group-sm ">
+                                        <select name="custList" class="bootstrap-select">
+                                            <option value=''>无</option>
+                                            {% for custList in  custListList %}
+                                                <option value='{{ custList.getIdSigned }}'>{{ custList.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </form>
             </div>
         </div>
-        <div class="col-md-1"></div>
     </div>
+    <div class="col-md-1"></div>
+</div>
 
 
-    {#  底部按钮 #}
-    <div class="row">
-        <div class="col-md-2" align="center"></div>
-        <div class="col-md-2" align="center"></div>
-        {# 发布按钮 #}
-        <div class="col-md-2" align="center">
-            <div class="btn btn-primary form-submit-button"
-                 data-form-id="surveyAdd">
-                <span class="glyphicon glyphicon-ok"></span>
-                发布
-            </div>
+{#  底部按钮 #}
+<div class="row">
+    <div class="col-md-2" align="center"></div>
+    <div class="col-md-2" align="center"></div>
+    {# 发布按钮 #}
+    <div class="col-md-2" align="center">
+        <div class="btn btn-primary form-submit-button"
+             data-form-id="surveyAdd">
+            <span class="glyphicon glyphicon-ok"></span>
+            发布
         </div>
-        {# 取消按钮 #}
-        <div class="col-md-2" align="center">
-            <a id="finishButton" href="{% url 'survey:view.paper.list' %}"
-               type="button" class="btn btn-default ">
-                <span class="glyphicon glyphicon-remove"></span>
-                取消
-            </a>
-        </div>
-        <div class="col-md-2" align="center"></div>
-        <div class="col-md-2" align="center"></div>
     </div>
+    {# 取消按钮 #}
+    <div class="col-md-2" align="center">
+        <a id="finishButton" href="{% url 'survey:view.paper.list' %}"
+           type="button" class="btn btn-default ">
+            <span class="glyphicon glyphicon-remove"></span>
+            取消
+        </a>
+    </div>
+    <div class="col-md-2" align="center"></div>
+    <div class="col-md-2" align="center"></div>
+</div>
 
 </div>
 

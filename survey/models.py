@@ -331,6 +331,7 @@ class Survey(TimeModel):
     paper = models.ForeignKey('Paper', related_name='survey_set', verbose_name="问卷", null=True, blank=True)
     # 目标客户清单 targetcust_set (ok) (已在目标客户中设置外键)
     targetOnly = models.BooleanField('定向调查', default=False)
+    custList = models.ForeignKey('CustList', verbose_name='客户清单', blank=True, null=True, default=None)
     state = models.CharField("状态", max_length=5, default='A')
     paused = models.BooleanField('暂停', default=False)
     shared = models.BooleanField('是否分享', default=False)
@@ -364,7 +365,7 @@ class TargetCust(TimeModel):
     name = models.CharField('姓名', max_length=50)
     phone = models.CharField('手机号码', max_length=50)
     email = models.CharField('电子邮件', max_length=100)
-    defineInfo_set = models.ManyToManyField('DefineInfo', verbose_name='附件信息')
+    defineInfo_set = models.ManyToManyField('DefineInfo', verbose_name='附件信息', blank=True, null=True)
     #sample = models.ForeignKey('Sample', verbose_name='样本') 在样本中已设定了一对一关系 (ok)
     token = models.CharField('访问令牌', max_length=50)
     survey = models.ForeignKey(Survey, verbose_name="所属调查", related_name='targetCust_set')
@@ -375,10 +376,17 @@ class TargetCust(TimeModel):
         verbose_name = "目标客户"
         verbose_name_plural = "[11].目标客户"
 
+    def __unicode__(self):
+        return u'<%s,%s>' % (self.name, self.phone)
+
+    def getIdSigned(self):
+        signer = Signer()
+        return signer.sign(self.id)
+
 
 class Sample(TimeModel):
     #样本项集	sampleItems	对象集 (ok) (已在样本中设置对应外键)
-    targetCust = models.OneToOneField('TargetCust', verbose_name='清单项', null=True, blank=True)
+    targetCust = models.ForeignKey('TargetCust', verbose_name='清单项', null=True, blank=True)
     user = models.ForeignKey(account.models.User, verbose_name="参与用户", null=True,
                              blank=True)  # 这里是否设置一个related_name
     ipAddress = models.CharField('受访IP', max_length=50)

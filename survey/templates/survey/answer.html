@@ -22,6 +22,9 @@
                         {{ paper.description }}
                     </div>
                     <input type="hidden" name="surveyId" value="{{ survey.getIdSigned }}">
+                    {% if targetCust %}
+                        <input type="hidden" name="targetCustId" value="{{ targetCust.getIdSigned }}">
+                    {% endif %}
                 </div>
             </div>
             <br>
