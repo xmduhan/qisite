@@ -7,27 +7,47 @@ from django.core.urlresolvers import reverse
 
 
 def index(request):
+    '''
+    首页
+    '''
     template = loader.get_template('www/index.html')
     context = RequestContext(request, {'session': request.session})
     return HttpResponse(template.render(context))
 
 
 def help(request):
+    '''
+    帮助页面
+    '''
     template = loader.get_template('www/help.html')
     context = RequestContext(request, {'session': request.session})
     return HttpResponse(template.render(context))
 
 
 def confirmDialog(request):
+    '''
+    确认框的DOM数据
+    '''
     template = loader.get_template('www/dialog/confirmDialog.html')
     context = RequestContext(request, {'session': request.session})
     return HttpResponse(template.render(context))
 
 
 def messageDialog(request):
+    '''
+    消息框的DOM数据
+    '''
     template = loader.get_template('www/dialog/messageDialog.html')
     context = RequestContext(request, {'session': request.session})
     return HttpResponse(template.render(context))
 
 
+def errorMessage(request):
+    '''
+    出错提示测试
+    '''
+    template = loader.get_template('www/errorMessage.html')
+    context = RequestContext(
+        request, {'session': request.session, 'title': '测试标题', 'errorMessage': '错误信息', 'returnUrl': '/'})
+    return HttpResponse(template.render(context))
 

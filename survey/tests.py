@@ -9,11 +9,9 @@ from __future__ import division
 from django.test import TestCase
 from models import *
 import account.models
-from datetime import datetime
 from django.test.utils import setup_test_environment
 from django.test import Client
 from django.core.urlresolvers import reverse
-from services import RESULT_CODE, RESULT_MESSAGE
 from dateutil import parser
 from account.models import User
 import json, random, string
@@ -22,6 +20,7 @@ from account.tests import loginForTest, phoneForTest, passwordForTest
 from django.core.signing import Signer
 from django.db import transaction
 from qisite.utils import updateModelInstance
+from qisite.definitions import RESULT_CODE, RESULT_MESSAGE
 
 
 class TransactionTest(TestCase):

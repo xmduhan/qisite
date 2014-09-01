@@ -14,6 +14,11 @@ import re
 phonePattern = re.compile(r'^((13[0-9])|(15[^4,\D])|(14[57])|(17[0])|(18[0,0-9]))\d{8}$')
 
 
+def validate_phone(phone):
+    if not phonePattern.match(phone):
+        raise ValidationError(u'phone:手机号码的格式不正确')
+
+
 class TimeModel(models.Model):
     createTime = models.DateTimeField("创建时间", default=datetime.now)
     modifyTime = models.DateTimeField("修改时间", default=datetime.now)
@@ -445,11 +450,6 @@ class CustList(TimeModel):
         return self.name
 
 
-def validate_phone(phone):
-    if not phonePattern.match(phone):
-        raise ValidationError(u'phone:手机号码的格式不正确')
-
-
 class CustListItem(TimeModel):
     name = models.CharField('客户名称', max_length=50)
     phone = models.CharField('手机号', max_length=50, validators=[validate_phone])
@@ -462,11 +462,6 @@ class CustListItem(TimeModel):
     class Meta:
         verbose_name = "客户清单项"
         verbose_name_plural = "[15].客户清单项"
-
-    #def clean(self):
-    #    #print 'clean_phone is called'
-    #    if not phonePattern.match(self.phone):
-    #        raise ValidationError(u'phone:手机号码的格式不正确')
 
     def getIdSigned(self):
         signer = Signer()

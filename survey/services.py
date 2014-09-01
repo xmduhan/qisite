@@ -28,20 +28,7 @@ from django.db.models.fields.related import ForeignKey
 #from django.db import transaction
 from www.utils import packageResult, dictToJsonResponse, packageResponse
 
-
-class RESULT_CODE:
-    SUCCESS = 0
-    ERROR = -1
-
-
-class RESULT_MESSAGE:
-    NO_LOGIN = u'没有登录'
-    VALIDATION_ERROR = u'数据有效性校验失败'
-    NO_ID = u'需要提供对象标识'
-    BAD_SAGNATURE = u'数字签名无效'
-    OBJECT_NOT_EXIST = u'对象不存在'
-    NO_PRIVILEGE = u'没有权限操作该对象'
-    SUCCESS = u'成功'
+from qisite.definitions import RESULT_CODE, RESULT_MESSAGE
 
 
 def getModelFields(model):
