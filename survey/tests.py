@@ -374,10 +374,10 @@ class SurveyDeleteTest(TestCase):
         # 创建用户并且用其登陆
         self.client = Client()
         self.user = User.objects.get(code='duhan')
-        self.paper = self.user.paperCreated_set.get(title=u'网购客户满意度调查', type='I')
+        self.paper = self.user.paperCreated_set.get(code='paper-instance-test01')  #网购客户满意度调查(非定向)
         self.survey = Survey.objects.get(paper=self.paper)
         self.user_other = User.objects.get(code='zhangjianhua')
-        self.paper_other = self.user_other.paperCreated_set.get(title=u'净推介值调查', type='I')
+        self.paper_other = self.user_other.paperCreated_set.get(code='paper-instance-test02')  #净推介值调查
         self.survey_other = Survey.objects.get(paper=self.paper_other)
         loginForTest(self.client, self.user.phone, '123456')
         # 准备提交的测试数据
@@ -1563,7 +1563,7 @@ class PaperCreateInstanceTest(TestCase):
     def setUp(self):
         setup_test_environment()
         self.user = User.objects.get(code='duhan')
-        self.paper = Paper.objects.get(title=u'网购客户满意度调查', type='T')
+        self.paper = Paper.objects.get(code='paper-template-test01')  #网购客户满意度调查(非定向)
 
     def test_createPaperInstance(self):
         newPaper = self.paper.createPaperInstance(self.user)
@@ -1635,7 +1635,7 @@ class UpdateModelInstanceTest(TestCase):
     def setUp(self):
         admin = User.objects.get(code='admin')
         user = User.objects.get(code='duhan')
-        paper = Paper.objects.get(title=u'网购客户满意度调查', type='T')
+        paper = Paper.objects.get(code='paper-template-test01')  #网购客户满意度调查(非定向)
         survey = Survey()
         survey.createBy = admin
         survey.modifyBy = admin
@@ -2152,3 +2152,34 @@ class CustListItemDeleteTest(TestCase):
         # 确认数据已经不能存在了
         custListItemList = CustListItem.objects.filter(id=self.custListItem.id)
         self.assertEqual(len(custListItemList), 0)
+
+
+class AnswerNoneTargetSurvey(TestCase):
+    '''
+    问卷删除服务的测试用例
+    '''
+    fixtures = ['initial_data.json']
+
+    def setUp(self):
+        setup_test_environment()
+        self.client = Client()
+        self.survey = Survey.objects.get(code='survey-no-target-01')  #网购客户满意度调查(非定向)
+        self.answerUrl = reverse('survey:view.answer', args=[self.survey.id])
+
+    def test_enter_answter_page(self):
+        '''
+        检查非定向调查是否能够直接进入答题页面
+        '''
+        response = self.client.get(self.answerUrl)
+        self.assertEqual(response.status_code, 200)
+        # 检查是否直接转向答题模板
+        template = response.templates[0]
+        self.assertEqual(template.name, 'survey/answer.html')
+        # 确认数据
+        survey = response.context['survey']
+        self.assertEqual(self.survey.id, survey.id)
+        paper = response.context['paper']
+        self.assertEqual(self.survey.paper.id, paper.id)
+
+
+

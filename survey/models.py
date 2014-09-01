@@ -29,6 +29,7 @@ class Paper(TimeModel):
     #PAPER_STYLE = ( ('F', '平展'), ('P', '分页'))
     QUESTION_NUM_STYLE = (('123', '1.2.3.……'), ('(1)(2)(3)', '(1).(2).(3).……'), ('Q1Q2Q3', 'Q1.Q2.Q3.……'))
     PAPER_TYPE = ( ('T', '模板'), ('I', '实例'))
+    code = models.CharField('编码', max_length=100, blank=True, null=True, default=None)  # 用于在测试中找到对象
     title = models.CharField('问卷标题', max_length=500)
     description = models.CharField('问卷说明', max_length=500, blank=True)
     # 题目集 question_set (ok) (已在Question中设置外键引用)
@@ -328,6 +329,7 @@ def oneYearLater():
 
 
 class Survey(TimeModel):
+    code = models.CharField('编码', max_length=100, blank=True, null=True, default=None)  # 用于在测试中找到对象
     paper = models.ForeignKey('Paper', related_name='survey_set', verbose_name="问卷", null=True, blank=True)
     # 目标客户清单 targetcust_set (ok) (已在目标客户中设置外键)
     targetOnly = models.BooleanField('定向调查', default=False)
@@ -359,6 +361,13 @@ class Survey(TimeModel):
     def getIdSigned(self):
         signer = Signer()
         return signer.sign(self.id)
+
+    def __unicode__(self):
+        if self.custList:
+            name = self.custList.name
+        else:
+            name = 'None'
+        return '<%s,%s>' % (self.paper.title, name)
 
 
 class TargetCust(TimeModel):

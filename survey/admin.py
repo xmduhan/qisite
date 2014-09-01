@@ -6,7 +6,7 @@ from models import *
 
 class PaperAdmin(admin.ModelAdmin):
     fields = [
-        'title', 'description', 'inOrder', 'questionNumStyle', 'lookBack', 'paging',
+        'code', 'title', 'description', 'inOrder', 'questionNumStyle', 'lookBack', 'paging',
         'createBy', 'modifyBy', 'createTime', 'modifyTime'
     ]
     list_display = ('title', 'description', 'type', 'lookBack', 'createBy', 'createTime')
@@ -85,7 +85,7 @@ admin.site.register(Branch, BranchAdmin)
 
 class SurveyAdmin(admin.ModelAdmin):
     fields = [
-        'paper', 'targetOnly', 'state', 'shared', 'viewResult', 'resubmit', 'password', 'ipLimit',
+        'code', 'paper', 'targetOnly', 'custList', 'state', 'shared', 'viewResult', 'resubmit', 'password', 'ipLimit',
         'macLimit', 'publishTime', 'endTime', 'hardCost', 'bonus', 'fee', 'validSampleLimit',
         'createBy', 'modifyBy', 'createTime', 'modifyTime'
     ]
