@@ -2165,8 +2165,10 @@ class AnswerNoneTargetSurvey(TestCase):
         self.client = Client()
         self.survey = Survey.objects.get(code='survey-no-target-01')  #网购客户满意度调查(非定向)
         self.answerUrl = reverse('survey:view.answer', args=[self.survey.id])
+        # 确认该调查为非定向调查
+        self.assertIsNone(self.survey.custList)
 
-    def test_enter_answter_page(self):
+    def test_enter_answer_page(self):
         '''
         检查非定向调查是否能够直接进入答题页面
         '''
@@ -2182,4 +2184,5 @@ class AnswerNoneTargetSurvey(TestCase):
         self.assertEqual(self.survey.paper.id, paper.id)
 
 
-
+    def test_submit_survey(self):
+        pass
