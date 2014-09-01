@@ -42,12 +42,12 @@ def messageDialog(request):
     return HttpResponse(template.render(context))
 
 
-def errorMessage(request):
+def message(request):
     '''
     出错提示测试
     '''
-    template = loader.get_template('www/errorMessage.html')
+    template = loader.get_template('www/message.html')
     context = RequestContext(
-        request, {'session': request.session, 'title': '测试标题', 'errorMessage': '错误信息', 'returnUrl': '/'})
+        request, {'title': '测试标题', 'message': '测试消息', 'returnUrl': '/'})
     return HttpResponse(template.render(context))
 

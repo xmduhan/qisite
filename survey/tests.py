@@ -2162,6 +2162,7 @@ class AnswerNoneTargetSurvey(TestCase):
         setup_test_environment()
         self.client = Client()
         self.survey = Survey.objects.get(code='survey-no-target-01')  #网购客户满意度调查(非定向)
+        self.paper = self.survey.paper
         self.answerUrl = reverse('survey:view.answer', args=[self.survey.id])
         # 确认该调查为非定向调查
         self.assertIsNone(self.survey.custList)
@@ -2182,5 +2183,22 @@ class AnswerNoneTargetSurvey(TestCase):
         self.assertEqual(self.survey.paper.id, paper.id)
 
 
-    def test_submit_survey(self):
-        pass
+    def test_answer_submit(self):
+        '''
+        测试提交问卷信息
+        '''
+        client = self.client
+        url = reverse('survey:view.answer.submit')
+        # 准备一份问卷的数据
+        data = {}
+        for question in self.paper.question_set.all():
+            data[question.getIdSigned()] = question.branch_set.all()[0].getIdSigned()
+        # 提交到服务器
+        response = client.post(url, data)
+        self.assertEqual(response.status_code, 200)
+
+
+
+
+
+

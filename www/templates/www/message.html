@@ -19,14 +19,14 @@
                     {% if title %}
                         {{ title }}
                     {% else %}
-                        出错
+                        注意
                     {% endif %}
                 </div>
                 <div class="panel-body " align="center" style="height: 180px;">
                     <br><br>
 
                     <div>
-                        {{ errorMessage }}
+                        {{ message }}
                     </div>
                 </div>
             </div>
@@ -34,11 +34,16 @@
     </div>
     <div class="row">
         <div class="col-md-4 col-md-offset-4" align="center">
-            <a href="{{ returnUrl }}"
-               type="button" class="btn btn-warning ">
-                <span class="glyphicon glyphicon-repeat"></span>
-                返回
-            </a>
+            <form action="{{ returnUrl }}" method="post">
+                {% csrf_token %}
+                {% for name,value in formData.iteritems %}
+                    <input name={{ name }} type="hidden" value="{{ value }}"/>
+                {% endfor %}
+                <button type="submit" class="btn btn-warning ">
+                    <span class="glyphicon glyphicon-repeat"></span>
+                    返回
+                </button>
+            </form>
         </div>
     </div>
 

@@ -295,9 +295,13 @@ def answer(request, surveyId):
     # 手机号码不在清单中提示用户
     custListItemList = survey.custList.custListItem_set.filter(phone=phone)
     if len(custListItemList) == 0:
-        template = loader.get_template('survey/beforeAnswerError.html')
-        context = RequestContext(request, {'session': request.session, 'survey': survey, 'paper': survey.paper,
-                                           'errorMessage': '您输入的手机号码不再调查清单的范围中'})
+        template = loader.get_template('www/message.html')
+        context = RequestContext(
+            request,
+            {'title': '出错',
+             'message': '您输入的手机号码不再调查清单的范围中',
+             'returnUrl': reverse('survey:view.answer', args=[survey.id])}
+        )
         return HttpResponse(template.render(context))
     custListItem = custListItemList[0]
 
@@ -321,6 +325,8 @@ def answerSubmit(request):
     '''
     问卷一次型提交服务
     '''
+    survey = None
+    targetCust = None
     try:
         with transaction.atomic():
             # 尝试获取用户
@@ -351,17 +357,7 @@ def answerSubmit(request):
             except:
                 raise Exception(u'surveyId:对象不存在')
 
-            # 读取调查对应的问卷
-            paper = survey.paper
-
-            # 读取提交的问题列表
-            questionIdList = request.REQUEST.getlist('questionIdList')
-
-            # 检查提交问题数量是否和问卷定义一致
-            if paper.question_set.count() != len(questionIdList):
-                raise Exception(u'提交问题的数量和问卷不一致')
-
-            # 如果是定向调查检查是否提供目标客户的信息
+            # 如果是定向调查，则先检查目标客户信息是否正确
             if survey.custList:
                 targetCustIdSigned = request.REQUEST.get('targetCustId')
                 if not targetCustIdSigned:
@@ -380,12 +376,23 @@ def answerSubmit(request):
                 except:
                     raise Exception(u'无法找到所请求的目标对象')
 
+            # 读取调查对应的问卷
+            paper = survey.paper
+
+            # 读取提交的问题列表
+            questionIdList = request.REQUEST.getlist('questionIdList')
+
+            # 检查提交问题数量是否和问卷定义一致
+            if paper.question_set.count() != len(questionIdList):
+                raise Exception(u'提交问题的数量和问卷不一致')
+
             # 添加样本对象
             sample = Sample(user=user, ipAddress=ipAddress, paper=paper, createBy=user, modifyBy=user)
-            # 如果是定向调查，绑定目标客户信息到样本
+
+            # 如果是定向调查，检查是否提交目标客户信息，并绑定目标客户信息到样本
             if survey.custList:
                 sample.targetCust = targetCust
-                print targetCust
+
             # 保存样本
             sample.save()
 
@@ -401,8 +408,6 @@ def answerSubmit(request):
                     raise Exception(u'无效数字签名')
 
                 try:
-                    print 'questionId=', questionId
-                    print 'branchId=', branchId
                     question = Question.objects.get(id=questionId)
                     branch = Branch.objects.get(id=branchId)
                 except:
@@ -423,13 +428,27 @@ def answerSubmit(request):
                 sampleItem.save()
 
     except Exception as e:
-        template = loader.get_template('survey/answerError.html')
+        template = loader.get_template('www/message.html')
+        # 检查提交的表单中是否包含合法的survey信息，如果包含则说明可以返回答题页面
+        if survey:
+            returnUrl = reverse('survey:view.answer', args=[survey.id])
+        else:
+            returnUrl = reverse('/')
+
+        # 检查如果有目标客户的在表单
+        if targetCust:
+            formData = {'phone': targetCust.phone}
+        else:
+            formData = {}
+
         context = RequestContext(
-            request, {'session': request.session, 'errorMessage': e.message, 'surveyId': surveyId})
+            request, {'title': u'出错', 'message': e.message, 'returnUrl': returnUrl, 'formData': formData})
         return HttpResponse(template.render(context))
 
-    template = loader.get_template('survey/answerSubmit.html')
-    context = RequestContext(request, {'session': request.session})
+    # 如果没有抛出异常说明操作成功了，返回成功的提示信息
+    template = loader.get_template('www/message.html')
+    context = RequestContext(
+        request, {'title': u'完成', 'message': u'提交完成，感谢您的参与!', 'returnUrl': '/'})
     return HttpResponse(template.render(context))
 
 
