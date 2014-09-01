@@ -2036,7 +2036,6 @@ class CustListItemAddTest(TestCase):
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
         self.assertEquals(result['resultMessage'], RESULT_MESSAGE.VALIDATION_ERROR)  # 数据校验错
-        print result['validationMessage']
         self.assertIn('phone', result['validationMessage'])  # 校验错误信息中含name
 
     def test_add_custListItem_no_privilege(self):

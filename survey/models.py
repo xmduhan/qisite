@@ -445,9 +445,14 @@ class CustList(TimeModel):
         return self.name
 
 
+def validate_phone(phone):
+    if not phonePattern.match(phone):
+        raise ValidationError(u'phone:手机号码的格式不正确')
+
+
 class CustListItem(TimeModel):
     name = models.CharField('客户名称', max_length=50)
-    phone = models.CharField('手机号', max_length=50)
+    phone = models.CharField('手机号', max_length=50, validators=[validate_phone])
     email = models.CharField('电子邮件', max_length=100, blank=True, null=True, default='')
     custList = models.ForeignKey(CustList, verbose_name='所属清单', related_name="custListItem_set")
     defineInfo_set = models.ManyToManyField('DefineInfo', verbose_name='附件信息', blank=True, null=True)
@@ -458,10 +463,10 @@ class CustListItem(TimeModel):
         verbose_name = "客户清单项"
         verbose_name_plural = "[15].客户清单项"
 
-    def clean(self):
-        #print 'clean_phone is called'
-        if not phonePattern.match(self.phone):
-            raise ValidationError(u'phone:手机号码的格式不正确')
+    #def clean(self):
+    #    #print 'clean_phone is called'
+    #    if not phonePattern.match(self.phone):
+    #        raise ValidationError(u'phone:手机号码的格式不正确')
 
     def getIdSigned(self):
         signer = Signer()
