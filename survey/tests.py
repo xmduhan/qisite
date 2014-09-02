@@ -2189,20 +2189,29 @@ class AnswerNoneTargetSurvey(TestCase):
         '''
         client = self.client
         url = reverse('survey:view.answer.submit')
-        print url
+        sampleCount = self.survey.paper.sample_set.count()
+
         # 准备一份问卷的数据
         data = {}
+        questionIdList = []
+        data['surveyId'] = self.survey.getIdSigned()
         for question in self.paper.question_set.all():
+            questionIdList.append(question.getIdSigned())
             data[question.getIdSigned()] = question.branch_set.all()[0].getIdSigned()
+        data['questionIdList'] = questionIdList
+
         # 提交到服务器
         response = client.post(url, data)
         self.assertEqual(response.status_code, 200)
 
         # 检查提交的页面是否
-        self.assertEqual(response.templates[0].name,'www/message.html')
+        self.assertEqual(response.templates[0].name, 'www/message.html')
 
-        print response.content
+        # 检查是否返回成功信息
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
+        # 确认样本数量增加了一个
+        self.assertEqual(self.survey.paper.sample_set.count(), sampleCount + 1)
 
 
 
