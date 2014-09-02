@@ -2198,6 +2198,10 @@ class AnswerNoneTargetSurvey(TestCase):
         response = client.post(url, data)
         self.assertEqual(response.status_code, 200)
 
+        # 检查提交的页面是否
+        self.assertEqual(response.templates[0].name,'www/message.html')
+
+        print response.content
 
 
 

@@ -6,7 +6,6 @@ from django.template import Context, loader, RequestContext
 from account.models import User
 from models import *
 from django.core.signing import Signer, BadSignature
-import services
 from qisite.definitions import USER_SESSION_NAME
 from django.core.paginator import Paginator
 from qisite.utils import updateModelInstance
@@ -14,6 +13,7 @@ from django.core.urlresolvers import reverse
 from django.db import transaction
 import csv
 from io import BytesIO
+from qisite.definitions import RESULT_MESSAGE
 
 
 def getCurrentUser(request):
@@ -343,30 +343,30 @@ def answerSubmit(request):
             # 尝试读取调查标识
             surveyIdSigned = request.REQUEST.get('surveyId')
             if not surveyIdSigned:
-                raise Exception(u'缺少surveyId')
+                raise Exception(RESULT_MESSAGE.NO_SURVEY_ID)  # 没有提供调查对象
 
             # 对调查标识的数据签名进行检查
             try:
                 surveyId = signer.unsign(surveyIdSigned)
             except:
-                raise Exception(u'surveyId:无效数字签名')
+                raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 无效的数字签名
 
             # 检查调查对象的状态是否有效
             try:
                 survey = Survey.objects.get(id=surveyId, state='A')
             except:
-                raise Exception(u'surveyId:对象不存在')
+                raise Exception(RESULT_MESSAGE.SURVEY_OBJECT_NOT_EXIST)  # 调查对象不存在
 
             # 如果是定向调查，则先检查目标客户信息是否正确
             if survey.custList:
                 targetCustIdSigned = request.REQUEST.get('targetCustId')
                 if not targetCustIdSigned:
-                    raise Exception(u'定向调查没有提供目标清单')
+                    raise Exception(RESULT_MESSAGE.TARGET_SURVEY_NEED_CUSTlIST)  #定向调查需要提供客户清单
                 # 验证目标清单的数字签名
                 try:
                     targetCustId = signer.unsign(targetCustIdSigned)
                 except:
-                    raise Exception(u'targetCustId:无效数字签名')
+                    raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 无效的数字签名
 
                 print 'targetCustId=', targetCustId
 
@@ -374,7 +374,7 @@ def answerSubmit(request):
                 try:
                     targetCust = TargetCust.objects.get(id=targetCustId)
                 except:
-                    raise Exception(u'无法找到所请求的目标对象')
+                    raise Exception(RESULT_MESSAGE.CUSTLIST_OBJECT_NOT_EXIST)  # 所指定的客户清单的对象不存在
 
             # 读取调查对应的问卷
             paper = survey.paper
@@ -384,7 +384,7 @@ def answerSubmit(request):
 
             # 检查提交问题数量是否和问卷定义一致
             if paper.question_set.count() != len(questionIdList):
-                raise Exception(u'提交问题的数量和问卷不一致')
+                raise Exception(RESULT_MESSAGE.ANSWER_COUNT_DIFF_WITH_QUESTION)  # 提交问题的数量和问卷不一致
 
             # 添加样本对象
             sample = Sample(user=user, ipAddress=ipAddress, paper=paper, createBy=user, modifyBy=user)
@@ -400,25 +400,32 @@ def answerSubmit(request):
             for questionIdSigned in questionIdList:
                 branchIdSinged = request.REQUEST.get(questionIdSigned)
                 if not branchIdSinged:
-                    raise Exception(u'请完整填写问卷中的所有问题')
+                    raise Exception(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
                 try:
                     questionId = signer.unsign(questionIdSigned)
                     branchId = signer.unsign(branchIdSinged)
                 except:
-                    raise Exception(u'无效数字签名')
+                    raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 数字签名无效
 
+                # 读取问题对象
                 try:
                     question = Question.objects.get(id=questionId)
+                except:
+                    raise Exception(RESULT_MESSAGE.QUESTION_OBJECT_NO_EXIST)  # 问题对象不存在
+
+                # 选项对象不存在
+                try:
                     branch = Branch.objects.get(id=branchId)
                 except:
-                    raise Exception(u'数据已经不存在')
+                    raise Exception(RESULT_MESSAGE.BRANCH_OBJECT_NO_EXIST)  # 选项对象不存在
 
+                #
                 if question.paper != paper:
-                    raise Exception(u'提交问题的问题此问卷无关')
+                    raise Exception(RESULT_MESSAGE.QUESTION_NOT_IN_PAPER)  #提交问题的问题此问卷无关
 
                 branch_set = list(question.branch_set.all())
                 if branch not in branch_set:
-                    raise Exception(u'提交答案不在选项范围内')
+                    raise Exception(RESULT_MESSAGE.BRANCH_NOT_IN_QUESTION)  #提交答案不在选项范围内
 
                 # 将数据写到样本项信息中去
                 sampleItem = SampleItem(
@@ -433,7 +440,7 @@ def answerSubmit(request):
         if survey:
             returnUrl = reverse('survey:view.answer', args=[survey.id])
         else:
-            returnUrl = reverse('/')
+            returnUrl = '/'
 
         # 检查如果有目标客户的在表单
         if targetCust:
@@ -448,7 +455,7 @@ def answerSubmit(request):
     # 如果没有抛出异常说明操作成功了，返回成功的提示信息
     template = loader.get_template('www/message.html')
     context = RequestContext(
-        request, {'title': u'完成', 'message': u'提交完成，感谢您的参与!', 'returnUrl': '/'})
+        request, {'title': u'完成', 'message': RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, 'returnUrl': '/'})
     return HttpResponse(template.render(context))
 
 
