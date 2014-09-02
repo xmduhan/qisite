@@ -2189,6 +2189,7 @@ class AnswerNoneTargetSurvey(TestCase):
         '''
         client = self.client
         url = reverse('survey:view.answer.submit')
+        print url
         # 准备一份问卷的数据
         data = {}
         for question in self.paper.question_set.all():
