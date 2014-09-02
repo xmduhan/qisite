@@ -2154,7 +2154,7 @@ class CustListItemDeleteTest(TestCase):
 
 class AnswerNoneTargetSurvey(TestCase):
     '''
-    问卷删除服务的测试用例
+    无定向调查的提交规则测试
     '''
     fixtures = ['initial_data.json']
 
@@ -2164,8 +2164,23 @@ class AnswerNoneTargetSurvey(TestCase):
         self.survey = Survey.objects.get(code='survey-no-target-01')  #网购客户满意度调查(非定向)
         self.paper = self.survey.paper
         self.answerUrl = reverse('survey:view.answer', args=[self.survey.id])
+        self.answerSubmitUrl = reverse('survey:view.answer.submit')
         # 确认该调查为非定向调查
         self.assertIsNone(self.survey.custList)
+        #
+        self.answerTemplate = 'survey/answer.html'
+        self.messageTemplate = 'www/message.html'
+
+
+        # 生成一个合法的答卷数据，供后面的过程提交使用
+        data_valid = {}
+        questionIdList = []
+        data_valid['surveyId'] = self.survey.getIdSigned()
+        for question in self.paper.question_set.all():
+            questionIdList.append(question.getIdSigned())
+            data_valid[question.getIdSigned()] = question.branch_set.all()[0].getIdSigned()
+        data_valid['questionIdList'] = questionIdList
+        self.data_valid = data_valid
 
     def test_enter_answer_page(self):
         '''
@@ -2175,7 +2190,7 @@ class AnswerNoneTargetSurvey(TestCase):
         self.assertEqual(response.status_code, 200)
         # 检查是否直接转向答题模板
         template = response.templates[0]
-        self.assertEqual(template.name, 'survey/answer.html')
+        self.assertEqual(template.name, self.answerTemplate)
         # 确认数据
         survey = response.context['survey']
         self.assertEqual(self.survey.id, survey.id)
@@ -2183,29 +2198,19 @@ class AnswerNoneTargetSurvey(TestCase):
         self.assertEqual(self.survey.paper.id, paper.id)
 
 
-    def test_answer_submit(self):
+    def test_answer_submit_success(self):
         '''
         测试提交问卷信息
         '''
         client = self.client
-        url = reverse('survey:view.answer.submit')
         sampleCount = self.survey.paper.sample_set.count()
 
-        # 准备一份问卷的数据
-        data = {}
-        questionIdList = []
-        data['surveyId'] = self.survey.getIdSigned()
-        for question in self.paper.question_set.all():
-            questionIdList.append(question.getIdSigned())
-            data[question.getIdSigned()] = question.branch_set.all()[0].getIdSigned()
-        data['questionIdList'] = questionIdList
-
         # 提交到服务器
-        response = client.post(url, data)
+        response = client.post(self.answerSubmitUrl, self.data_valid)
         self.assertEqual(response.status_code, 200)
 
         # 检查提交的页面是否
-        self.assertEqual(response.templates[0].name, 'www/message.html')
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
 
         # 检查是否返回成功信息
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
@@ -2213,6 +2218,222 @@ class AnswerNoneTargetSurvey(TestCase):
         # 确认样本数量增加了一个
         self.assertEqual(self.survey.paper.sample_set.count(), sampleCount + 1)
 
+        # 确认question数量和sample相同
+        ## 获取最新添加的一个sample
+        sample = self.survey.paper.sample_set.order_by('-createTime')[0]
+        self.assertEqual(sample.sampleitem_set.count(), self.survey.paper.question_set.count())
 
 
+    def test_answer_resubmit(self):
+        '''
+        确定测试重复提交会失败
+        '''
+        client = self.client
 
+        # 第1次提交页面返回成功
+        response = client.post(self.answerSubmitUrl, self.data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 第2次提交页面返回失败
+        response = client.post(self.answerSubmitUrl, self.data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.DO_NOT_RESUBMIT)
+
+        # 第2次不单是不能提交而且连答题页面都不能进去
+        response = self.client.get(self.answerUrl)
+        self.assertEqual(response.status_code, 200)
+        # 检查是否直接转向答题模板
+        template = response.templates[0]
+        self.assertEqual(template.name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.DO_NOT_RESUBMIT)
+
+
+class AnswerTargetSurvey(TestCase):
+    '''
+    定向调查提交规则测试
+    '''
+    fixtures = ['initial_data.json']
+
+    def setUp(self):
+        setup_test_environment()
+        self.client = Client()
+        self.survey = Survey.objects.get(code='survey-target-01')  #网购客户满意度调查(定向)
+        self.custList = self.survey.custList
+        self.paper = self.survey.paper
+        self.answerUrl = reverse('survey:view.answer', args=[self.survey.id])
+        self.answerSubmitUrl = reverse('survey:view.answer.submit')
+        # 确认该调查为非定向调查
+        self.assertIsNotNone(self.survey.custList)
+        # 相关模板
+        self.answerTemplate = 'survey/answer.html'
+        self.beforeAnswerTemplate = 'survey/beforeAnswer.html'
+        self.messageTemplate = 'www/message.html'
+
+        # 生成一个合法的答卷数据，供后面的过程提交使用
+        data_valid = {}
+        questionIdList = []
+        data_valid['surveyId'] = self.survey.getIdSigned()
+        for question in self.paper.question_set.all():
+            questionIdList.append(question.getIdSigned())
+            data_valid[question.getIdSigned()] = question.branch_set.all()[0].getIdSigned()
+        data_valid['questionIdList'] = questionIdList
+        self.data_valid = data_valid
+
+    def test_enter_answer_page_on_phone(self):
+        '''
+        检查如果没有提供号码无法进入答题页面
+        '''
+        response = self.client.get(self.answerUrl)
+        self.assertEqual(response.status_code, 200)
+        # 检查是否直接转向答题模板
+        template = response.templates[0]
+        self.assertEqual(template.name, self.beforeAnswerTemplate)
+
+
+    def test_enter_answer_page_phone_not_in_list(self):
+        '''
+        检查如果提供一个错误的号码无法进入答题页面
+        '''
+        # 提交一个不相关的号码
+        phone = '18900001111'
+        response = self.client.get(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+        # 检查是否直接转向答题模板
+        template = response.templates[0]
+        self.assertEqual(template.name, self.messageTemplate)
+        # 检查出错信息是否一致
+        self.assertContains(response, RESULT_MESSAGE.PHONE_NOT_IN_CUSTLIST)
+
+
+    def test_enter_answer_page_with_valid_phone(self):
+        '''
+        检查提供正确的号码可以进入答题页面
+        '''
+        # 先确认之前custTarget是没有记录的
+        phone = self.custList.custListItem_set.all()[0].phone
+        targetCustList = self.survey.targetCust_set.filter(phone=phone)
+        self.assertEqual(len(targetCustList), 0)
+        #提交数据到服务器
+        response = self.client.get(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+        # 检查是否直接转向答题模板
+        template = response.templates[0]
+        self.assertEqual(template.name, self.answerTemplate)
+        # 确认数据
+        survey = response.context['survey']
+        self.assertEqual(self.survey.id, survey.id)
+        paper = response.context['paper']
+        self.assertEqual(self.survey.paper.id, paper.id)
+        # 检查targetCust记录是否生成
+        targetCustList = self.survey.targetCust_set.filter(phone=phone)
+        self.assertEqual(len(targetCustList), 1)
+
+
+    def test_answer_submit_success(self):
+        '''
+        测试提交问卷信息
+        '''
+        client = self.client
+        sampleCount = self.survey.paper.sample_set.count()
+
+        # 调用进入答卷页面生成targetCust记录
+        phone = self.custList.custListItem_set.all()[0].phone
+        response = self.client.get(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+
+        # 找到刚插入的targetCust记录
+        targetCust = self.survey.targetCust_set.filter(phone=phone)[0]
+        data_valid = copy.copy(self.data_valid)
+        data_valid['targetCustId'] = targetCust.getIdSigned()
+
+        # 提交到服务器
+        response = client.post(self.answerSubmitUrl, data_valid)
+        self.assertEqual(response.status_code, 200)
+
+        # 检查提交的页面是否
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+
+        # 检查是否返回成功信息
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 确认样本数量增加了一个
+        self.assertEqual(self.survey.paper.sample_set.count(), sampleCount + 1)
+
+        # 确认question数量和sample相同
+        ## 获取最新添加的一个sample
+        sample = self.survey.paper.sample_set.order_by('-createTime')[0]
+        self.assertEqual(sample.sampleitem_set.count(), self.survey.paper.question_set.count())
+
+
+    def test_answer_resubmit_with_same_phone(self):
+        '''
+        检查同一个号码的重复提交
+        '''
+        client = self.client
+
+        # 调用进入答卷页面生成targetCust记录
+        phone = self.custList.custListItem_set.all()[0].phone
+        response = self.client.get(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+
+        # 找到刚插入的targetCust记录
+        targetCust = self.survey.targetCust_set.filter(phone=phone)[0]
+        data_valid = copy.copy(self.data_valid)
+        data_valid['targetCustId'] = targetCust.getIdSigned()
+
+        # 第1此提交成功
+        response = client.post(self.answerSubmitUrl, data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 第2次提交失败
+        response = client.post(self.answerSubmitUrl, data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.DO_NOT_RESUBMIT)
+
+        # 检查第2次进入页面也是失败的
+        response = self.client.get(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+        template = response.templates[0]
+        self.assertEqual(template.name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.DO_NOT_RESUBMIT)
+
+
+    def test_answer_resubmit_with_different_phone(self):
+        '''
+        模拟两个不同的号码在同一个客户端进行提交
+        '''
+        client = self.client
+
+        # 模拟第1号码进入页面并生成提交数据
+        phone = self.custList.custListItem_set.all()[0].phone
+        response = self.client.get(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+        targetCust1 = self.survey.targetCust_set.filter(phone=phone)[0]
+        data_valid1 = copy.copy(self.data_valid)
+        data_valid1['targetCustId'] = targetCust1.getIdSigned()
+
+        # 模拟第2号码进入页面并生成提交数据
+        phone = self.custList.custListItem_set.all()[1].phone
+        response = self.client.get(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+        targetCust2 = self.survey.targetCust_set.filter(phone=phone)[0]
+        data_valid2 = copy.copy(self.data_valid)
+        data_valid2['targetCustId'] = targetCust2.getIdSigned()
+
+        # 第1此提交成功
+        response = client.post(self.answerSubmitUrl, data_valid1)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 第2次提交也要成功
+        response = client.post(self.answerSubmitUrl, data_valid2)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)

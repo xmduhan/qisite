@@ -272,11 +272,21 @@ def answer(request, surveyId):
     '''
         编辑调查
     '''
+    # 读取session中的已提交列表数据
+    submitedSurveyList = request.session.get('submitedSurveyList', [])
+
     # 读取survey对象
     surveyList = Survey.objects.filter(id=surveyId)
     if not surveyList:
         raise Http404
     survey = surveyList[0]
+
+    # 检查是否发生重复提交
+    if survey.id in submitedSurveyList:
+        template = loader.get_template('www/message.html')
+        context = RequestContext(
+            request, {'title': '出错', 'message': RESULT_MESSAGE.DO_NOT_RESUBMIT, 'returnUrl': '/'})
+        return HttpResponse(template.render(context))
 
     # 如果是非定向调查
     if not survey.custList:
@@ -299,20 +309,34 @@ def answer(request, surveyId):
         context = RequestContext(
             request,
             {'title': '出错',
-             'message': '您输入的手机号码不再调查清单的范围中',
+             'message': RESULT_MESSAGE.PHONE_NOT_IN_CUSTLIST,
              'returnUrl': reverse('survey:view.answer', args=[survey.id])}
         )
         return HttpResponse(template.render(context))
     custListItem = custListItemList[0]
 
-    # 如果手机号码确认通过
-    # 1、将custListItem信息保存到targetCust
-    targetCust = TargetCust(
-        name=custListItem.name, phone=custListItem.phone, email=custListItem.email, survey=survey,
-        createBy=survey.createBy, modifyBy=survey.createBy,
-    )
-    targetCust.save()
+    # 尝试寻找之前是否已经生成了targetCust
+    targetCustList = survey.targetCust_set.filter(phone=phone)
 
+    if len(targetCustList) == 0:
+        # 如果还没有生成targetCust记录尝试去生成
+        targetCust = TargetCust(
+            name=custListItem.name, phone=custListItem.phone, email=custListItem.email, survey=survey,
+            createBy=survey.createBy, modifyBy=survey.createBy,
+        )
+        targetCust.save()
+    else:
+        # 如果已经生成了要检查是否是重复提交
+        targetCust = targetCustList[0]
+        if targetCust.sample_set.count() != 0:
+            template = loader.get_template('www/message.html')
+            context = RequestContext(
+                request,
+                {'title': '出错',
+                 'message': RESULT_MESSAGE.DO_NOT_RESUBMIT,
+                 'returnUrl': '/'}
+            )
+            return HttpResponse(template.render(context))
 
     # 生成含页面目标客户(targetCust)的调查页面
     template = loader.get_template('survey/answer.html')
@@ -323,10 +347,15 @@ def answer(request, surveyId):
 
 def answerSubmit(request):
     '''
-    问卷一次型提交服务
+    问卷一次性提交服务
     '''
+    # 读取session中的已提交列表数据
+    submitedSurveyList = request.session.get('submitedSurveyList', [])
+
+    # 初始化变量
     survey = None
     targetCust = None
+
     try:
         with transaction.atomic():
             # 尝试获取用户
@@ -357,6 +386,10 @@ def answerSubmit(request):
             except:
                 raise Exception(RESULT_MESSAGE.SURVEY_OBJECT_NOT_EXIST)  # 调查对象不存在
 
+            # 检查是否发生重复提交
+            if survey.id in submitedSurveyList:
+                raise Exception(RESULT_MESSAGE.DO_NOT_RESUBMIT)  # 重复提交
+
             # 如果是定向调查，则先检查目标客户信息是否正确
             if survey.custList:
                 targetCustIdSigned = request.REQUEST.get('targetCustId')
@@ -368,13 +401,15 @@ def answerSubmit(request):
                 except:
                     raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 无效的数字签名
 
-                print 'targetCustId=', targetCustId
-
                 # 读取目标客户对象
                 try:
                     targetCust = TargetCust.objects.get(id=targetCustId)
                 except:
                     raise Exception(RESULT_MESSAGE.CUSTLIST_OBJECT_NOT_EXIST)  # 所指定的客户清单的对象不存在
+
+                # 检查该target是否已经提交过数据(sample)
+                if targetCust.sample_set.count() != 0:
+                    raise Exception(RESULT_MESSAGE.DO_NOT_RESUBMIT)  # 重复提交
 
             # 读取调查对应的问卷
             paper = survey.paper
@@ -449,8 +484,14 @@ def answerSubmit(request):
             formData = {}
 
         context = RequestContext(
-            request, {'title': u'出错', 'message': e.message, 'returnUrl': returnUrl, 'formData': formData})
+            request, {'title': u'出错', 'message': unicode(e), 'returnUrl': returnUrl, 'formData': formData})
         return HttpResponse(template.render(context))
+
+    # 非定向调查使用session保存调查信息
+    if not survey.custList:
+        submitedSurveyList.append(survey.id)
+        request.session['submitedSurveyList'] = submitedSurveyList
+
 
     # 如果没有抛出异常说明操作成功了，返回成功的提示信息
     template = loader.get_template('www/message.html')
@@ -460,6 +501,9 @@ def answerSubmit(request):
 
 
 def sampleExport(request, surveyId):
+    '''
+    将调查收集到的样本导出csv文件
+    '''
     # 读取调查对象
     survey = Survey.objects.get(id=surveyId)
 
