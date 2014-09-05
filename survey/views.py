@@ -14,6 +14,8 @@ from django.db import transaction
 import csv
 from io import BytesIO
 from qisite.definitions import RESULT_MESSAGE
+import qrcode
+from qrcode.image.pure import PymagingImage
 
 
 def getCurrentUser(request):
@@ -561,3 +563,10 @@ def sampleExport(request, surveyId):
     return response
 
 
+def surveyTest(request):
+    img = qrcode.make('http://115.28.232.176/survey/view/answer/6', image_factory=PymagingImage)
+    buffer = BytesIO()
+    img.save(buffer)
+    response = StreamingHttpResponse(buffer.getvalue(), content_type="image/png")
+    response['Content-Disposition'] = 'attachment; filename="test.png"'
+    return response
