@@ -30,7 +30,10 @@ urlpatterns = patterns(
     url(r'^view/answer/submit$', views.answerSubmit, name='view.answer.submit'),
     ## 样本导出
     url(r'^view/sample/export/(?P<surveyId>\d+)$', views.sampleExport, name='view.sample.export'),
-    url(r'^view/survey/test$', views.surveyTest, name='view.survey.test'),
+
+    ## 调查发布页面
+    url(r'^view/survey/publish/(?P<surveyId>\d+)$', views.surveyPublish, name='view.survey.publish'),
+    url(r'^view/survey/imageCode/(?P<surveyId>\d+)$', views.surveyImageCode, name='view.survey.imageCode'),
 
     ####################################
     #              服务               #
@@ -64,7 +67,6 @@ urlpatterns = patterns(
     ## custListItem
     url(r'^service/custListItem/add$', services.custListItemAdd, name='service.custListItem.add'),
     url(r'^service/custListItem/delete$', services.custListItemDelete, name='service.custListItem.delete'),
-
 
 
 )

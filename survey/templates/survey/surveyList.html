@@ -61,11 +61,19 @@
                                 </a>
                             </td>
                             {# 发布/暂停调查 #}
+                            {% comment %}
                             <td>
                                 <a href="{% url 'survey:view.answer' survey.id %}">
                                     <span class="glyphicon glyphicon-play "></span>
                                 </a>
                             </td>
+                            {% endcomment %}
+                            <td>
+                                <a href="{% url 'survey:view.survey.publish' survey.id %}">
+                                    <span class="glyphicon glyphicon-play"></span>
+                                </a>
+                            </td>
+
                             {# 临时导出按钮 #}
                             <td>
                                 <a href="{% url 'survey:view.sample.export' survey.id %}">

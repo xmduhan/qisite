@@ -16,6 +16,7 @@ from io import BytesIO
 from qisite.definitions import RESULT_MESSAGE
 import qrcode
 from qrcode.image.pure import PymagingImage
+from qisite.settings import domain
 
 
 def getCurrentUser(request):
@@ -563,10 +564,51 @@ def sampleExport(request, surveyId):
     return response
 
 
-def surveyTest(request):
-    img = qrcode.make('http://115.28.232.176/survey/view/answer/6', image_factory=PymagingImage)
+def surveyImageCode(request, surveyId):
+    '''
+    获取调查答题卷页面的url的二维码
+    '''
+    # 检查调查的代码是否存在
+    surveyList = Survey.objects.filter(id=surveyId)
+    if not surveyList:
+        raise Http404
+    survey = surveyList[0]
+
+    # 检查当前用户是否有查看权限
+    user = getCurrentUser(request)
+    if survey.createBy != user:
+        raise Http404
+
+    # 拼接url
+
+    url = '%s/%s' % (domain, reverse('survey:view.answer', args=[survey.id]))
+
+    # 将url转化为二维码形式返回客户端
+    img = qrcode.make(url, image_factory=PymagingImage)
     buffer = BytesIO()
     img.save(buffer)
     response = StreamingHttpResponse(buffer.getvalue(), content_type="image/png")
     response['Content-Disposition'] = 'attachment; filename="test.png"'
     return response
+
+
+def surveyPublish(request, surveyId):
+    '''
+    调查发布页面
+    '''
+    # 检查调查的代码是否存在
+    surveyList = Survey.objects.filter(id=surveyId)
+    if not surveyList:
+        raise Http404
+    survey = surveyList[0]
+
+    # 检查当前用户是否有查看权限
+    user = getCurrentUser(request)
+    if survey.createBy != user:
+        raise Http404
+
+    # 调用模板返回结果
+    template = loader.get_template('survey/surveyPublish.html')
+    context = RequestContext(request, {'session': request.session, 'survey': survey})
+    return HttpResponse(template.render(context))
+
