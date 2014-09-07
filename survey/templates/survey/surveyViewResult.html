@@ -1,0 +1,69 @@
+{% load survey %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {# 加载相关的css #}
+    {% include "www/commoncss.html" %}
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+
+        {% csrf_token %}
+        <div class="col-md-12">
+            <div class="panel panel-primary ">
+                <div class="panel-heading" align="center">
+                    <h4>查看结果({{ paper.title }})</h4>
+                </div>
+            </div>
+        </div>
+        <br>
+
+        {% for question in paper.getQuestionSetInOrder %}
+            <div class="col-md-12">
+                <div class="panel panel-info ">
+                    <div class="panel-heading">
+                        {{ question.getNum }} {{ question.text }} <br>
+                    </div>
+                    <div class="panel-body">
+                        {% for branch in question.getBranchSetInOrder %}
+                            <div>
+                                {{ branch.getNum }} {{ branch.text }}-------
+                                {{ branchSelCount|get_item:branch.id }}
+                                ({{ branchSelPct|get_item:branch.id|floatformat:"-2" }}%)
+                            </div>
+                            <br>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+
+        {#  底部按钮 #}
+        <div class="row">
+            <div class="col-md-12" align="center">
+                {# 发布按钮 #}
+                <div class="btn btn-primary "
+                     data-form-id="answerSubmit">
+                    <span class="glyphicon glyphicon-ok"></span>
+                    返回
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p></p>
+
+    <br><br><br><br><br><br><br><br><br><br>
+
+
+</div>
+{% include "www/commonjs.html" %}
+<script src="/static/survey/js/answer.js"></script>
+
+</body>
+</html>

@@ -1,6 +1,6 @@
 #-*- coding: utf-8 -*-
 # Create your views here.
-
+from __future__ import division
 from django.http import HttpResponse, Http404, HttpResponseRedirect, StreamingHttpResponse
 from django.template import Context, loader, RequestContext
 from account.models import User
@@ -17,6 +17,7 @@ from qisite.definitions import RESULT_MESSAGE
 import qrcode
 from qrcode.image.pure import PymagingImage
 from qisite.settings import domain
+from django.db.models import Count
 
 
 def getCurrentUser(request):
@@ -286,9 +287,9 @@ def answer(request, surveyId):
 
     # 检查是否发生重复提交
     if survey.id in submitedSurveyList:
-        template = loader.get_template('www/message.html')
+        template = loader.get_template('survey/alreadySubmit.html')
         context = RequestContext(
-            request, {'title': '出错', 'message': RESULT_MESSAGE.DO_NOT_RESUBMIT, 'returnUrl': '/'})
+            request, {'title': '出错', 'message': RESULT_MESSAGE.DO_NOT_RESUBMIT, 'returnUrl': '/', 'survey': survey})
         return HttpResponse(template.render(context))
 
     # 如果是非定向调查
@@ -332,12 +333,13 @@ def answer(request, surveyId):
         # 如果已经生成了要检查是否是重复提交
         targetCust = targetCustList[0]
         if targetCust.sample_set.count() != 0:
-            template = loader.get_template('www/message.html')
+            template = loader.get_template('survey/alreadySubmit.html')
             context = RequestContext(
                 request,
                 {'title': '出错',
                  'message': RESULT_MESSAGE.DO_NOT_RESUBMIT,
-                 'returnUrl': '/'}
+                 'returnUrl': '/',
+                 'survey': survey}
             )
             return HttpResponse(template.render(context))
 
@@ -473,7 +475,7 @@ def answerSubmit(request):
                 sampleItem.save()
 
     except Exception as e:
-        template = loader.get_template('www/message.html')
+
         # 检查提交的表单中是否包含合法的survey信息，如果包含则说明可以返回答题页面
         if survey:
             returnUrl = reverse('survey:view.answer', args=[survey.id])
@@ -486,9 +488,19 @@ def answerSubmit(request):
         else:
             formData = {}
 
-        context = RequestContext(
-            request, {'title': u'出错', 'message': unicode(e), 'returnUrl': returnUrl, 'formData': formData})
-        return HttpResponse(template.render(context))
+        if unicode(e) == RESULT_MESSAGE.DO_NOT_RESUBMIT:
+            # 转向重复提交专用处理页面(含查看结果按钮)
+            template = loader.get_template('survey/alreadySubmit.html')
+            context = RequestContext(
+                request, {'title': u'出错', 'message': unicode(e), 'returnUrl': returnUrl,
+                          'formData': formData, 'survey': survey})
+            return HttpResponse(template.render(context))
+        else:
+            # 转向通用出错处理页面
+            template = loader.get_template('www/message.html')
+            context = RequestContext(
+                request, {'title': u'出错', 'message': unicode(e), 'returnUrl': returnUrl, 'formData': formData})
+            return HttpResponse(template.render(context))
 
     # 非定向调查使用session保存调查信息
     if not survey.custList:
@@ -612,3 +624,32 @@ def surveyPublish(request, surveyId):
     context = RequestContext(request, {'session': request.session, 'survey': survey})
     return HttpResponse(template.render(context))
 
+
+def surveyViewResult(request, surveyId):
+    '''
+    查看调查结果
+    '''
+
+    # 检查调查的代码是否存在
+    surveyList = Survey.objects.filter(id=surveyId)
+    if not surveyList:
+        raise Http404
+    survey = surveyList[0]
+
+    # 统计选线的选择次数
+    branchList = Branch.objects.filter(question__paper=survey.paper).annotate(sampleitem_count=Count('sampleitem'))
+    sampleCount = survey.paper.sample_set.count()
+    branchSelCount = {}
+    branchSelPct = {}
+    for branch in branchList:
+        branchSelCount[branch.id] = branch.sampleitem_count
+        if sampleCount != 0:
+            branchSelPct[branch.id] = branch.sampleitem_count / sampleCount * 100
+        else:
+            branchSelPct[branch.id] = 0
+    # 调用模板返回结果
+    template = loader.get_template('survey/surveyViewResult.html')
+    context = RequestContext(
+        request, {'session': request.session, 'survey': survey, 'paper': survey.paper,
+                  'branchSelCount': branchSelCount, 'branchSelPct': branchSelPct})
+    return HttpResponse(template.render(context))

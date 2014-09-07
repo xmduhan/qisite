@@ -20,9 +20,16 @@
             </div>
         </div>
     </div>
+
+    <a id="finishButton" href="{% url 'survey:view.answer' survey.id %}"
+       type="button" class="btn btn-success ">
+        <span class="glyphicon glyphicon-ok"></span>
+        go
+    </a>
     {# 加载Javascript程序 #}
     {% include "www/commonjs.html" %}
     <script src="/static/survey/js/surveyList.js"></script>
+
 </div>
 </body>
 </html>

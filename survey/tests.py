@@ -2170,6 +2170,7 @@ class AnswerNoneTargetSurvey(TestCase):
         #
         self.answerTemplate = 'survey/answer.html'
         self.messageTemplate = 'www/message.html'
+        self.alreadyTemplate = 'survey/alreadySubmit.html'
 
 
         # 生成一个合法的答卷数据，供后面的过程提交使用
@@ -2209,7 +2210,7 @@ class AnswerNoneTargetSurvey(TestCase):
         response = client.post(self.answerSubmitUrl, self.data_valid)
         self.assertEqual(response.status_code, 200)
 
-        # 检查提交的页面是否
+        # 检查提交的页面是否成功
         self.assertEqual(response.templates[0].name, self.messageTemplate)
 
         # 检查是否返回成功信息
@@ -2239,7 +2240,7 @@ class AnswerNoneTargetSurvey(TestCase):
         # 第2次提交页面返回失败
         response = client.post(self.answerSubmitUrl, self.data_valid)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.alreadyTemplate)
         self.assertContains(response, RESULT_MESSAGE.DO_NOT_RESUBMIT)
 
         # 第2次不单是不能提交而且连答题页面都不能进去
@@ -2247,7 +2248,7 @@ class AnswerNoneTargetSurvey(TestCase):
         self.assertEqual(response.status_code, 200)
         # 检查是否直接转向答题模板
         template = response.templates[0]
-        self.assertEqual(template.name, self.messageTemplate)
+        self.assertEqual(template.name, self.alreadyTemplate)
         self.assertContains(response, RESULT_MESSAGE.DO_NOT_RESUBMIT)
 
 
@@ -2271,6 +2272,7 @@ class AnswerTargetSurvey(TestCase):
         self.answerTemplate = 'survey/answer.html'
         self.beforeAnswerTemplate = 'survey/beforeAnswer.html'
         self.messageTemplate = 'www/message.html'
+        self.alreadyTemplate = 'survey/alreadySubmit.html'
 
         # 生成一个合法的答卷数据，供后面的过程提交使用
         data_valid = {}
@@ -2393,14 +2395,14 @@ class AnswerTargetSurvey(TestCase):
         # 第2次提交失败
         response = client.post(self.answerSubmitUrl, data_valid)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.alreadyTemplate)
         self.assertContains(response, RESULT_MESSAGE.DO_NOT_RESUBMIT)
 
         # 检查第2次进入页面也是失败的
         response = self.client.get(self.answerUrl, {'phone': phone})
         self.assertEqual(response.status_code, 200)
         template = response.templates[0]
-        self.assertEqual(template.name, self.messageTemplate)
+        self.assertEqual(template.name, self.alreadyTemplate)
         self.assertContains(response, RESULT_MESSAGE.DO_NOT_RESUBMIT)
 
 

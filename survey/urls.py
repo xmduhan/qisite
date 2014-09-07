@@ -31,9 +31,13 @@ urlpatterns = patterns(
     ## 样本导出
     url(r'^view/sample/export/(?P<surveyId>\d+)$', views.sampleExport, name='view.sample.export'),
 
+
     ## 调查发布页面
     url(r'^view/survey/publish/(?P<surveyId>\d+)$', views.surveyPublish, name='view.survey.publish'),
     url(r'^view/survey/imageCode/(?P<surveyId>\d+)$', views.surveyImageCode, name='view.survey.imageCode'),
+
+    # 查看结果
+    url(r'^view/survey/viewResult/(?P<surveyId>\d+)$', views.surveyViewResult, name='view.survey.viewResult'),
 
     ####################################
     #              服务               #
