@@ -51,7 +51,7 @@ class SendSmsCheckCodeTest(TestCase):
             reverse('account:sendSmsCheckCode'),
         )
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], -1)
+        self.assertEquals(result['resultCode'], -1)
         self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.no_phone)
 
     def test_invail_phone(self):
@@ -65,7 +65,7 @@ class SendSmsCheckCodeTest(TestCase):
             {'phone': '123456'}
         )
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], -1)
+        self.assertEquals(result['resultCode'], -1)
         self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.invaild_phone)
 
 
@@ -81,7 +81,7 @@ class SendSmsCheckCodeTest(TestCase):
             {'phone': phone}
         )
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], 0)
+        self.assertEquals(result['resultCode'], 0)
         self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.success)
 
         # 短时间立即做一次
@@ -90,7 +90,7 @@ class SendSmsCheckCodeTest(TestCase):
             {'phone': phone}
         )
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], -1)
+        self.assertEquals(result['resultCode'], -1)
         ##self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.need_wait)
         self.assertTrue(result['secondsRemain'] <= 180)
         self.assertTrue(result['secondsRemain'] >= 150)
@@ -105,7 +105,7 @@ class SendSmsCheckCodeTest(TestCase):
             {'phone': phone}
         )
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], -1)
+        self.assertEquals(result['resultCode'], -1)
         ## 确认时间是在减少的
         self.assertTrue(result['secondsRemain'] < secondsRemain)
 
@@ -211,7 +211,7 @@ class RegisterTest(TestCase):
             {'phone': phone}
         )
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], 0)
+        self.assertEquals(result['resultCode'], 0)
         self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.success)
         # 提交注册请求
         response = client.post(
@@ -233,7 +233,7 @@ class RegisterTest(TestCase):
             {'phone': phone}
         )
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], 0)
+        self.assertEquals(result['resultCode'], 0)
         self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.success)
         # 在数据库中找到注册码
         interval = timedelta(minutes=5)
@@ -262,7 +262,7 @@ class RegisterTest(TestCase):
             {'phone': phone}
         )
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], 0)
+        self.assertEquals(result['resultCode'], 0)
         self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.success)
         # 在数据库中找到注册码
         interval = timedelta(minutes=5)
@@ -290,7 +290,7 @@ class RegisterTest(TestCase):
             {'phone': phone}
         )
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], 0)
+        self.assertEquals(result['resultCode'], 0)
         self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.success)
         # 在数据库中找到注册码
         interval = timedelta(minutes=5)
@@ -318,7 +318,7 @@ class RegisterTest(TestCase):
             {'phone': phone}
         )
         result = json.loads(response.content)
-        self.assertEquals(result['errorCode'], 0)
+        self.assertEquals(result['resultCode'], 0)
         self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.success)
         # 在数据库中找到注册码
         interval = timedelta(minutes=5)

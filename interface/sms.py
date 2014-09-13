@@ -31,13 +31,13 @@ def send(phone, text):
     content = response.read();
     resultCode = int(content)
     if resultCode > 0:
-        return {'errorCode': 0, 'errorMessage': '成功'}
+        return {'resultCode': 0, 'errorMessage': '成功'}
     else:
         if resultCode in errorMessage.keys():
-            return {'errorCode': resultCode, 'errorMessage': errorMessage[resultCode]}
+            return {'resultCode': resultCode, 'errorMessage': errorMessage[resultCode]}
         else:
-            return {'errorCode': -100, 'errorMessage': '未知错误'}
+            return {'resultCode': -100, 'errorMessage': '未知错误'}
 
 
-    def sendTest(phone, text):
-        return {'errorCode': 0, 'errorMessage': '成功'}
+def sendTest(phone, text):
+    return {'resultCode': 0, 'errorMessage': '成功'}

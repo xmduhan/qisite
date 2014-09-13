@@ -41,14 +41,14 @@ def sendSmsCheckCode(request):
     # 读取request中的手机号码
     result = {}
     if 'phone' not in request.REQUEST.keys():
-        result['errorCode'] = -1
+        result['resultCode'] = -1
         result['errorMessage'] = SendSmsCheckCode_ErrorMessage.no_phone
         return HttpResponse(json.dumps(result))
 
     # 检查输入是否符合手机格式
     phone = request.REQUEST['phone']
     if not phonePattern.match(phone):
-        result['errorCode'] = -1
+        result['resultCode'] = -1
         result['errorMessage'] = SendSmsCheckCode_ErrorMessage.invaild_phone
         return HttpResponse(json.dumps(result))
 
@@ -63,7 +63,7 @@ def sendSmsCheckCode(request):
     if len(smsCheckCodeList) > 0:
         smsCheckCode = smsCheckCodeList[0]
         remain = interval - (datetime.now() - smsCheckCode.createTime)
-        result['errorCode'] = -1
+        result['resultCode'] = -1
         result['errorMessage'] = SendSmsCheckCode_ErrorMessage.need_wait % remain.seconds
         result['secondsRemain'] = remain.seconds
         return HttpResponse(json.dumps(result))
@@ -75,13 +75,13 @@ def sendSmsCheckCode(request):
     # 发送短信
     checkCodeText = checkCodeTextFormat % checkCode
     smsSendResult = smsSend(phone, checkCodeText)
-    if smsSendResult['errorCode'] <> 0:
-        result['errorCode'] = -1
+    if smsSendResult['resultCode'] <> 0:
+        result['resultCode'] = -1
         result['errorMessage'] = SendSmsCheckCode_ErrorMessage.send_sms_fail
         return HttpResponse(json.dumps(result))
 
     # 返回成功
-    result['errorCode'] = 0
+    result['resultCode'] = 0
     result['errorMessage'] = SendSmsCheckCode_ErrorMessage.success
     result['secondsRemain'] = interval.seconds
     return HttpResponse(json.dumps(result))

@@ -69,7 +69,7 @@ $(document).ready(function () {
                 } else {
                     $('#sendCheckCode').attr('disabled', false);
                 }
-                if (result.errorCode != 0) {
+                if (result.resultCode != 0) {
                     // 如果返回失败显示出错信息
                     showErrorMessage(result.errorMessage);
                 }
