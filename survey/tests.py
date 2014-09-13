@@ -21,6 +21,7 @@ from django.core.signing import Signer
 from django.db import transaction
 from qisite.utils import updateModelInstance
 from qisite.definitions import RESULT_CODE, RESULT_MESSAGE
+from qisite.settings import domain
 
 
 class TransactionTest(TestCase):
@@ -2439,3 +2440,33 @@ class AnswerTargetSurvey(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+
+class SendSurveyToPhoneTest(TestCase):
+    '''
+    定向调查提交规则测试
+    '''
+    fixtures = ['initial_data.json']
+
+    def setUp(self):
+        # 准备提交的测试数据
+        self.user = User.objects.get(code='duhan')
+        self.user_other = User.objects.get(code='zhangjianhua')
+        self.survey = self.user.surveyCreated_set.filter(state='A')[0]
+        self.survey_others = self.user_other.surveyCreated_set.filter(state='A')[0]
+        self.survey_del = self.user.surveyCreated_set.filter(state='P')[0]
+        self.urlToPush = domain + reverse('survey:view.answer', args=[self.survey.id])
+        self.message = 'xxxllx%slkkejlls' % self.urlToPush
+        self.message_bad = 'xxxllx%slkkejlls'
+        self.data_valid = {'id': self.survey.getIdSigned(), 'message': self.message}
+        self.data_bad_signature = {'id': self.survey.id, 'message': self.message}
+        self.data_no_privilege = {'id': self.survey_others.getIdSigned(), 'message': self.message}
+        self.data_bad_message = {'id': self.survey.getIdSigned(), 'message': self.message_bad}
+        # 创建用户并且用其登陆
+        self.client = Client()
+        loginForTest(self.client, self.user.phone, '123456')
+        self.serviceUrl = reverse('survey:service.survey.sendSurveyToPhone')
+
+    def test01(self):
+        pass
+

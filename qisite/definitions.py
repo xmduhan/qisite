@@ -32,5 +32,8 @@ class RESULT_MESSAGE:
     DO_NOT_RESUBMIT = u'您已经回答过这份问卷'
     PHONE_NOT_IN_CUSTLIST = u'您输入的手机号码不再调查清单的范围中'
     NO_MESSAGE = u'没有提供发送消息'
+    FAIL_TO_SEND_SMS = u'发送短信失败'
+    NEED_WAIT = u'请等待后重新请求'
+    URL_NO_IN_MESSAGE = u'发送信息不包含正确的URL'
 
     SUCCESS = u'成功'

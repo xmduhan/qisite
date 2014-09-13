@@ -16,6 +16,7 @@
 '''
 import json
 from django.http import HttpResponse
+from django.core.urlresolvers import reverse
 from django.forms import ValidationError
 from django.core.signing import Signer, BadSignature
 from models import Paper, Question, Branch, Survey, CustList, CustListItem
@@ -28,6 +29,7 @@ from django.db.models.fields.related import ForeignKey
 #from django.db import transaction
 from www.utils import packageResult, dictToJsonResponse, packageResponse
 from qisite.settings import smsSend
+from qisite.settings import domain
 
 from qisite.definitions import RESULT_CODE, RESULT_MESSAGE
 
@@ -1286,9 +1288,29 @@ def sendSurveyToPhone(request):
         return dictToJsonResponse(result)
     message = requestData['message']
 
+    # 检查短信内容是否包含访问连接
+    url = domain + reverse('survey:view.answer', args=[survey.id])
+    if url not in message:
+        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.URL_NO_IN_MESSAGE)
+        return dictToJsonResponse(result)
+
+    # 检查上次短信发送时间
+    if survey.lastSmsSendTime:
+        delta = datetime.now() - survey.lastSmsSendTime
+        if delta.seconds <= 120:
+            result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NEED_WAIT)
+            return dictToJsonResponse(result)
+
     # 尝试发送短信
-    #smsSendResult = smsSend(user.phone, message)
-    #if smsSendResult['']
+    smsSendResult = smsSend(user.phone, message)
+    if smsSendResult['resultCode'] != 0:
+        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.FAIL_TO_SEND_SMS)
+        return dictToJsonResponse(result)
+
+    # 返回成功
+    result = packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS)
+    return dictToJsonResponse(result)
+
 
 
 

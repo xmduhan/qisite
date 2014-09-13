@@ -356,6 +356,7 @@ class Survey(TimeModel):
     bonus = models.FloatField('奖金', default=0)
     fee = models.FloatField('手续费', default=0)
     validSampleLimit = models.IntegerField("有效样本上限", default=0)  # 0 表示无限制
+    lastSmsSendTime = models.DateTimeField("最后一次推送短信时间", blank=True, null=True, default=None)
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='surveyCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='surveyModified_set')
 
