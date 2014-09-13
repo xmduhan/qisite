@@ -1270,7 +1270,7 @@ def sendSurveyToPhone(request):
         return dictToJsonResponse(result)
 
     # 加载对象
-    surveyList = Survey.objects.filter(id=id, state='A')
+    surveyList = Survey.objects.filter(id=id, state='A').select_for_update()
     if len(surveyList) == 0:
         result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.OBJECT_NOT_EXIST)
         return dictToJsonResponse(result)
@@ -1300,6 +1300,10 @@ def sendSurveyToPhone(request):
         if delta.seconds <= 120:
             result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NEED_WAIT)
             return dictToJsonResponse(result)
+
+    # 更新最后发送时间
+    survey.lastSmsSendTime = datetime.now()
+    survey.save()
 
     # 尝试发送短信
     smsSendResult = smsSend(user.phone, message)

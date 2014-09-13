@@ -1563,7 +1563,7 @@ class PaperCreateInstanceTest(TestCase):
     def setUp(self):
         setup_test_environment()
         self.user = User.objects.get(code='duhan')
-        self.paper = Paper.objects.get(code='paper-template-test01')  #网购客户满意度调查(非定向)
+        self.paper = Paper.objects.get(code='paper-template-test01', type='T')  #网购客户满意度调查(非定向)
 
     def test_createPaperInstance(self):
         newPaper = self.paper.createPaperInstance(self.user)
@@ -1635,7 +1635,7 @@ class UpdateModelInstanceTest(TestCase):
     def setUp(self):
         admin = User.objects.get(code='admin')
         user = User.objects.get(code='duhan')
-        paper = Paper.objects.get(code='paper-template-test01')  #网购客户满意度调查(非定向)
+        paper = Paper.objects.get(code='paper-template-test01', type='T')  #网购客户满意度调查(非定向)
         survey = Survey()
         survey.createBy = admin
         survey.modifyBy = admin
@@ -2467,6 +2467,68 @@ class SendSurveyToPhoneTest(TestCase):
         loginForTest(self.client, self.user.phone, '123456')
         self.serviceUrl = reverse('survey:service.survey.sendSurveyToPhone')
 
-    def test01(self):
-        pass
+    def test_success(self):
+        '''
+        测试成功提交的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
+
+    def test_no_id(self):
+        '''
+        测试没有提交id的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, {})
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_ID)
+
+    def test_bad_signature(self):
+        '''
+        测试数字签名不正确的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_bad_signature)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
+
+    def test_no_privilege(self):
+        '''
+        测试没有权限的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_no_privilege)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_PRIVILEGE)
+
+    def test_bad_message(self):
+        '''
+        测试url没有包含在短信内容中的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_bad_message)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.URL_NO_IN_MESSAGE)
+
+    def test_frequently_send(self):
+        client = self.client
+        # 第一次调用应该是成功的
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
+        # 第二次调用应该失败
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NEED_WAIT)
+
+
 
