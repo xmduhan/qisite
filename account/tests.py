@@ -10,7 +10,7 @@ from django.test.client import Client
 from django.core.urlresolvers import reverse
 from django.contrib.auth.hashers import make_password, check_password
 
-from views import SendSmsCheckCode_ErrorMessage, Register_ErrorMessage, Login_ErrorMessage
+from views import SendSmsCheckCode_ResultMessage, Register_ResultMessage, Login_ResultMessage
 from models import SmsCheckCode, User
 from qisite.definitions import USER_SESSION_NAME
 
@@ -52,7 +52,7 @@ class SendSmsCheckCodeTest(TestCase):
         )
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], -1)
-        self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.no_phone)
+        self.assertEquals(result['errorMessage'], SendSmsCheckCode_ResultMessage.no_phone)
 
     def test_invail_phone(self):
         '''
@@ -66,7 +66,7 @@ class SendSmsCheckCodeTest(TestCase):
         )
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], -1)
-        self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.invaild_phone)
+        self.assertEquals(result['errorMessage'], SendSmsCheckCode_ResultMessage.invaild_phone)
 
 
     def test_success_and_redo(self):
@@ -82,7 +82,7 @@ class SendSmsCheckCodeTest(TestCase):
         )
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], 0)
-        self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.success)
+        self.assertEquals(result['errorMessage'], SendSmsCheckCode_ResultMessage.success)
 
         # 短时间立即做一次
         response = client.post(
@@ -142,7 +142,7 @@ class RegisterTest(TestCase):
         response = client.post(
             reverse('account:register'), {'phone': ''}
         )
-        self.assertContains(response, Register_ErrorMessage.no_phone)
+        self.assertContains(response, Register_ResultMessage.no_phone)
 
     def test_invaild_phone(self):
         '''
@@ -153,7 +153,7 @@ class RegisterTest(TestCase):
         response = client.post(
             reverse('account:register'), {'phone': '123456'}
         )
-        self.assertContains(response, Register_ErrorMessage.invaild_phone)
+        self.assertContains(response, Register_ResultMessage.invaild_phone)
 
     def test_phone_registered(self):
         '''
@@ -169,7 +169,7 @@ class RegisterTest(TestCase):
         response = client.post(
             reverse('account:register'), {'phone': phone}
         )
-        self.assertContains(response, Register_ErrorMessage.phone_registered)
+        self.assertContains(response, Register_ResultMessage.phone_registered)
 
     def test_no_check_code(self):
         '''
@@ -182,7 +182,7 @@ class RegisterTest(TestCase):
         response = client.post(
             reverse('account:register'), {'phone': phone}
         )
-        self.assertContains(response, Register_ErrorMessage.no_check_code)
+        self.assertContains(response, Register_ResultMessage.no_check_code)
 
     def test_send_check_code_first(self):
         '''
@@ -195,7 +195,7 @@ class RegisterTest(TestCase):
         response = client.post(
             reverse('account:register'), {'phone': phone, 'checkCode': '123'}
         )
-        self.assertContains(response, Register_ErrorMessage.send_check_code_first)
+        self.assertContains(response, Register_ResultMessage.send_check_code_first)
 
     def test_invaild_check_code(self):
         '''
@@ -212,12 +212,12 @@ class RegisterTest(TestCase):
         )
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], 0)
-        self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.success)
+        self.assertEquals(result['errorMessage'], SendSmsCheckCode_ResultMessage.success)
         # 提交注册请求
         response = client.post(
             reverse('account:register'), {'phone': phone, 'checkCode': '123'}
         )
-        self.assertContains(response, Register_ErrorMessage.invaild_check_code)
+        self.assertContains(response, Register_ResultMessage.invaild_check_code)
 
     def test_no_password(self):
         '''
@@ -234,7 +234,7 @@ class RegisterTest(TestCase):
         )
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], 0)
-        self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.success)
+        self.assertEquals(result['errorMessage'], SendSmsCheckCode_ResultMessage.success)
         # 在数据库中找到注册码
         interval = timedelta(minutes=5)
         smsCheckCodeList = SmsCheckCode.objects.filter(
@@ -245,7 +245,7 @@ class RegisterTest(TestCase):
             reverse('account:register'),
             {'phone': phone, 'checkCode': smsCheckCodeList[0].checkCode}
         )
-        self.assertContains(response, Register_ErrorMessage.no_password)
+        self.assertContains(response, Register_ResultMessage.no_password)
 
 
     def test_password_len_lt_6(self):
@@ -263,7 +263,7 @@ class RegisterTest(TestCase):
         )
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], 0)
-        self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.success)
+        self.assertEquals(result['errorMessage'], SendSmsCheckCode_ResultMessage.success)
         # 在数据库中找到注册码
         interval = timedelta(minutes=5)
         smsCheckCodeList = SmsCheckCode.objects.filter(
@@ -274,7 +274,7 @@ class RegisterTest(TestCase):
             reverse('account:register'),
             {'phone': phone, 'checkCode': smsCheckCodeList[0].checkCode, 'password': '123'}
         )
-        self.assertContains(response, Register_ErrorMessage.password_len_lt_len6)
+        self.assertContains(response, Register_ResultMessage.password_len_lt_len6)
 
     def test_password_different(self):
         '''
@@ -291,7 +291,7 @@ class RegisterTest(TestCase):
         )
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], 0)
-        self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.success)
+        self.assertEquals(result['errorMessage'], SendSmsCheckCode_ResultMessage.success)
         # 在数据库中找到注册码
         interval = timedelta(minutes=5)
         smsCheckCodeList = SmsCheckCode.objects.filter(
@@ -302,7 +302,7 @@ class RegisterTest(TestCase):
             reverse('account:register'),
             {'phone': phone, 'checkCode': smsCheckCodeList[0].checkCode, 'password': '123456'}
         )
-        self.assertContains(response, Register_ErrorMessage.password_different)
+        self.assertContains(response, Register_ResultMessage.password_different)
 
     def test_success(self):
         '''
@@ -319,7 +319,7 @@ class RegisterTest(TestCase):
         )
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], 0)
-        self.assertEquals(result['errorMessage'], SendSmsCheckCode_ErrorMessage.success)
+        self.assertEquals(result['errorMessage'], SendSmsCheckCode_ResultMessage.success)
         # 在数据库中找到注册码
         interval = timedelta(minutes=5)
         smsCheckCodeList = SmsCheckCode.objects.filter(
@@ -361,7 +361,7 @@ class LoginTest(TestCase):
         response = client.post(
             reverse('account:login'), {'phone': ''}
         )
-        self.assertContains(response, Login_ErrorMessage.no_phone)
+        self.assertContains(response, Login_ResultMessage.no_phone)
 
     def test_invaild_phone(self):
         '''
@@ -372,7 +372,7 @@ class LoginTest(TestCase):
         response = client.post(
             reverse('account:login'), {'phone': '12456789'}
         )
-        self.assertContains(response, Login_ErrorMessage.invaild_phone)
+        self.assertContains(response, Login_ResultMessage.invaild_phone)
 
     def test_no_password(self):
         '''
@@ -383,7 +383,7 @@ class LoginTest(TestCase):
         response = client.post(
             reverse('account:login'), {'phone': '18906021980'}
         )
-        self.assertContains(response, Login_ErrorMessage.no_password)
+        self.assertContains(response, Login_ResultMessage.no_password)
 
     def test_no_register(self):
         '''
@@ -398,7 +398,7 @@ class LoginTest(TestCase):
         response = client.post(
             reverse('account:login'), {'phone': phone, 'password': '123456'}
         )
-        self.assertContains(response, Login_ErrorMessage.no_register)
+        self.assertContains(response, Login_ResultMessage.no_register)
 
 
     def test_phone_or_password_invalid(self):
@@ -417,7 +417,7 @@ class LoginTest(TestCase):
         response = client.post(
             reverse('account:login'), {'phone': phone, 'password': '123'}
         )
-        self.assertContains(response, Login_ErrorMessage.phone_or_password_invalid)
+        self.assertContains(response, Login_ResultMessage.phone_or_password_invalid)
 
 
     def test_success(self):
