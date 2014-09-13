@@ -621,7 +621,7 @@ def surveyPublish(request, surveyId):
 
     # 调用模板返回结果
     template = loader.get_template('survey/surveyPublish.html')
-    context = RequestContext(request, {'session': request.session, 'survey': survey})
+    context = RequestContext(request, {'session': request.session, 'survey': survey, 'domain': domain})
     return HttpResponse(template.render(context))
 
 
