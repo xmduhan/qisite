@@ -27,6 +27,7 @@ from django.db.models.fields import BooleanField
 from django.db.models.fields.related import ForeignKey
 #from django.db import transaction
 from www.utils import packageResult, dictToJsonResponse, packageResponse
+from qisite.settings import smsSend
 
 from qisite.definitions import RESULT_CODE, RESULT_MESSAGE
 
@@ -1234,3 +1235,63 @@ def custListItemDelete(request):
     requestData = request.REQUEST
     result = _custListItemDelete(requestData, user)
     return dictToJsonResponse(result)
+
+
+def sendSurveyToPhone(request):
+    '''
+    将推荐链接短信发送到手机的服务
+    '''
+
+    # 检查用户是否存在
+    if USER_SESSION_NAME not in request.session.keys():
+        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
+        return dictToJsonResponse(result)
+    user = request.session[USER_SESSION_NAME]
+
+    #
+    requestData = request.REQUEST
+
+    # 尝试获取调查对象的标识
+    keys = requestData.keys()
+    if 'id' not in keys:
+        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_ID)
+        return dictToJsonResponse(result)
+    idSigned = requestData['id']
+
+    # 对id进行数字签名的检查
+    try:
+        signer = Signer()
+        id = signer.unsign(idSigned)
+    except BadSignature:
+        # 篡改发现处理
+        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.BAD_SAGNATURE)
+        return dictToJsonResponse(result)
+
+    # 加载对象
+    surveyList = Survey.objects.filter(id=id, state='A')
+    if len(surveyList) == 0:
+        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.OBJECT_NOT_EXIST)
+        return dictToJsonResponse(result)
+    survey = surveyList[0]
+
+    # 检查当前用户是否权限
+    if survey.createBy != user:
+        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_PRIVILEGE)
+        return dictToJsonResponse(result)
+
+    # 读取要发送的信息
+    keys = requestData.keys()
+    if 'message' not in keys:
+        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_MESSAGE)
+        return dictToJsonResponse(result)
+    message = requestData['message']
+
+    # 尝试发送短信
+    #smsSendResult = smsSend(user.phone, message)
+    #if smsSendResult['']
+
+
+
+
+
+

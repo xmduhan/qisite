@@ -46,6 +46,7 @@ urlpatterns = patterns(
     url(r'^service/survey/add$', services.surveyAdd, name='service.survey.add'),
     url(r'^service/survey/modify$', services.surveyModify, name='service.survey.modify'),
     url(r'^service/survey/delete$', services.surveyDelete, name='service.survey.delete'),
+    url(r'^service/survey/sendSurveyToPhone$', services.sendSurveyToPhone, name='service.survey.sendSurveyToPhone'),
     ## paper
     url(r'^service/paper/add$', services.paperAdd, name='service.paper.add'),
     url(r'^service/paper/modify$', services.paperModify, name='service.paper.modify'),
@@ -67,6 +68,7 @@ urlpatterns = patterns(
     url(r'^service/custList/add$', services.custListAdd, name='service.custList.add'),
     url(r'^service/custList/delete$', services.custListDelete, name='service.custList.delete'),
     url(r'^service/custList/modify$', services.custListModify, name='service.custList.modify'),
+
 
     ## custListItem
     url(r'^service/custListItem/add$', services.custListItemAdd, name='service.custListItem.add'),

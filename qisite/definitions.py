@@ -31,5 +31,6 @@ class RESULT_MESSAGE:
     THANKS_FOR_ANSWER_SURVEY = u'提交完成，感谢您的参与!'
     DO_NOT_RESUBMIT = u'您已经回答过这份问卷'
     PHONE_NOT_IN_CUSTLIST = u'您输入的手机号码不再调查清单的范围中'
+    NO_MESSAGE = u'没有提供发送消息'
 
     SUCCESS = u'成功'

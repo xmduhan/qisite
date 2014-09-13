@@ -36,8 +36,8 @@ def send(phone, text):
         if resultCode in errorMessage.keys():
             return {'errorCode': resultCode, 'errorMessage': errorMessage[resultCode]}
         else:
-            return [-100, '未知错误']
+            return {'errorCode': -100, 'errorMessage': '未知错误'}
 
 
-def sendTest(phone, text):
-    return {'errorCode': 0, 'errorMessage': '成功'}
+    def sendTest(phone, text):
+        return {'errorCode': 0, 'errorMessage': '成功'}

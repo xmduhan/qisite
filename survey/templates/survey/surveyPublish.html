@@ -41,7 +41,8 @@
                         <span class="glyphicon glyphicon-share"></span>复制到剪贴板
                     </div>
                     {% endcomment %}
-                    <div type="button" class="btn btn-default">
+                    <div id="sendSurveyToPhone" type="button" class="btn btn-default"
+                         data-binding-url="{% url 'survey:service.survey.sendSurveyToPhone' %}">
                         <span class="glyphicon glyphicon-phone"></span>发送到手机
                     </div>
                 </div>
