@@ -71,7 +71,7 @@ $(document).ready(function () {
                 }
                 if (result.resultCode != 0) {
                     // 如果返回失败显示出错信息
-                    showErrorMessage(result.errorMessage);
+                    showErrorMessage(result.resultMessage);
                 }
             },
             // 失败说明网络有问题或者服务器有问题

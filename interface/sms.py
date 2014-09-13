@@ -5,7 +5,7 @@ import urllib, urllib2
 uid = 'joerge'
 key = '664bf7c1849b3e6331c1'
 smsServerUrl = "http://utf8.sms.webchinese.cn"
-errorMessage = {
+resultMessage = {
     -1, '没有该用户账户',
     -2, '接口密钥不正确',
     -21, 'MD5接口密钥加密不正确',
@@ -31,13 +31,13 @@ def send(phone, text):
     content = response.read();
     resultCode = int(content)
     if resultCode > 0:
-        return {'resultCode': 0, 'errorMessage': '成功'}
+        return {'resultCode': 0, 'resultMessage': '成功'}
     else:
-        if resultCode in errorMessage.keys():
-            return {'resultCode': resultCode, 'errorMessage': errorMessage[resultCode]}
+        if resultCode in resultMessage.keys():
+            return {'resultCode': resultCode, 'resultMessage': resultMessage[resultCode]}
         else:
-            return {'resultCode': -100, 'errorMessage': '未知错误'}
+            return {'resultCode': -100, 'resultMessage': '未知错误'}
 
 
 def sendTest(phone, text):
-    return {'resultCode': 0, 'errorMessage': '成功'}
+    return {'resultCode': 0, 'resultMessage': '成功'}
