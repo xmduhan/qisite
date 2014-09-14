@@ -107,8 +107,8 @@ REST_FRAMEWORK = {
 
 URLS_JS_GENERATED_FILE = '/static/django/django-urls.js'
 
-smsSend = sms.send
-#smsSend = sms.sendTest
+#smsSend = sms.send
+smsSend = sms.sendTest
 
 """ SQL日志开关
 LOGGING = {
@@ -130,6 +130,5 @@ LOGGING = {
     },
 }
 #"""
-
 
 domain = 'http://115.28.232.176'
