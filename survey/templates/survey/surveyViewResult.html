@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {# 加载相关的css #}
     {% include "www/commoncss.html" %}
+    {# 加载相关的jqplot的css #}
+    <link rel="stylesheet" href="/static/jqplot/jquery.jqplot.min.css">
 </head>
 <body>
 
@@ -29,6 +31,7 @@
                         {{ question.getNum }} {{ question.text }} <br>
                     </div>
                     <div class="panel-body">
+                        {# 打印出每个选项的选择数量和 #}
                         {% for branch in question.getBranchSetInOrder %}
                             <div>
                                 {{ branch.getNum }} {{ branch.text }}-------
@@ -37,6 +40,17 @@
                             </div>
                             <br>
                         {% endfor %}
+                        {# 显示数据对应的图表 #}
+                        <div id="chart{{ question.ord }}" style="height: 300px; width: 400px;
+                             position: relative;"
+                             class="jqplot-target"
+                             data-chart-data="[
+                                {% for branch in question.getBranchSetInOrder %}
+                                 ['{{ branch.getNum }}',{{ branchSelCount|get_item:branch.id }}],
+                                {% endfor %}
+                             ]">
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -61,11 +75,18 @@
     <br><br><br><br><br><br><br><br><br><br>
 
 
-    <canvas id="myChart" width="400" height="400" style="background-color: darkgrey"></canvas>
-
 
 </div>
+
 {% include "www/commonjs.html" %}
+
+
+{# jquery 的兼容包jqplot基于jquery1.6为与之兼容必须加上migrate #}
+<script src="/static/jquery/jquery-migrate-1.2.1.min.js"></script>
+{# 图表显示相关的js引用 #}
+<script src="/static/jqplot/jquery.jqplot.min.js"></script>
+<script src="/static/jqplot/plugins/jqplot.pieRenderer.min.js"></script>
+
 <script src="/static/survey/js/surveyViewResult.js"></script>
 
 </body>
