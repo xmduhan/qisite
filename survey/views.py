@@ -338,6 +338,7 @@ def answer(request, surveyId):
                 request,
                 {'title': '出错',
                  'message': RESULT_MESSAGE.DO_NOT_RESUBMIT,
+                 #'returnUrl': reverse('survey:view.answer', args=[survey.id]),
                  'returnUrl': '/',
                  'survey': survey}
             )
