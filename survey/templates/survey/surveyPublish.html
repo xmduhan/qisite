@@ -28,7 +28,7 @@
                 </div>
                 <div class="row">
                     <div>
-                        <textarea id="txtArea" rows="9" style="resize: none;width: 100%;"
+                        <textarea id="message" rows="9" style="resize: none;width: 100%;"
                                 >手机号码{{ session.user.phone }}的用户为您准备一份问卷邀请您参加，调查的题目为"{{ survey.paper.title }}"，调查访问地址为:{{ domain }}{% url 'survey:view.answer' survey.id %}
                         </textarea>
                     </div>
@@ -42,7 +42,8 @@
                     </div>
                     {% endcomment %}
                     <div id="sendSurveyToPhone" type="button" class="btn btn-default"
-                         data-binding-url="{% url 'survey:service.survey.sendSurveyToPhone' %}">
+                         data-binding-action="{% url 'survey:service.survey.sendSurveyToPhone' %}"
+                         data-binding-id="{{ survey.getIdSigned }}">
                         <span class="glyphicon glyphicon-phone"></span>发送到手机
                     </div>
                 </div>

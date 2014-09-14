@@ -1295,10 +1295,12 @@ def sendSurveyToPhone(request):
         return dictToJsonResponse(result)
 
     # 检查上次短信发送时间
+    timeDelaySeconds = 120
     if survey.lastSmsSendTime:
         delta = datetime.now() - survey.lastSmsSendTime
-        if delta.seconds <= 120:
-            result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NEED_WAIT)
+        if delta.seconds <= timeDelaySeconds:
+            secondsRemain = timeDelaySeconds - delta.seconds
+            result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NEED_WAIT, {'secondsRemain': secondsRemain})
             return dictToJsonResponse(result)
 
     # 更新最后发送时间
@@ -1306,13 +1308,16 @@ def sendSurveyToPhone(request):
     survey.save()
 
     # 尝试发送短信
-    smsSendResult = smsSend(user.phone, message)
-    if smsSendResult['resultCode'] != 0:
-        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.FAIL_TO_SEND_SMS)
-        return dictToJsonResponse(result)
-
+    try:
+        smsSendResult = smsSend(user.phone, message)
+        if smsSendResult['resultCode'] != 0:
+            result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.FAIL_TO_SEND_SMS)
+            return dictToJsonResponse(result)
+    except Exception as e:
+        print e
+        raise
     # 返回成功
-    result = packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS)
+    result = packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'secondsRemain': timeDelaySeconds})
     return dictToJsonResponse(result)
 
 
