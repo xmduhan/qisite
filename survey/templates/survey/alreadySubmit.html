@@ -39,26 +39,18 @@
                 {% for name,value in formData.iteritems %}
                     <input name={{ name }} type="hidden" value="{{ value }}"/>
                 {% endfor %}
-                <div class="row">
-                    <div class="col-md-6">
-                        <button type="submit" class="btn btn-warning btn-block">
-                            <span class="glyphicon glyphicon-repeat"></span>
-                            返回
-                        </button>
-                    </div>
-                    <div class="col-md-6 ">
-
-                        <a id="finishButton" href="{% url 'survey:view.survey.viewResult' survey.id %}"
-                           type="button" class="btn btn-success btn-block">
-                            <span class="glyphicon glyphicon-ok"></span>
-                            查看结果
-                        </a>
-
-                    </div>
+                <div class="row" align="center">
+                    <button type="submit" class="btn btn-warning">
+                        <span class="glyphicon glyphicon-repeat"></span>
+                        返回
+                    </button>
+                    <a id="finishButton" href="{% url 'survey:view.survey.viewResult' survey.id %}"
+                       type="button" class="btn btn-success ">
+                        <span class="glyphicon glyphicon-ok"></span>
+                        查看
+                    </a>
                 </div>
             </form>
-
-
         </div>
     </div>
 
