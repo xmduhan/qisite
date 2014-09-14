@@ -34,23 +34,28 @@
     </div>
     <div class="row">
         <div class="col-md-4 col-md-offset-4">
+            {% comment %}
             <form action="{{ returnUrl }}" method="post">
                 {% csrf_token %}
                 {% for name,value in formData.iteritems %}
                     <input name={{ name }} type="hidden" value="{{ value }}"/>
                 {% endfor %}
-                <div class="row" align="center">
-                    <button type="submit" class="btn btn-warning">
-                        <span class="glyphicon glyphicon-repeat"></span>
-                        返回
-                    </button>
-                    <a id="finishButton" href="{% url 'survey:view.survey.viewResult' survey.id %}"
-                       type="button" class="btn btn-success ">
-                        <span class="glyphicon glyphicon-ok"></span>
-                        查看
-                    </a>
-                </div>
+            {% endcomment %}
+            <div class="row" align="center">
+                <button id="returnBackButton" type="button" class="btn btn-warning"
+                        data-binding-action="{{ returnUrl }}">
+                    <span class="glyphicon glyphicon-repeat"></span>
+                    返回
+                </button>
+                <a id="finishButton" href="{% url 'survey:view.survey.viewResult' survey.id %}"
+                   type="button" class="btn btn-success ">
+                    <span class="glyphicon glyphicon-ok"></span>
+                    查看
+                </a>
+            </div>
+            {% comment %}
             </form>
+            {% endcomment %}
         </div>
     </div>
 
@@ -58,5 +63,6 @@
 
 
 {% include "www/commonjs.html" %}
+<script src="/static/survey/js/alreadySubmit.js"></script>
 </body>
 </html>
