@@ -46,6 +46,11 @@
                          data-binding-id="{{ survey.getIdSigned }}">
                         <span class="glyphicon glyphicon-phone"></span>发送到手机
                     </div>
+                    <a id="finishButton" href="{% url 'survey:view.survey.list' %}"
+                       type="button" class="btn btn-warning ">
+                        <span class="glyphicon glyphicon-repeat"></span>
+                        返回
+                    </a>
                 </div>
             </div>
         </div>

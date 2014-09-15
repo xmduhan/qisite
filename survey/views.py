@@ -176,7 +176,7 @@ def surveyAddAction(request):
     paperInstance.save()
 
     # 返回调查列表
-    return HttpResponseRedirect(reverse('survey:view.survey.list'))
+    return HttpResponseRedirect(reverse('survey:view.survey.publish', args=[survey.id]))
 
 
 def custListList(request, page=1):
