@@ -302,7 +302,7 @@ def answer(request, surveyId):
     phone = request.REQUEST.get('phone')
     # 如果用户没有填写手机号码，显示填写手机号码的页面
     if not phone:
-        template = loader.get_template('survey/beforeAnswer.html')
+        template = loader.get_template('survey/loginAnswer.html')
         context = RequestContext(request, {'session': request.session, 'survey': survey, 'paper': survey.paper})
         return HttpResponse(template.render(context))
 
@@ -332,17 +332,19 @@ def answer(request, surveyId):
     else:
         # 如果已经生成了要检查是否是重复提交
         targetCust = targetCustList[0]
-        if targetCust.sample_set.count() != 0:
-            template = loader.get_template('survey/alreadySubmit.html')
-            context = RequestContext(
-                request,
-                {'title': '出错',
-                 'message': RESULT_MESSAGE.DO_NOT_RESUBMIT,
-                 #'returnUrl': reverse('survey:view.answer', args=[survey.id]),
-                 'returnUrl': '/',
-                 'survey': survey}
-            )
-            return HttpResponse(template.render(context))
+
+    # 检查调查是否已经填写过了
+    if targetCust.sample_set.count() != 0:
+        template = loader.get_template('survey/alreadySubmit.html')
+        context = RequestContext(
+            request,
+            {'title': '出错',
+             'message': RESULT_MESSAGE.DO_NOT_RESUBMIT,
+             #'returnUrl': reverse('survey:view.answer', args=[survey.id]),
+             'returnUrl': '/',
+             'survey': survey}
+        )
+        return HttpResponse(template.render(context))
 
     # 生成含页面目标客户(targetCust)的调查页面
     template = loader.get_template('survey/answer.html')
