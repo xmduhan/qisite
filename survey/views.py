@@ -294,7 +294,7 @@ def answer(request, surveyId):
 
     # 如果是非定向调查
     if not survey.custList:
-        template = loader.get_template('survey/answer.html')
+        template = loader.get_template('survey/surveyAnswer.html')
         context = RequestContext(request, {'session': request.session, 'survey': survey, 'paper': survey.paper})
         return HttpResponse(template.render(context))
 
@@ -302,7 +302,7 @@ def answer(request, surveyId):
     phone = request.REQUEST.get('phone')
     # 如果用户没有填写手机号码，显示填写手机号码的页面
     if not phone:
-        template = loader.get_template('survey/loginAnswer.html')
+        template = loader.get_template('survey/surveyLogin.html')
         context = RequestContext(request, {'session': request.session, 'survey': survey, 'paper': survey.paper})
         return HttpResponse(template.render(context))
 
@@ -347,7 +347,7 @@ def answer(request, surveyId):
         return HttpResponse(template.render(context))
 
     # 生成含页面目标客户(targetCust)的调查页面
-    template = loader.get_template('survey/answer.html')
+    template = loader.get_template('survey/surveyAnswer.html')
     context = RequestContext(
         request, {'session': request.session, 'survey': survey, 'paper': survey.paper, 'targetCust': targetCust})
     return HttpResponse(template.render(context))

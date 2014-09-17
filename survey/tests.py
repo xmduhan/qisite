@@ -2169,7 +2169,7 @@ class AnswerNoneTargetSurvey(TestCase):
         # 确认该调查为非定向调查
         self.assertIsNone(self.survey.custList)
         #
-        self.answerTemplate = 'survey/answer.html'
+        self.answerTemplate = 'survey/surveyAnswer.html'
         self.messageTemplate = 'www/message.html'
         self.alreadyTemplate = 'survey/alreadySubmit.html'
 
@@ -2270,8 +2270,8 @@ class AnswerTargetSurvey(TestCase):
         # 确认该调查为非定向调查
         self.assertIsNotNone(self.survey.custList)
         # 相关模板
-        self.answerTemplate = 'survey/answer.html'
-        self.loginAnswerTemplate = 'survey/loginAnswer.html'
+        self.answerTemplate = 'survey/surveyAnswer.html'
+        self.surveyLoginTemplate = 'survey/surveyLogin.html'
         self.messageTemplate = 'www/message.html'
         self.alreadyTemplate = 'survey/alreadySubmit.html'
 
@@ -2293,7 +2293,7 @@ class AnswerTargetSurvey(TestCase):
         self.assertEqual(response.status_code, 200)
         # 检查是否直接转向答题模板
         template = response.templates[0]
-        self.assertEqual(template.name, self.loginAnswerTemplate)
+        self.assertEqual(template.name, self.surveyLoginTemplate)
 
 
     def test_enter_answer_page_phone_not_in_list(self):
