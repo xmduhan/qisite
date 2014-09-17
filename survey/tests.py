@@ -2164,8 +2164,8 @@ class AnswerNoneTargetSurvey(TestCase):
         self.client = Client()
         self.survey = Survey.objects.get(code='survey-no-target-01')  #网购客户满意度调查(非定向)
         self.paper = self.survey.paper
-        self.answerUrl = reverse('survey:view.answer', args=[self.survey.id])
-        self.answerSubmitUrl = reverse('survey:view.answer.submit')
+        self.answerUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
+        self.answerSubmitUrl = reverse('survey:view.survey.answer.submit')
         # 确认该调查为非定向调查
         self.assertIsNone(self.survey.custList)
         #
@@ -2265,8 +2265,8 @@ class AnswerTargetSurvey(TestCase):
         self.survey = Survey.objects.get(code='survey-target-01')  #网购客户满意度调查(定向)
         self.custList = self.survey.custList
         self.paper = self.survey.paper
-        self.answerUrl = reverse('survey:view.answer', args=[self.survey.id])
-        self.answerSubmitUrl = reverse('survey:view.answer.submit')
+        self.answerUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
+        self.answerSubmitUrl = reverse('survey:view.survey.answer.submit')
         # 确认该调查为非定向调查
         self.assertIsNotNone(self.survey.custList)
         # 相关模板
@@ -2455,7 +2455,7 @@ class SendSurveyToPhoneTest(TestCase):
         self.survey = self.user.surveyCreated_set.filter(state='A')[0]
         self.survey_others = self.user_other.surveyCreated_set.filter(state='A')[0]
         self.survey_del = self.user.surveyCreated_set.filter(state='P')[0]
-        self.urlToPush = domain + reverse('survey:view.answer', args=[self.survey.id])
+        self.urlToPush = domain + reverse('survey:view.survey.answer', args=[self.survey.id])
         self.message = 'xxxllx%slkkejlls' % self.urlToPush
         self.message_bad = 'xxxllx%slkkejlls'
         self.data_valid = {'id': self.survey.getIdSigned(), 'message': self.message}

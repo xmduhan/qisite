@@ -26,8 +26,8 @@ urlpatterns = patterns(
     ## 获取问题编辑
     url(r'^view/question/edit/(?P<questionId>\S+)$', views.questionEdit, name='view.question.edit'),
     ## 答卷
-    url(r'^view/answer/(?P<surveyId>\d+)$', views.answer, name='view.answer'),
-    url(r'^view/answer/submit$', views.answerSubmit, name='view.answer.submit'),
+    url(r'^view/survey/answer/(?P<surveyId>\d+)$', views.surveyAnswer, name='view.survey.answer'),
+    url(r'^view/survey/answer/submit$', views.surveyAnswerSubmit, name='view.survey.answer.submit'),
     ## 样本导出
     url(r'^view/sample/export/(?P<surveyId>\d+)$', views.sampleExport, name='view.sample.export'),
 

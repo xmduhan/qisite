@@ -29,7 +29,7 @@
                 <div class="row">
                     <div>
                         <textarea id="message" rows="9" style="resize: none;width: 100%;"
-                                >手机号码{{ session.user.phone }}的用户为您准备一份问卷邀请您参加，调查的题目为"{{ survey.paper.title }}"，调查访问地址为:{{ domain }}{% url 'survey:view.answer' survey.id %}
+                                >手机号码{{ session.user.phone }}的用户为您准备一份问卷邀请您参加，调查的题目为"{{ survey.paper.title }}"，调查访问地址为:{{ domain }}{% url 'survey:view.survey.answer' survey.id %}
                         </textarea>
                     </div>
                 </div>
@@ -61,7 +61,7 @@
         </div>
     </div>
     {% comment %}
-    <a id="finishButton" href="{% url 'survey:view.answer' survey.id %}"
+    <a id="finishButton" href="{% url 'survey:view.survey.answer' survey.id %}"
        type="button" class="btn btn-success ">
         <span class="glyphicon glyphicon-ok"></span>
         go

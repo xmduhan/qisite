@@ -1289,7 +1289,7 @@ def sendSurveyToPhone(request):
     message = requestData['message']
 
     # 检查短信内容是否包含访问连接
-    url = domain + reverse('survey:view.answer', args=[survey.id])
+    url = domain + reverse('survey:view.survey.answer', args=[survey.id])
     if url not in message:
         result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.URL_NO_IN_MESSAGE)
         return dictToJsonResponse(result)
