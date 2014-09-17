@@ -274,7 +274,7 @@ def questionEdit(request, questionId):
 
 def surveyAnswer(request, surveyId):
     '''
-        编辑调查
+    答题（一次性回答所有问题）
     '''
     # 读取session中的已提交列表数据
     submitedSurveyList = request.session.get('submitedSurveyList', [])
@@ -516,6 +516,20 @@ def surveyAnswerSubmit(request):
     context = RequestContext(
         request, {'title': u'完成', 'message': RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, 'returnUrl': '/'})
     return HttpResponse(template.render(context))
+
+
+def surveyAnswerStep(request, surveyId):
+    '''
+    答题（分步）
+    '''
+    pass
+
+
+def surveyAnswerSubmitStep(request):
+    '''
+    单步答题
+    '''
+    pass
 
 
 def sampleExport(request, surveyId):

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {# 加载相关的css #}
+    {% include "www/commoncss.html" %}
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+
+        <form id="answerSubmit" method="post" action="{% url 'survey:view.survey.answer.submit' %}">
+            {% csrf_token %}
+            <div class="col-md-12">
+                <div class="panel panel-primary ">
+                    <div class="panel-heading" align="center">
+                        <h4>{{ paper.title }}</h4>
+                    </div>
+                    <div class="panel-body">
+                        {{ paper.description }}
+                    </div>
+                    <input type="hidden" name="surveyId" value="{{ survey.getIdSigned }}">
+                    {% if targetCust %}
+                        <input type="hidden" name="targetCustId" value="{{ targetCust.getIdSigned }}">
+                    {% endif %}
+                </div>
+            </div>
+            <br>
+            {% for question in paper.getQuestionSetInOrder %}
+                <input type="hidden" name="questionIdList" value="{{ question.getIdSigned }}"/>
+                <div class="col-md-12">
+                    <div class="panel panel-info ">
+                        <div class="panel-heading">
+                            {{ question.getNum }} {{ question.text }} <br>
+                        </div>
+                        <div class="panel-body">
+                            {% for branch in question.getBranchSetInOrder %}
+                                <div class="radio">
+                                    <input type="radio"
+                                           name="{{ question.getIdSigned }}"
+                                           value="{{ branch.getIdSigned }}"
+                                           {% if forloop.first %}required{% endif %}>
+                                    {{ branch.getNum }} {{ branch.text }}
+                                </div>
+                                <br>
+                            {% endfor %}
+
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </form>
+
+        {#  底部按钮 #}
+        <div class="row">
+            <div class="col-md-12" align="center">
+                {# 发布按钮 #}
+                <div class="btn btn-primary form-submit-button"
+                     data-form-id="answerSubmit">
+                    <span class="glyphicon glyphicon-ok"></span>
+                    完成
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p></p>
+
+    <br><br><br><br><br><br><br><br><br><br>
+
+
+</div>
+{% include "www/commonjs.html" %}
+<script src="/static/survey/js/answer.js"></script>
+
+</body>
+</html>
