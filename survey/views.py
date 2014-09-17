@@ -287,7 +287,7 @@ def surveyAnswer(request, surveyId):
 
     # 检查是否发生重复提交
     if survey.id in submitedSurveyList:
-        template = loader.get_template('survey/alreadySubmit.html')
+        template = loader.get_template('survey/surveyAnswered.html')
         context = RequestContext(
             request, {'title': '出错', 'message': RESULT_MESSAGE.DO_NOT_RESUBMIT, 'returnUrl': '/', 'survey': survey})
         return HttpResponse(template.render(context))
@@ -335,7 +335,7 @@ def surveyAnswer(request, surveyId):
 
     # 检查调查是否已经填写过了
     if targetCust.sample_set.count() != 0:
-        template = loader.get_template('survey/alreadySubmit.html')
+        template = loader.get_template('survey/surveyAnswered.html')
         context = RequestContext(
             request,
             {'title': '出错',
@@ -493,7 +493,7 @@ def surveyAnswerSubmit(request):
 
         if unicode(e) == RESULT_MESSAGE.DO_NOT_RESUBMIT:
             # 转向重复提交专用处理页面(含查看结果按钮)
-            template = loader.get_template('survey/alreadySubmit.html')
+            template = loader.get_template('survey/surveyAnswered.html')
             context = RequestContext(
                 request, {'title': u'出错', 'message': unicode(e), 'returnUrl': returnUrl,
                           'formData': formData, 'survey': survey})

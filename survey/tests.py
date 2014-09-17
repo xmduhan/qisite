@@ -2171,7 +2171,7 @@ class AnswerNoneTargetSurvey(TestCase):
         #
         self.answerTemplate = 'survey/surveyAnswer.html'
         self.messageTemplate = 'www/message.html'
-        self.alreadyTemplate = 'survey/alreadySubmit.html'
+        self.alreadyTemplate = 'survey/surveyAnswered.html'
 
 
         # 生成一个合法的答卷数据，供后面的过程提交使用
@@ -2273,7 +2273,7 @@ class AnswerTargetSurvey(TestCase):
         self.answerTemplate = 'survey/surveyAnswer.html'
         self.surveyLoginTemplate = 'survey/surveyLogin.html'
         self.messageTemplate = 'www/message.html'
-        self.alreadyTemplate = 'survey/alreadySubmit.html'
+        self.alreadyTemplate = 'survey/surveyAnswered.html'
 
         # 生成一个合法的答卷数据，供后面的过程提交使用
         data_valid = {}
