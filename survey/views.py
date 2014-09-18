@@ -272,7 +272,7 @@ def questionEdit(request, questionId):
     return HttpResponse(template.render(context))
 
 
-def surveyAnswer(request, surveyId):
+def surveyAnswerAll(request, surveyId):
     '''
     答题（一次性回答所有问题）
     '''
@@ -353,7 +353,7 @@ def surveyAnswer(request, surveyId):
     return HttpResponse(template.render(context))
 
 
-def surveyAnswerSubmit(request):
+def surveyAnswerAllSubmit(request):
     '''
     问卷一次性提交服务
     '''
@@ -525,7 +525,7 @@ def surveyAnswerStep(request, surveyId):
     pass
 
 
-def surveyAnswerSubmitStep(request):
+def surveyAnswerStepSubmit(request):
     '''
     单步答题
     '''
