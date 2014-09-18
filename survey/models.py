@@ -44,6 +44,7 @@ class Paper(TimeModel):
     lookBack = models.BooleanField('返回修改', default=False)
     #style = models.CharField('展现方式', max_length=5, choices=PAPER_STYLE) #使用paging字段取代
     paging = models.BooleanField('分页答题', default=True)
+    #step = models.BooleanField('分步答题', default=False)
     type = models.CharField('问题类型', choices=PAPER_TYPE, max_length=10, default='T')
     survey = models.ForeignKey('Survey', related_name='paperReversed_set', verbose_name="调查", null=True,
                                blank=True)  # 执行调查的反向链接，用于自动删除
