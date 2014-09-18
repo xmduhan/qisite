@@ -314,7 +314,7 @@ def surveyAnswerAll(request, surveyId):
             request,
             {'title': '出错',
              'message': RESULT_MESSAGE.PHONE_NOT_IN_CUSTLIST,
-             'returnUrl': reverse('survey:view.survey.answer', args=[survey.id])}
+             'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
         )
         return HttpResponse(template.render(context))
     custListItem = custListItemList[0]
@@ -340,7 +340,7 @@ def surveyAnswerAll(request, surveyId):
             request,
             {'title': '出错',
              'message': RESULT_MESSAGE.DO_NOT_RESUBMIT,
-             #'returnUrl': reverse('survey:view.survey.answer', args=[survey.id]),
+             #'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id]),
              'returnUrl': '/',
              'survey': survey}
         )
@@ -481,7 +481,7 @@ def surveyAnswerAllSubmit(request):
 
         # 检查提交的表单中是否包含合法的survey信息，如果包含则说明可以返回答题页面
         if survey:
-            returnUrl = reverse('survey:view.survey.answer', args=[survey.id])
+            returnUrl = reverse('survey:view.survey.answer.all', args=[survey.id])
         else:
             returnUrl = '/'
 
@@ -610,7 +610,7 @@ def surveyImageCode(request, surveyId):
 
     # 拼接url
 
-    url = '%s/%s' % (domain, reverse('survey:view.survey.answer', args=[survey.id]))
+    url = '%s/%s' % (domain, reverse('survey:view.survey.answer.all', args=[survey.id]))
 
     # 将url转化为二维码形式返回客户端
     img = qrcode.make(url, image_factory=PymagingImage)
