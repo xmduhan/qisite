@@ -26,6 +26,7 @@ urlpatterns = patterns(
     ## 获取问题编辑
     url(r'^view/question/edit/(?P<questionId>\S+)$', views.questionEdit, name='view.question.edit'),
     ## 答卷
+    url(r'^view/survey/answer/(?P<surveyId>\d+)$', views.surveyAnswer, name='view.survey.answer'),
     url(r'^view/survey/answer/all/(?P<surveyId>\d+)$', views.surveyAnswerAll, name='view.survey.answer.all'),
     url(r'^view/survey/answer/all/submit$', views.surveyAnswerAllSubmit, name='view.survey.answer.all.submit'),
     url(r'^view/survey/answer/step/(?P<surveyId>\d+)$', views.surveyAnswerStep, name='view.survey.answer.step'),

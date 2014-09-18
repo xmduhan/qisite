@@ -272,6 +272,13 @@ def questionEdit(request, questionId):
     return HttpResponse(template.render(context))
 
 
+def surveyAnswer(request, surveyId):
+    '''
+    答题界面的统一入口
+    '''
+    pass
+
+
 def surveyAnswerAll(request, surveyId):
     '''
     答题（一次性回答所有问题）
