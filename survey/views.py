@@ -284,9 +284,14 @@ def surveyAnswer(request, surveyId):
 
     # 根据是否需要分布答题
     if survey.paper.step:
-        return surveyAnswerStep(request, surveyId)
+        url = reverse('survey:view.survey.answer.step', args=[surveyId])
     else:
-        return surveyAnswerAll(request, surveyId)
+        url = reverse('survey:view.survey.answer.all', args=[surveyId])
+
+    # 返回问卷封面页面
+    template = loader.get_template('survey/surveyCover.html')
+    context = RequestContext(request, {'session': request.session, 'survey': survey, 'url': url})
+    return HttpResponse(template.render(context))
 
 
 def surveyAnswerAllWithoutTarget(request, survey):

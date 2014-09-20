@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {# 加载相关的css #}
+    {% include "www/commoncss.html" %}
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-primary ">
+                <div class="panel-heading" align="center">
+                    <h4>问卷封面</h4>
+                </div>
+                <div class="panel-body">
+                    手机号码{{ survey.createBy.phone }}的用户邀请您填写一个调查
+                    <p></p>
+                    调查的题目为:{{ survey.paper.title }}
+                    <p></p>
+                    附件说明：{{ survey.paper.description }}
+                    <p></p>
+                </div>
+            </div>
+        </div>
+        <br>
+
+        {#  底部按钮 #}
+        <div class="row">
+            <div class="col-md-12" align="center">
+                <a href="{{ url }}" class="btn btn-primary">
+                    <span class="glyphicon glyphicon-ok"></span>
+                    开始答题
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <p></p>
+    <br><br><br><br><br><br><br><br><br><br>
+
+</div>
+{% include "www/commonjs.html" %}
+<script src="/static/survey/js/answer.js"></script>
+
+</body>
+</html>
