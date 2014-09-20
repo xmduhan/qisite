@@ -276,7 +276,17 @@ def surveyAnswer(request, surveyId):
     '''
     答题界面的统一入口
     '''
-    pass
+    # 读取调查对象
+    surveyList = Survey.objects.filter(id=surveyId)
+    if not surveyList:
+        raise Http404
+    survey = surveyList[0]
+
+    # 根据是否需要分布答题
+    if survey.paper.step:
+        return surveyAnswerStep(request, surveyId)
+    else:
+        return surveyAnswerAll(request, surveyId)
 
 
 def surveyAnswerAll(request, surveyId):
