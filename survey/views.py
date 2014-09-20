@@ -289,18 +289,13 @@ def surveyAnswer(request, surveyId):
         return surveyAnswerAll(request, surveyId)
 
 
-def surveyAnswerAll(request, surveyId):
+def surveyAnswerAllWithoutTarget(request, survey):
     '''
-    答题（一次性回答所有问题）
+    处理无定向调查
     '''
+
     # 读取session中的已提交列表数据
     submitedSurveyList = request.session.get('submitedSurveyList', [])
-
-    # 读取survey对象
-    surveyList = Survey.objects.filter(id=surveyId)
-    if not surveyList:
-        raise Http404
-    survey = surveyList[0]
 
     # 检查是否发生重复提交
     if survey.id in submitedSurveyList:
@@ -309,14 +304,19 @@ def surveyAnswerAll(request, surveyId):
             request, {'title': '出错', 'message': RESULT_MESSAGE.DO_NOT_RESUBMIT, 'returnUrl': '/', 'survey': survey})
         return HttpResponse(template.render(context))
 
-    # 如果是非定向调查
-    if not survey.custList:
-        template = loader.get_template('survey/surveyAnswer.html')
-        context = RequestContext(request, {'session': request.session, 'survey': survey, 'paper': survey.paper})
-        return HttpResponse(template.render(context))
+    # 返回答题界面
+    template = loader.get_template('survey/surveyAnswerAll.html')
+    context = RequestContext(request, {'session': request.session, 'survey': survey, 'paper': survey.paper})
+    return HttpResponse(template.render(context))
 
+
+def surveyAnswerAllWithTarget(request, survey):
+    '''
+    处理定向调查
+    '''
     # 如果是定向调查尝试读取手机号码
     phone = request.REQUEST.get('phone')
+
     # 如果用户没有填写手机号码，显示填写手机号码的页面
     if not phone:
         template = loader.get_template('survey/surveyLogin.html')
@@ -364,10 +364,28 @@ def surveyAnswerAll(request, surveyId):
         return HttpResponse(template.render(context))
 
     # 生成含页面目标客户(targetCust)的调查页面
-    template = loader.get_template('survey/surveyAnswer.html')
+    template = loader.get_template('survey/surveyAnswerAll.html')
     context = RequestContext(
         request, {'session': request.session, 'survey': survey, 'paper': survey.paper, 'targetCust': targetCust})
     return HttpResponse(template.render(context))
+
+
+def surveyAnswerAll(request, surveyId):
+    '''
+    答题（一次性回答所有问题）
+
+    '''
+    # 读取survey对象
+    surveyList = Survey.objects.filter(id=surveyId)
+    if not surveyList:
+        raise Http404
+    survey = surveyList[0]
+
+    # 如果是非定向调查
+    if survey.custList:
+        return surveyAnswerAllWithTarget(request, survey)
+    else:
+        return surveyAnswerAllWithoutTarget(request, survey)
 
 
 def surveyAnswerAllSubmit(request):

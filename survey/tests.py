@@ -2169,7 +2169,7 @@ class AnswerNoneTargetSurvey(TestCase):
         # 确认该调查为非定向调查
         self.assertIsNone(self.survey.custList)
         #
-        self.answerTemplate = 'survey/surveyAnswer.html'
+        self.answerTemplate = 'survey/surveyAnswerAll.html'
         self.messageTemplate = 'www/message.html'
         self.answeredTemplate = 'survey/surveyAnswered.html'
 
@@ -2270,7 +2270,7 @@ class AnswerTargetSurvey(TestCase):
         # 确认该调查为非定向调查
         self.assertIsNotNone(self.survey.custList)
         # 相关模板
-        self.answerTemplate = 'survey/surveyAnswer.html'
+        self.answerTemplate = 'survey/surveyAnswerAll.html'
         self.surveyLoginTemplate = 'survey/surveyLogin.html'
         self.messageTemplate = 'www/message.html'
         self.answeredTemplate = 'survey/surveyAnswered.html'
