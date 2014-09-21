@@ -2249,7 +2249,7 @@ class AnswerNoneTargetSurvey(TestCase):
         # 第2次不单是不能提交而且连答题页面都不能进去
         response = self.client.get(self.answerUrl)
         self.assertEqual(response.status_code, 200)
-        # 检查是否直接转向答题模板
+        # 检查是否转向重填提示
         template = response.templates[0]
         self.assertEqual(template.name, self.answeredTemplate)
         self.assertContains(response, RESULT_MESSAGE.ANSWERED_ALREADY)
@@ -2271,6 +2271,13 @@ class AnswerNoneTargetSurvey(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 增加提交重填标志可以再次进入填题页面
+        response = self.client.get(self.answerUrl, {'resubmit': True})
+        self.assertEqual(response.status_code, 200)
+        # 检查是否转向重填提示
+        template = response.templates[0]
+        self.assertEqual(template.name, self.answerTemplate)
 
 
 class AnswerTargetSurvey(TestCase):
@@ -2461,6 +2468,7 @@ class AnswerTargetSurvey(TestCase):
         self.assertEqual(response.templates[0].name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
+
     def test_answer_resubmit_same_phone_with_flag(self):
         '''
         测试使用重提交标志进行重新提交
@@ -2490,6 +2498,12 @@ class AnswerTargetSurvey(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 增加了resubmit标志，提交过后还能进入页面
+        response = self.client.get(self.answerUrl, {'phone': phone, 'resubmit': True})
+        self.assertEqual(response.status_code, 200)
+        template = response.templates[0]
+        self.assertEqual(template.name, self.answerTemplate)
 
 
 class SendSurveyToPhoneTest(TestCase):

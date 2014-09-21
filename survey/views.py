@@ -304,10 +304,14 @@ def surveyAnswerAllWithoutTarget(request, survey):
 
     # 检查是否发生重复提交
     if survey.id in submitedSurveyList:
-        template = loader.get_template('survey/surveyAnswered.html')
-        context = RequestContext(
-            request, {'title': '出错', 'message': RESULT_MESSAGE.ANSWERED_ALREADY, 'returnUrl': '/', 'survey': survey})
-        return HttpResponse(template.render(context))
+        resubmit = request.REQUEST.get('resubmit', False)
+        if not resubmit:
+            template = loader.get_template('survey/surveyAnswered.html')
+            context = RequestContext(
+                request,
+                {'title': '出错', 'message': RESULT_MESSAGE.ANSWERED_ALREADY, 'returnUrl': '/', 'survey': survey})
+            return HttpResponse(template.render(context))
+            #
 
     # 返回答题界面
     template = loader.get_template('survey/surveyAnswerAll.html')
@@ -343,7 +347,6 @@ def surveyAnswerAllWithTarget(request, survey):
 
     # 尝试寻找之前是否已经生成了targetCust
     targetCustList = survey.targetCust_set.filter(phone=phone)
-
     if len(targetCustList) == 0:
         # 如果还没有生成targetCust记录尝试去生成
         targetCust = TargetCust(
@@ -352,21 +355,24 @@ def surveyAnswerAllWithTarget(request, survey):
         )
         targetCust.save()
     else:
-        # 如果已经生成了要检查是否是重复提交
+        # 如果targetCust已经生成直接提取出来
         targetCust = targetCustList[0]
 
     # 检查调查是否已经填写过了
     if targetCust.sample_set.count() != 0:
-        template = loader.get_template('survey/surveyAnswered.html')
-        context = RequestContext(
-            request,
-            {'title': '出错',
-             'message': RESULT_MESSAGE.ANSWERED_ALREADY,
-             #'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id]),
-             'returnUrl': '/',
-             'survey': survey}
-        )
-        return HttpResponse(template.render(context))
+        resubmit = request.REQUEST.get('resubmit', False)
+        # 如果没有使用重复提交标志
+        if not resubmit:
+            template = loader.get_template('survey/surveyAnswered.html')
+            context = RequestContext(
+                request,
+                {'title': '出错',
+                 'message': RESULT_MESSAGE.ANSWERED_ALREADY,
+                 #'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id]),
+                 'returnUrl': '/',
+                 'survey': survey}
+            )
+            return HttpResponse(template.render(context))
 
     # 生成含页面目标客户(targetCust)的调查页面
     template = loader.get_template('survey/surveyAnswerAll.html')
