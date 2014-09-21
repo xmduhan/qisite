@@ -403,6 +403,8 @@ class TargetCust(TimeModel):
 class Sample(TimeModel):
     #样本项集	sampleItems	对象集 (ok) (已在样本中设置对应外键)
     targetCust = models.ForeignKey('TargetCust', verbose_name='清单项', null=True, blank=True)
+    # session字段用户保存无定向调查客户端标识信息
+    session = models.CharField('客户端会话标识', max_length=40, null=True, blank=True)
     user = models.ForeignKey(account.models.User, verbose_name="参与用户", null=True,
                              blank=True)  # 这里是否设置一个related_name
     ipAddress = models.CharField('受访IP', max_length=50)

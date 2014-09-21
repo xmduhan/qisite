@@ -306,7 +306,7 @@ def surveyAnswerAllWithoutTarget(request, survey):
     if survey.id in submitedSurveyList:
         template = loader.get_template('survey/surveyAnswered.html')
         context = RequestContext(
-            request, {'title': '出错', 'message': RESULT_MESSAGE.DO_NOT_RESUBMIT, 'returnUrl': '/', 'survey': survey})
+            request, {'title': '出错', 'message': RESULT_MESSAGE.ANSWERED_ALREADY, 'returnUrl': '/', 'survey': survey})
         return HttpResponse(template.render(context))
 
     # 返回答题界面
@@ -361,7 +361,7 @@ def surveyAnswerAllWithTarget(request, survey):
         context = RequestContext(
             request,
             {'title': '出错',
-             'message': RESULT_MESSAGE.DO_NOT_RESUBMIT,
+             'message': RESULT_MESSAGE.ANSWERED_ALREADY,
              #'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id]),
              'returnUrl': '/',
              'survey': survey}
@@ -397,8 +397,7 @@ def surveyAnswerAllSubmit(request):
     '''
     问卷一次性提交服务
     '''
-    # 读取session中的已提交列表数据
-    submitedSurveyList = request.session.get('submitedSurveyList', [])
+
 
     # 初始化变量
     survey = None
@@ -434,15 +433,16 @@ def surveyAnswerAllSubmit(request):
             except:
                 raise Exception(RESULT_MESSAGE.SURVEY_OBJECT_NOT_EXIST)  # 调查对象不存在
 
-            # 检查是否发生重复提交
-            if survey.id in submitedSurveyList:
-                raise Exception(RESULT_MESSAGE.DO_NOT_RESUBMIT)  # 重复提交
+            # 读取重复提交标志
+            resubmit = request.REQUEST.get('resubmit', False)
+            #print 'resubmit=', resubmit
 
+            # 定向调查检查是否重复提交
             # 如果是定向调查，则先检查目标客户信息是否正确
             if survey.custList:
                 targetCustIdSigned = request.REQUEST.get('targetCustId')
                 if not targetCustIdSigned:
-                    raise Exception(RESULT_MESSAGE.TARGET_SURVEY_NEED_CUSTlIST)  #定向调查需要提供客户清单
+                    raise Exception(RESULT_MESSAGE.TARGET_SURVEY_NEED_CUSTLIST)  #定向调查需要提供客户清单
                 # 验证目标清单的数字签名
                 try:
                     targetCustId = signer.unsign(targetCustIdSigned)
@@ -455,9 +455,30 @@ def surveyAnswerAllSubmit(request):
                 except:
                     raise Exception(RESULT_MESSAGE.CUSTLIST_OBJECT_NOT_EXIST)  # 所指定的客户清单的对象不存在
 
+                # 检查目标清单和当前调查是否有关联，防止篡改
+                if targetCust.survey != survey:
+                    raise Exception(RESULT_MESSAGE.TARGETCUST_NOT_IN_SURVEY)
+
                 # 检查该target是否已经提交过数据(sample)
                 if targetCust.sample_set.count() != 0:
-                    raise Exception(RESULT_MESSAGE.DO_NOT_RESUBMIT)  # 重复提交
+                    if resubmit:
+                        # 如果有重提交标志删除原来的提交数据(注意这是在一个事务中，如果后面检查有错，删除会被回滚)
+                        targetCust.sample_set.all().delete()
+                    else:
+                        # 如果重复提交又没有使用重提交标志返回错误
+                        raise Exception(RESULT_MESSAGE.ANSWERED_ALREADY)  # 重复提交
+            else:
+                # 非定向调查检查是否发生重复提交
+                # 读取session中的已提交列表数据
+                submitedSurveyList = request.session.get('submitedSurveyList', [])
+                if survey.id in submitedSurveyList:
+                    if resubmit:
+                        # 如果有重提交标志删除原来的提交数据(注意这是在一个事务中，如果后面检查有错，删除会被回滚)
+                        session_key = request.session._session_key
+                        survey.paper.sample_set.filter(session=session_key).delete()
+                    else:
+                        # 如果重复提交又没有使用重提交标志返回错误
+                        raise Exception(RESULT_MESSAGE.ANSWERED_ALREADY)  # 重复提交
 
             # 读取调查对应的问卷
             paper = survey.paper
@@ -475,6 +496,9 @@ def surveyAnswerAllSubmit(request):
             # 如果是定向调查，检查是否提交目标客户信息，并绑定目标客户信息到样本
             if survey.custList:
                 sample.targetCust = targetCust
+            else:
+                # 非定向调查一样需要关联客户端信息(session)
+                sample.session = request.session._session_key
 
             # 保存样本
             sample.save()
@@ -531,7 +555,7 @@ def surveyAnswerAllSubmit(request):
         else:
             formData = {}
 
-        if unicode(e) == RESULT_MESSAGE.DO_NOT_RESUBMIT:
+        if unicode(e) == RESULT_MESSAGE.ANSWERED_ALREADY:
             # 转向重复提交专用处理页面(含查看结果按钮)
             template = loader.get_template('survey/surveyAnswered.html')
             context = RequestContext(

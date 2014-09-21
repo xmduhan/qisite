@@ -2182,7 +2182,9 @@ class AnswerNoneTargetSurvey(TestCase):
             questionIdList.append(question.getIdSigned())
             data_valid[question.getIdSigned()] = question.branch_set.all()[0].getIdSigned()
         data_valid['questionIdList'] = questionIdList
-        self.data_valid = data_valid
+        self.data_valid = copy.copy(data_valid)
+        data_valid['resubmit'] = True
+        self.data_valid_resubmit = copy.copy(data_valid)
 
     def test_enter_answer_page(self):
         '''
@@ -2226,7 +2228,7 @@ class AnswerNoneTargetSurvey(TestCase):
         self.assertEqual(sample.sampleitem_set.count(), self.survey.paper.question_set.count())
 
 
-    def test_answer_resubmit(self):
+    def test_answer_resubmit_without_flag(self):
         '''
         确定测试重复提交会失败
         '''
@@ -2242,7 +2244,7 @@ class AnswerNoneTargetSurvey(TestCase):
         response = client.post(self.answerSubmitUrl, self.data_valid)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, self.answeredTemplate)
-        self.assertContains(response, RESULT_MESSAGE.DO_NOT_RESUBMIT)
+        self.assertContains(response, RESULT_MESSAGE.ANSWERED_ALREADY)
 
         # 第2次不单是不能提交而且连答题页面都不能进去
         response = self.client.get(self.answerUrl)
@@ -2250,7 +2252,25 @@ class AnswerNoneTargetSurvey(TestCase):
         # 检查是否直接转向答题模板
         template = response.templates[0]
         self.assertEqual(template.name, self.answeredTemplate)
-        self.assertContains(response, RESULT_MESSAGE.DO_NOT_RESUBMIT)
+        self.assertContains(response, RESULT_MESSAGE.ANSWERED_ALREADY)
+
+    def test_answer_resubmit_with_flag(self):
+        '''
+        测试使用重提交标志进行重新提交
+        '''
+        client = self.client
+
+        # 第1次提交页面返回成功
+        response = client.post(self.answerSubmitUrl, self.data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 第2次提交如果有重提交标志也可以成功
+        response = client.post(self.answerSubmitUrl, self.data_valid_resubmit)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
 
 class AnswerTargetSurvey(TestCase):
@@ -2397,14 +2417,14 @@ class AnswerTargetSurvey(TestCase):
         response = client.post(self.answerSubmitUrl, data_valid)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, self.answeredTemplate)
-        self.assertContains(response, RESULT_MESSAGE.DO_NOT_RESUBMIT)
+        self.assertContains(response, RESULT_MESSAGE.ANSWERED_ALREADY)
 
         # 检查第2次进入页面也是失败的
         response = self.client.get(self.answerUrl, {'phone': phone})
         self.assertEqual(response.status_code, 200)
         template = response.templates[0]
         self.assertEqual(template.name, self.answeredTemplate)
-        self.assertContains(response, RESULT_MESSAGE.DO_NOT_RESUBMIT)
+        self.assertContains(response, RESULT_MESSAGE.ANSWERED_ALREADY)
 
 
     def test_answer_resubmit_with_different_phone(self):
@@ -2437,6 +2457,36 @@ class AnswerTargetSurvey(TestCase):
 
         # 第2次提交也要成功
         response = client.post(self.answerSubmitUrl, data_valid2)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+    def test_answer_resubmit_same_phone_with_flag(self):
+        '''
+        测试使用重提交标志进行重新提交
+        '''
+
+        client = self.client
+
+        # 调用进入答卷页面生成targetCust记录
+        phone = self.custList.custListItem_set.all()[0].phone
+        response = self.client.get(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+
+        # 找到刚插入的targetCust记录
+        targetCust = self.survey.targetCust_set.filter(phone=phone)[0]
+        data_valid = copy.copy(self.data_valid)
+        data_valid['targetCustId'] = targetCust.getIdSigned()
+        data_valid['resubmit'] = True
+
+        # 第1此提交成功
+        response = client.post(self.answerSubmitUrl, data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 增加了resubmit标识应该能提交成功
+        response = client.post(self.answerSubmitUrl, data_valid)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
