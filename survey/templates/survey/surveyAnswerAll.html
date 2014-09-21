@@ -46,8 +46,13 @@
                                     <input type="radio"
                                            name="{{ question.getIdSigned }}"
                                            value="{{ branch.getIdSigned }}"
-                                           {% if forloop.first %}required{% endif %}>
+                                            {% comment %}  {% if forloop.first %}  required {% endif %}{% endcomment %}
+                                            {% if branch.id in allBranchIdSelected %}
+                                           checked="checked"
+                                            {% endif %}
+                                            />
                                     {{ branch.getNum }} {{ branch.text }}
+
                                 </div>
                                 <br>
                             {% endfor %}

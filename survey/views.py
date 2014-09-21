@@ -303,6 +303,9 @@ def surveyAnswerAllWithoutTarget(request, survey):
     submitedSurveyList = request.session.get('submitedSurveyList', [])
     resubmit = request.REQUEST.get('resubmit', False)
 
+    # 所有已选列表用于重填时显示已选的答案
+    allBranchIdSelected = []
+
     # 检查是否发生重复提交
     if survey.id in submitedSurveyList:
         if not resubmit:
@@ -315,12 +318,24 @@ def surveyAnswerAllWithoutTarget(request, survey):
                  'survey': survey})
             return HttpResponse(template.render(context))
             #
+        else:
+            # 重答且使用了重填标志
+            # 读取原来填写的数据信息
+            session_key = request.session._session_key
+            sampleList = survey.paper.sample_set.filter(session=session_key)
+            # 将所有的已选项放在一个列表中
+            if len(sampleList) != 0:
+                sample = sampleList[0]
+                for sampleItem in sample.sampleitem_set.all():
+                    allBranchIdSelected.extend([branch.id for branch in sampleItem.branch_set.all()])
 
-    # 返回答题界面
+
+    # 进入答题界面
     template = loader.get_template('survey/surveyAnswerAll.html')
     context = RequestContext(
         request,
-        {'session': request.session, 'survey': survey, 'paper': survey.paper, 'resubmit': resubmit})
+        {'session': request.session, 'survey': survey, 'paper': survey.paper,
+         'resubmit': resubmit, 'allBranchIdSelected': allBranchIdSelected})
     return HttpResponse(template.render(context))
 
 
@@ -364,6 +379,10 @@ def surveyAnswerAllWithTarget(request, survey):
         # 如果targetCust已经生成直接提取出来
         targetCust = targetCustList[0]
 
+
+        # 所有已选列表用于重填时显示已选的答案
+    allBranchIdSelected = []
+
     # 检查调查是否已经填写过了
     if targetCust.sample_set.count() != 0:
         # 如果没有使用重复提交标志
@@ -377,13 +396,19 @@ def surveyAnswerAllWithTarget(request, survey):
                  'survey': survey, 'phone': phone}
             )
             return HttpResponse(template.render(context))
+        else:
+            # 将所有的已选项放在一个列表中
+            sample = targetCust.sample_set.all()[0]
+            for sampleItem in sample.sampleitem_set.all():
+                allBranchIdSelected.extend([branch.id for branch in sampleItem.branch_set.all()])
 
     # 生成含页面目标客户(targetCust)的调查页面
     template = loader.get_template('survey/surveyAnswerAll.html')
     context = RequestContext(
         request,
         {'session': request.session, 'survey': survey, 'paper':
-            survey.paper, 'targetCust': targetCust, 'resubmit': resubmit})
+            survey.paper, 'targetCust': targetCust, 'resubmit': resubmit,
+         'allBranchIdSelected': allBranchIdSelected})
     return HttpResponse(template.render(context))
 
 
