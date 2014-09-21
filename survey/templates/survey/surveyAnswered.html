@@ -42,16 +42,32 @@
                 {% endfor %}
             {% endcomment %}
             <div class="row" align="center">
-                <button id="returnBackButton" type="button" class="btn btn-warning"
-                        data-binding-action="{{ returnUrl }}">
-                    <span class="glyphicon glyphicon-repeat"></span>
-                    返回
-                </button>
-                <a id="finishButton" href="{% url 'survey:view.survey.viewResult' survey.id %}"
-                   type="button" class="btn btn-success ">
-                    <span class="glyphicon glyphicon-ok"></span>
-                    查看
-                </a>
+                <form method="post" action="{{ returnUrl }}">
+                    {% csrf_token %}
+                    {# 返回 #}
+                    <a href="{% url 'survey:view.survey.answer' survey.id %}"
+                       type="button" class="btn btn-warning ">
+                        <span class="glyphicon glyphicon-repeat"></span>
+                        返回
+                    </a>
+
+                    {# 查看 #}
+                    <a href="{% url 'survey:view.survey.viewResult' survey.id %}"
+                       type="button" class="btn btn-success ">
+                        <span class="glyphicon glyphicon-ok"></span>
+                        查看
+                    </a>
+
+                    {# 重填 #}
+                    <input name="resubmit" type="hidden" value="True"/>
+                    {% if survey.custList %}
+                        <input name="phone" type="hidden" value="{{ phone }}"/>
+                    {% endif %}
+                    <button type='submit' class="btn btn-danger ">
+                        <span class="glyphicon glyphicon-ok"></span>
+                        重填
+                    </button>
+                </form>
             </div>
             {% comment %}
             </form>

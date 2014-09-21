@@ -151,7 +151,7 @@ def surveyAddAction(request):
     # 验证问卷的数字签名
     sign = Signer()
     paperId = sign.unsign(paperIdSigned)
-    print  'paperId=', paperId
+    #print  'paperId=', paperId
 
     # 检查用户的登录状态
     user = getCurrentUser(request)
@@ -236,7 +236,7 @@ def custListEdit(request, custListId, page=1):
     thisPageCustListItemList = paginator.page(page)
 
     baseUrl = reverse('survey:view.custList.edit', args=[custList.id]) + '/'
-    print 'baseUrl=', baseUrl
+    #print 'baseUrl=', baseUrl
 
     # 读取模板生成页面
     template = loader.get_template('survey/custListEdit.html')
@@ -301,21 +301,26 @@ def surveyAnswerAllWithoutTarget(request, survey):
 
     # 读取session中的已提交列表数据
     submitedSurveyList = request.session.get('submitedSurveyList', [])
+    resubmit = request.REQUEST.get('resubmit', False)
 
     # 检查是否发生重复提交
     if survey.id in submitedSurveyList:
-        resubmit = request.REQUEST.get('resubmit', False)
         if not resubmit:
             template = loader.get_template('survey/surveyAnswered.html')
             context = RequestContext(
                 request,
-                {'title': '出错', 'message': RESULT_MESSAGE.ANSWERED_ALREADY, 'returnUrl': '/', 'survey': survey})
+                {'title': '出错',
+                 'message': RESULT_MESSAGE.ANSWERED_ALREADY,
+                 'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id]),
+                 'survey': survey})
             return HttpResponse(template.render(context))
             #
 
     # 返回答题界面
     template = loader.get_template('survey/surveyAnswerAll.html')
-    context = RequestContext(request, {'session': request.session, 'survey': survey, 'paper': survey.paper})
+    context = RequestContext(
+        request,
+        {'session': request.session, 'survey': survey, 'paper': survey.paper, 'resubmit': resubmit})
     return HttpResponse(template.render(context))
 
 
@@ -325,6 +330,7 @@ def surveyAnswerAllWithTarget(request, survey):
     '''
     # 如果是定向调查尝试读取手机号码
     phone = request.REQUEST.get('phone')
+    resubmit = request.REQUEST.get('resubmit', False)
 
     # 如果用户没有填写手机号码，显示填写手机号码的页面
     if not phone:
@@ -360,7 +366,6 @@ def surveyAnswerAllWithTarget(request, survey):
 
     # 检查调查是否已经填写过了
     if targetCust.sample_set.count() != 0:
-        resubmit = request.REQUEST.get('resubmit', False)
         # 如果没有使用重复提交标志
         if not resubmit:
             template = loader.get_template('survey/surveyAnswered.html')
@@ -368,16 +373,17 @@ def surveyAnswerAllWithTarget(request, survey):
                 request,
                 {'title': '出错',
                  'message': RESULT_MESSAGE.ANSWERED_ALREADY,
-                 #'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id]),
-                 'returnUrl': '/',
-                 'survey': survey}
+                 'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id]),
+                 'survey': survey, 'phone': phone}
             )
             return HttpResponse(template.render(context))
 
     # 生成含页面目标客户(targetCust)的调查页面
     template = loader.get_template('survey/surveyAnswerAll.html')
     context = RequestContext(
-        request, {'session': request.session, 'survey': survey, 'paper': survey.paper, 'targetCust': targetCust})
+        request,
+        {'session': request.session, 'survey': survey, 'paper':
+            survey.paper, 'targetCust': targetCust, 'resubmit': resubmit})
     return HttpResponse(template.render(context))
 
 
@@ -442,6 +448,7 @@ def surveyAnswerAllSubmit(request):
             # 读取重复提交标志
             resubmit = request.REQUEST.get('resubmit', False)
             #print 'resubmit=', resubmit
+            #print  request.REQUEST
 
             # 定向调查检查是否重复提交
             # 如果是定向调查，则先检查目标客户信息是否正确
@@ -504,6 +511,8 @@ def surveyAnswerAllSubmit(request):
                 sample.targetCust = targetCust
             else:
                 # 非定向调查一样需要关联客户端信息(session)
+                request.session['submitedSurveyList'] = submitedSurveyList
+                request.session.save()  # 确保session记录是存在的
                 sample.session = request.session._session_key
 
             # 保存样本
@@ -584,7 +593,8 @@ def surveyAnswerAllSubmit(request):
     # 如果没有抛出异常说明操作成功了，返回成功的提示信息
     template = loader.get_template('www/message.html')
     context = RequestContext(
-        request, {'title': u'完成', 'message': RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, 'returnUrl': '/'})
+        request, {'title': u'完成', 'message': RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY,
+                  'returnUrl': reverse('survey:view.survey.answer', args=[survey.id])})
     return HttpResponse(template.render(context))
 
 

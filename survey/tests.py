@@ -2260,17 +2260,28 @@ class AnswerNoneTargetSurvey(TestCase):
         '''
         client = self.client
 
+        # 记录样本数量已便后面做数量比较
+        count0 = self.survey.paper.sample_set.count()
+
         # 第1次提交页面返回成功
         response = client.post(self.answerSubmitUrl, self.data_valid)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
+        # 填写完问卷以后样本数量加1
+        count1 = self.survey.paper.sample_set.count()
+        self.assertEqual(count0 + 1, count1)
+
         # 第2次提交如果有重提交标志也可以成功
         response = client.post(self.answerSubmitUrl, self.data_valid_resubmit)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 重填样本数量不能增加
+        count2 = self.survey.paper.sample_set.count()
+        self.assertEqual(count1, count2)
 
         # 增加提交重填标志可以再次进入填题页面
         response = self.client.get(self.answerUrl, {'resubmit': True})
@@ -2487,17 +2498,28 @@ class AnswerTargetSurvey(TestCase):
         data_valid['targetCustId'] = targetCust.getIdSigned()
         data_valid['resubmit'] = True
 
+        # 记录样本数量已便后面做数量比较
+        count0 = self.survey.paper.sample_set.count()
+
         # 第1此提交成功
         response = client.post(self.answerSubmitUrl, data_valid)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
+        # 填写完问卷以后样本数量加1
+        count1 = self.survey.paper.sample_set.count()
+        self.assertEqual(count0 + 1, count1)
+
         # 增加了resubmit标识应该能提交成功
         response = client.post(self.answerSubmitUrl, data_valid)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 重填样本数量不能增加
+        count2 = self.survey.paper.sample_set.count()
+        self.assertEqual(count1, count2)
 
         # 增加了resubmit标志，提交过后还能进入页面
         response = self.client.get(self.answerUrl, {'phone': phone, 'resubmit': True})
