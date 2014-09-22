@@ -308,17 +308,7 @@ def surveyAnswerAllWithoutTarget(request, survey):
 
     # 检查是否发生重复提交
     if survey.id in submitedSurveyList:
-        if not resubmit:
-            template = loader.get_template('survey/surveyAnswered.html')
-            context = RequestContext(
-                request,
-                {'title': '出错',
-                 'message': RESULT_MESSAGE.ANSWERED_ALREADY,
-                 'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id]),
-                 'survey': survey})
-            return HttpResponse(template.render(context))
-            #
-        else:
+        if resubmit and survey.resubmit:
             # 重答且使用了重填标志
             # 读取原来填写的数据信息
             session_key = request.session._session_key
@@ -328,6 +318,17 @@ def surveyAnswerAllWithoutTarget(request, survey):
                 sample = sampleList[0]
                 for sampleItem in sample.sampleitem_set.all():
                     allBranchIdSelected.extend([branch.id for branch in sampleItem.branch_set.all()])
+        else:
+            template = loader.get_template('survey/surveyAnswered.html')
+            context = RequestContext(
+                request,
+                {'title': '出错',
+                 'message': RESULT_MESSAGE.ANSWERED_ALREADY,
+                 'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id]),
+                 'survey': survey})
+            return HttpResponse(template.render(context))
+
+
 
 
     # 进入答题界面
@@ -386,7 +387,12 @@ def surveyAnswerAllWithTarget(request, survey):
     # 检查调查是否已经填写过了
     if targetCust.sample_set.count() != 0:
         # 如果没有使用重复提交标志
-        if not resubmit:
+        if resubmit and survey.resubmit:
+            # 将所有的已选项放在一个列表中
+            sample = targetCust.sample_set.all()[0]
+            for sampleItem in sample.sampleitem_set.all():
+                allBranchIdSelected.extend([branch.id for branch in sampleItem.branch_set.all()])
+        else:
             template = loader.get_template('survey/surveyAnswered.html')
             context = RequestContext(
                 request,
@@ -396,11 +402,7 @@ def surveyAnswerAllWithTarget(request, survey):
                  'survey': survey, 'phone': phone}
             )
             return HttpResponse(template.render(context))
-        else:
-            # 将所有的已选项放在一个列表中
-            sample = targetCust.sample_set.all()[0]
-            for sampleItem in sample.sampleitem_set.all():
-                allBranchIdSelected.extend([branch.id for branch in sampleItem.branch_set.all()])
+
 
     # 生成含页面目标客户(targetCust)的调查页面
     template = loader.get_template('survey/surveyAnswerAll.html')
@@ -434,8 +436,6 @@ def surveyAnswerAllSubmit(request):
     '''
     问卷一次性提交服务
     '''
-
-
     # 初始化变量
     survey = None
     targetCust = None
@@ -499,7 +499,7 @@ def surveyAnswerAllSubmit(request):
 
                 # 检查该target是否已经提交过数据(sample)
                 if targetCust.sample_set.count() != 0:
-                    if resubmit:
+                    if resubmit and survey.resubmit:
                         # 如果有重提交标志删除原来的提交数据(注意这是在一个事务中，如果后面检查有错，删除会被回滚)
                         targetCust.sample_set.all().delete()
                     else:
@@ -510,7 +510,7 @@ def surveyAnswerAllSubmit(request):
                 # 读取session中的已提交列表数据
                 submitedSurveyList = request.session.get('submitedSurveyList', [])
                 if survey.id in submitedSurveyList:
-                    if resubmit:
+                    if resubmit and survey.resubmit:
                         # 如果有重提交标志删除原来的提交数据(注意这是在一个事务中，如果后面检查有错，删除会被回滚)
                         session_key = request.session._session_key
                         survey.paper.sample_set.filter(session=session_key).delete()

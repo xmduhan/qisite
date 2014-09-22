@@ -2168,11 +2168,12 @@ class AnswerNoneTargetSurvey(TestCase):
         self.answerSubmitUrl = reverse('survey:view.survey.answer.all.submit')
         # 确认该调查为非定向调查
         self.assertIsNone(self.survey.custList)
+        # 确定允许重复填写答案
+        self.assertEqual(self.survey.resubmit, True)
         #
         self.answerTemplate = 'survey/surveyAnswerAll.html'
         self.messageTemplate = 'www/message.html'
         self.answeredTemplate = 'survey/surveyAnswered.html'
-
 
         # 生成一个合法的答卷数据，供后面的过程提交使用
         data_valid = {}
@@ -2273,7 +2274,7 @@ class AnswerNoneTargetSurvey(TestCase):
         count1 = self.survey.paper.sample_set.count()
         self.assertEqual(count0 + 1, count1)
 
-        # 第2次提交如果有重提交标志也可以成功
+        # 第2次仍然可以成功
         response = client.post(self.answerSubmitUrl, self.data_valid_resubmit)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, self.messageTemplate)
@@ -2289,6 +2290,37 @@ class AnswerNoneTargetSurvey(TestCase):
         # 检查是否转向重填提示
         template = response.templates[0]
         self.assertEqual(template.name, self.answerTemplate)
+
+    def test_answer_resubmit_with_flag_without_survey_flag(self):
+        '''
+        使用重复填写标志，但是问卷本身不支持重复填写
+        '''
+        client = self.client
+
+        # 修改resubmit为False
+        self.survey.resubmit = False
+        self.survey.save()
+
+        # 第1次提交页面返回成功
+        response = client.post(self.answerSubmitUrl, self.data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 第2次提交是不能成功的
+        response = client.post(self.answerSubmitUrl, self.data_valid_resubmit)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.answeredTemplate)
+        self.assertContains(response, RESULT_MESSAGE.ANSWERED_ALREADY)
+
+        # 答过之后页面都进不去
+        response = self.client.get(self.answerUrl, {'resubmit': True})
+        self.assertEqual(response.status_code, 200)
+        # 检查是否转向重填提示
+        template = response.templates[0]
+        self.assertEqual(template.name, self.answeredTemplate)
+        # 确认页面没有生成重填按钮
+        self.assertNotContains(response,u'重填')
 
 
 class AnswerTargetSurvey(TestCase):
@@ -2307,6 +2339,8 @@ class AnswerTargetSurvey(TestCase):
         self.answerSubmitUrl = reverse('survey:view.survey.answer.all.submit')
         # 确认该调查为非定向调查
         self.assertIsNotNone(self.survey.custList)
+        # 确定允许重复填写答案
+        self.assertEqual(self.survey.resubmit, True)
         # 相关模板
         self.answerTemplate = 'survey/surveyAnswerAll.html'
         self.surveyLoginTemplate = 'survey/surveyLogin.html'
@@ -2526,6 +2560,48 @@ class AnswerTargetSurvey(TestCase):
         self.assertEqual(response.status_code, 200)
         template = response.templates[0]
         self.assertEqual(template.name, self.answerTemplate)
+
+    def test_answer_resubmit_same_phone_with_flag_without_survey_flag(self):
+        '''
+        测试使用重提交标志，但调查本身不允许重复提交
+        '''
+
+        client = self.client
+
+        # 修改resubmit为False
+        self.survey.resubmit = False
+        self.survey.save()
+
+        # 调用进入答卷页面生成targetCust记录
+        phone = self.custList.custListItem_set.all()[0].phone
+        response = self.client.get(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+
+        # 找到刚插入的targetCust记录
+        targetCust = self.survey.targetCust_set.filter(phone=phone)[0]
+        data_valid = copy.copy(self.data_valid)
+        data_valid['targetCustId'] = targetCust.getIdSigned()
+        data_valid['resubmit'] = True
+
+        # 第1次提交成功
+        response = client.post(self.answerSubmitUrl, data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 第2次提交即使增加了resubmit标志也无法成功
+        response = client.post(self.answerSubmitUrl, data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.answeredTemplate)
+        self.assertContains(response, RESULT_MESSAGE.ANSWERED_ALREADY)
+
+        # 增加了resubmit标志，提交过后还能进入页面
+        response = self.client.get(self.answerUrl, {'phone': phone, 'resubmit': True})
+        self.assertEqual(response.status_code, 200)
+        template = response.templates[0]
+        self.assertEqual(template.name, self.answeredTemplate)
+         # 确认页面没有生成重填按钮
+        self.assertNotContains(response,u'重填')
 
 
 class SendSurveyToPhoneTest(TestCase):

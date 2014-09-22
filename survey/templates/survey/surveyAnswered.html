@@ -59,14 +59,16 @@
                     </a>
 
                     {# 重填 #}
-                    <input name="resubmit" type="hidden" value="True"/>
-                    {% if survey.custList %}
-                        <input name="phone" type="hidden" value="{{ phone }}"/>
+                    {% if survey.resubmit %}
+                        <input name="resubmit" type="hidden" value="True"/>
+                        {% if survey.custList %}
+                            <input name="phone" type="hidden" value="{{ phone }}"/>
+                        {% endif %}
+                        <button type='submit' class="btn btn-danger ">
+                            <span class="glyphicon glyphicon-ok"></span>
+                            重填
+                        </button>
                     {% endif %}
-                    <button type='submit' class="btn btn-danger ">
-                        <span class="glyphicon glyphicon-ok"></span>
-                        重填
-                    </button>
                 </form>
             </div>
             {% comment %}
