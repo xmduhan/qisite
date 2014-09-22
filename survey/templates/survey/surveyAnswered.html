@@ -64,6 +64,9 @@
                         {% if survey.custList %}
                             <input name="phone" type="hidden" value="{{ phone }}"/>
                         {% endif %}
+                        {% if survey.password %}
+                            <input name="passwordEncoded" type="hidden" value="{{ passwordEncoded }}"/>
+                        {% endif %}
                         <button type='submit' class="btn btn-danger ">
                             <span class="glyphicon glyphicon-ok"></span>
                             重填

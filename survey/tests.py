@@ -2323,6 +2323,81 @@ class AnswerNoneTargetSurvey(TestCase):
         # 确认页面没有生成重填按钮
         self.assertNotContains(response, u'重填')
 
+    def test_enter_page_with_password(self):
+        '''
+        测试有设置密码的情况下，进入页面需要提供密码。
+        '''
+        client = self.client
+        # 为调查设置密码
+        self.survey.password = '123456'
+        self.survey.save()
+
+        # 没有提供密码没法正常进入页面
+        response = self.client.get(self.answerUrl, {})
+        self.assertEqual(response.status_code, 200)
+        template = response.templates[0]
+        self.assertEqual(template.name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
+
+        # 提供密码可以正常进入页面
+        response = self.client.get(self.answerUrl, {'password': self.survey.password})
+        self.assertEqual(response.status_code, 200)
+        template = response.templates[0]
+        self.assertEqual(template.name, self.answerTemplate)
+
+        # 检查页面是否有包含密码
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"name": "passwordEncoded"})
+        passwordEncoded = input.get('value')
+        self.assertTrue(check_password(self.survey.password, passwordEncoded))
+
+    def test_submit_with_password(self):
+        '''
+        测试有设置密码的情况下，提交需要提供密码。
+        '''
+        client = self.client
+        # 为调查设置密码
+        self.survey.password = '123456'
+        self.survey.save()
+
+        # 进入调查页面
+        response = self.client.get(self.answerUrl, {'password': self.survey.password})
+        self.assertEqual(response.status_code, 200)
+        template = response.templates[0]
+        self.assertEqual(template.name, self.answerTemplate)
+
+        # 读取页面中的隐藏密码
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"name": "passwordEncoded"})
+        passwordEncoded = input.get('value')
+
+        # 不提供密码，提交失败
+        data_valid = copy.copy(self.data_valid)
+        response = client.post(self.answerSubmitUrl, data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
+
+        # 提供密码就能提交成功
+        data_valid = copy.copy(self.data_valid)
+        data_valid['passwordEncoded'] = passwordEncoded
+        response = client.post(self.answerSubmitUrl, data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 再次提交检查重填提交页面是否包含隐藏密码
+        data_valid = copy.copy(self.data_valid)
+        data_valid['passwordEncoded'] = passwordEncoded
+        response = client.post(self.answerSubmitUrl, data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.answeredTemplate)
+
+        # 读取页面中的隐藏密码
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"name": "passwordEncoded"})
+        passwordEncoded = input.get('value')
+        self.assertTrue(check_password(self.survey.password, passwordEncoded))
 
 class AnswerTargetSurvey(TestCase):
     '''
@@ -2566,7 +2641,6 @@ class AnswerTargetSurvey(TestCase):
         '''
         测试使用重提交标志，但调查本身不允许重复提交
         '''
-
         client = self.client
 
         # 修改resubmit为False
@@ -2639,7 +2713,7 @@ class AnswerTargetSurvey(TestCase):
         self.assertEquals(response.templates[0].name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
 
-    def test_submit_with_password_success(self):
+    def test_submit_with_password(self):
         '''
         测试需要密码的调查的提交功能
         '''
@@ -2684,6 +2758,17 @@ class AnswerTargetSurvey(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 再次提交返回重复提交页面，检查是否包含隐藏密码
+        response = client.post(self.answerSubmitUrl, data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.answeredTemplate)
+
+        # 读取页面中的隐藏密码
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"name": "passwordEncoded"})
+        passwordEncoded = input.get('value')
+        self.assertTrue(check_password(self.survey.password, passwordEncoded))
 
 
 class SendSurveyToPhoneTest(TestCase):

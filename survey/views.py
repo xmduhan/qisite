@@ -302,10 +302,26 @@ def surveyAnswerAllWithoutTarget(request, survey):
 
     # 读取session中的已提交列表数据
     submitedSurveyList = request.session.get('submitedSurveyList', [])
+    password = request.REQUEST.get('password')
     resubmit = request.REQUEST.get('resubmit', False)
 
     # 所有已选列表用于重填时显示已选的答案
     allBranchIdSelected = []
+
+    # 如果设置了密码，检查提交的密码是否正确
+    passwordEncoded = ''
+    if survey.password:
+        if survey.password != password:
+            template = loader.get_template('www/message.html')
+            context = RequestContext(
+                request,
+                {'title': '出错',
+                 'message': RESULT_MESSAGE.SURVEY_PASSWORD_INVALID,
+                 'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
+            )
+            return HttpResponse(template.render(context))
+        passwordEncoded = make_password(password)
+        #
 
     # 检查是否发生重复提交
     if survey.id in submitedSurveyList:
@@ -326,9 +342,8 @@ def surveyAnswerAllWithoutTarget(request, survey):
                 {'title': '出错',
                  'message': RESULT_MESSAGE.ANSWERED_ALREADY,
                  'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id]),
-                 'survey': survey})
+                 'survey': survey, 'passwordEncoded': passwordEncoded})
             return HttpResponse(template.render(context))
-
 
 
 
@@ -337,7 +352,7 @@ def surveyAnswerAllWithoutTarget(request, survey):
     context = RequestContext(
         request,
         {'session': request.session, 'survey': survey, 'paper': survey.paper,
-         'resubmit': resubmit, 'allBranchIdSelected': allBranchIdSelected})
+         'resubmit': resubmit, 'passwordEncoded': passwordEncoded, 'allBranchIdSelected': allBranchIdSelected})
     return HttpResponse(template.render(context))
 
 
@@ -382,8 +397,9 @@ def surveyAnswerAllWithTarget(request, survey):
             )
             return HttpResponse(template.render(context))
         passwordEncoded = make_password(password)
+        #
 
-        # 尝试寻找之前是否已经生成了targetCust
+    # 尝试寻找之前是否已经生成了targetCust
     targetCustList = survey.targetCust_set.filter(phone=phone)
     if len(targetCustList) == 0:
         # 如果还没有生成targetCust记录尝试去生成
@@ -415,10 +431,9 @@ def surveyAnswerAllWithTarget(request, survey):
                 {'title': '出错',
                  'message': RESULT_MESSAGE.ANSWERED_ALREADY,
                  'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id]),
-                 'survey': survey, 'phone': phone}
+                 'survey': survey, 'phone': phone, 'passwordEncoded': passwordEncoded}
             )
             return HttpResponse(template.render(context))
-
 
     # 生成含页面目标客户(targetCust)的调查页面
     template = loader.get_template('survey/surveyAnswerAll.html')
@@ -455,6 +470,7 @@ def surveyAnswerAllSubmit(request):
     # 初始化变量
     survey = None
     targetCust = None
+    passwordEncoded = request.REQUEST.get('passwordEncoded')
 
     try:
         with transaction.atomic():
@@ -488,7 +504,6 @@ def surveyAnswerAllSubmit(request):
 
             # 检验密码
             if survey.password:
-                passwordEncoded = request.REQUEST.get('passwordEncoded')
                 if not check_password(survey.password, passwordEncoded):
                     raise Exception(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)  # 密码检验不通过
 
@@ -622,7 +637,7 @@ def surveyAnswerAllSubmit(request):
             template = loader.get_template('survey/surveyAnswered.html')
             context = RequestContext(
                 request, {'title': u'出错', 'message': unicode(e), 'returnUrl': returnUrl,
-                          'formData': formData, 'survey': survey})
+                          'formData': formData, 'survey': survey, 'passwordEncoded': passwordEncoded})
             return HttpResponse(template.render(context))
         else:
             # 转向通用出错处理页面
