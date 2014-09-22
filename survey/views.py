@@ -486,6 +486,12 @@ def surveyAnswerAllSubmit(request):
             except:
                 raise Exception(RESULT_MESSAGE.SURVEY_OBJECT_NOT_EXIST)  # 调查对象不存在
 
+            # 检验密码
+            if survey.password:
+                passwordEncoded = request.REQUEST.get('passwordEncoded')
+                if not check_password(survey.password, passwordEncoded):
+                    raise Exception(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)  # 密码检验不通过
+
             # 读取重复提交标志
             resubmit = request.REQUEST.get('resubmit', False)
             #print 'resubmit=', resubmit

@@ -2604,7 +2604,7 @@ class AnswerTargetSurvey(TestCase):
         # 确认页面没有生成重填按钮
         self.assertNotContains(response, u'重填')
 
-    def test_enter_page_without_password(self):
+    def test_enter_page_with_password(self):
         '''
         测试进入页面时设置密码却没有提供的情况。
         '''
@@ -2638,6 +2638,52 @@ class AnswerTargetSurvey(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEquals(response.templates[0].name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
+
+    def test_submit_with_password_success(self):
+        '''
+        测试需要密码的调查的提交功能
+        '''
+        client = self.client
+        # 为调查设置密码
+        self.survey.password = '123456'
+        self.survey.save()
+
+        # 读取清单中的一个号码
+        phone = self.custList.custListItem_set.all()[0].phone
+
+        # 给出正确密码可以进入页面
+        response = self.client.get(self.answerUrl, {'phone': phone, 'password': self.survey.password})
+        self.assertEqual(response.status_code, 200)
+        self.assertEquals(response.templates[0].name, self.answerTemplate)
+
+        # 读取页面中的隐藏密码
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"name": "passwordEncoded"})
+        passwordEncoded = input.get('value')
+
+        # 找到刚插入的targetCust记录
+        targetCust = self.survey.targetCust_set.filter(phone=phone)[0]
+
+        # 在提交的数据中放入targetCustId但不放入密码信息
+        data_valid = copy.copy(self.data_valid)
+        data_valid['targetCustId'] = targetCust.getIdSigned()
+
+        # 应该无法执行成功
+        response = client.post(self.answerSubmitUrl, data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
+
+        # 在提交的数据中放入targetCustId和密码信息
+        data_valid = copy.copy(self.data_valid)
+        data_valid['targetCustId'] = targetCust.getIdSigned()
+        data_valid['passwordEncoded'] = passwordEncoded
+
+        # 提交数据并返回成功
+        response = client.post(self.answerSubmitUrl, data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
 
 class SendSurveyToPhoneTest(TestCase):
