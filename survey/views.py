@@ -18,6 +18,7 @@ import qrcode
 from qrcode.image.pure import PymagingImage
 from qisite.settings import domain
 from django.db.models import Count
+from django.contrib.auth.hashers import make_password, check_password
 
 
 def getCurrentUser(request):
@@ -346,6 +347,7 @@ def surveyAnswerAllWithTarget(request, survey):
     '''
     # 如果是定向调查尝试读取手机号码
     phone = request.REQUEST.get('phone')
+    password = request.REQUEST.get('password')
     resubmit = request.REQUEST.get('resubmit', False)
 
     # 如果用户没有填写手机号码，显示填写手机号码的页面
@@ -367,7 +369,21 @@ def surveyAnswerAllWithTarget(request, survey):
         return HttpResponse(template.render(context))
     custListItem = custListItemList[0]
 
-    # 尝试寻找之前是否已经生成了targetCust
+    # 如果设置了密码，检查提交的密码是否正确
+    passwordEncoded = ''
+    if survey.password:
+        if survey.password != password:
+            template = loader.get_template('www/message.html')
+            context = RequestContext(
+                request,
+                {'title': '出错',
+                 'message': RESULT_MESSAGE.SURVEY_PASSWORD_INVALID,
+                 'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
+            )
+            return HttpResponse(template.render(context))
+        passwordEncoded = make_password(password)
+
+        # 尝试寻找之前是否已经生成了targetCust
     targetCustList = survey.targetCust_set.filter(phone=phone)
     if len(targetCustList) == 0:
         # 如果还没有生成targetCust记录尝试去生成
@@ -409,7 +425,7 @@ def surveyAnswerAllWithTarget(request, survey):
     context = RequestContext(
         request,
         {'session': request.session, 'survey': survey, 'paper':
-            survey.paper, 'targetCust': targetCust, 'resubmit': resubmit,
+            survey.paper, 'targetCust': targetCust, 'resubmit': resubmit, 'passwordEncoded': passwordEncoded,
          'allBranchIdSelected': allBranchIdSelected})
     return HttpResponse(template.render(context))
 

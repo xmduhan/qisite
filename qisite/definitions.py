@@ -36,5 +36,6 @@ class RESULT_MESSAGE:
     NEED_WAIT = u'请等待后重新请求'
     URL_NO_IN_MESSAGE = u'发送信息不包含正确的URL'
     TARGETCUST_NOT_IN_SURVEY = u'客户清单项和本调查无关'
+    SURVEY_PASSWORD_INVALID = u'您没有正确填写调查密码'
 
     SUCCESS = u'成功'

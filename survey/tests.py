@@ -15,13 +15,14 @@ from django.core.urlresolvers import reverse
 from dateutil import parser
 from account.models import User
 import json, random, string
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 from account.tests import loginForTest, phoneForTest, passwordForTest
 from django.core.signing import Signer
 from django.db import transaction
 from qisite.utils import updateModelInstance
 from qisite.definitions import RESULT_CODE, RESULT_MESSAGE
 from qisite.settings import domain
+from BeautifulSoup import BeautifulSoup
 
 
 class TransactionTest(TestCase):
@@ -2320,7 +2321,7 @@ class AnswerNoneTargetSurvey(TestCase):
         template = response.templates[0]
         self.assertEqual(template.name, self.answeredTemplate)
         # 确认页面没有生成重填按钮
-        self.assertNotContains(response,u'重填')
+        self.assertNotContains(response, u'重填')
 
 
 class AnswerTargetSurvey(TestCase):
@@ -2600,8 +2601,43 @@ class AnswerTargetSurvey(TestCase):
         self.assertEqual(response.status_code, 200)
         template = response.templates[0]
         self.assertEqual(template.name, self.answeredTemplate)
-         # 确认页面没有生成重填按钮
-        self.assertNotContains(response,u'重填')
+        # 确认页面没有生成重填按钮
+        self.assertNotContains(response, u'重填')
+
+    def test_enter_page_without_password(self):
+        '''
+        测试进入页面时设置密码却没有提供的情况。
+        '''
+        client = self.client
+        # 为调查设置密码
+        self.survey.password = '123456'
+        self.survey.save()
+
+        # 读取清单中的一个号码
+        phone = self.custList.custListItem_set.all()[0].phone
+
+        # 没有给出密码不能进入页面
+        response = self.client.get(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+        self.assertEquals(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
+
+        # 给出正确密码可以进入页面
+        response = self.client.get(self.answerUrl, {'phone': phone, 'password': self.survey.password})
+        self.assertEqual(response.status_code, 200)
+        self.assertEquals(response.templates[0].name, self.answerTemplate)
+
+        # 读取页面中的隐藏密码
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"name": "passwordEncoded"})
+        passwordEncoded = input.get('value')
+        self.assertTrue(check_password(self.survey.password, passwordEncoded))
+
+        # 给出错误密码也无法登陆
+        response = self.client.get(self.answerUrl, {'phone': phone, 'password': '123'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEquals(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
 
 
 class SendSurveyToPhoneTest(TestCase):

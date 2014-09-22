@@ -27,6 +27,14 @@
                                 手机号码:<input type="text" name="phone" value="">
                             </div>
                         </div>
+                        <p></p>
+                        {% if survey.password %}
+                            <div class="row">
+                                <div class="col-md-4 col-md-offset-4" align="center">
+                                    参与密码:<input type="password" name="password" value="">
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                     <input type="hidden" name="surveyId" value="{{ survey.getIdSigned }}">
                 </div>

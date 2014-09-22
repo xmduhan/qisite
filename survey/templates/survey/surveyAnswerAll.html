@@ -30,6 +30,9 @@
                     {% if targetCust %}
                         <input type="hidden" name="targetCustId" value="{{ targetCust.getIdSigned }}">
                     {% endif %}
+                    {% if survey.password %}
+                        <input type="hidden" name="passwordEncoded" value="{{ passwordEncoded }}">
+                    {% endif %}
                 </div>
             </div>
             <br>
