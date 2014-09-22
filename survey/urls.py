@@ -33,7 +33,7 @@ urlpatterns = patterns(
     url(r'^view/survey/answer/step/submit$', views.surveyAnswerStepSubmit, name='view.survey.answer.step.submit'),
 
     ## 样本导出
-    url(r'^view/sample/export/(?P<surveyId>\d+)$', views.sampleExport, name='view.sample.export'),
+    url(r'^view/survey/export/(?P<surveyId>\d+)$', views.surveyExport, name='view.survey.export'),
 
 
     ## 调查发布页面

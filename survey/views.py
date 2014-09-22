@@ -674,7 +674,7 @@ def surveyAnswerStepSubmit(request):
     pass
 
 
-def sampleExport(request, surveyId):
+def surveyExport(request, surveyId):
     '''
     将调查收集到的样本导出csv文件
     '''
@@ -695,10 +695,13 @@ def sampleExport(request, surveyId):
     writer = csv.writer(buffer)
     encoding = 'gb18030'
     # 打印表头
-    header = ['', 'IP']
+    header = ['']
+
+    if not survey.anonymous:
+        header.append('IP')
 
     # 如果是定向调查需要增加用户信息
-    if survey.custList:
+    if survey.custList and not survey.anonymous:
         header.extend([u'手机号码'.encode(encoding), u'用户姓名'.encode(encoding)])
 
     # 打印每一个问题
@@ -710,9 +713,11 @@ def sampleExport(request, surveyId):
 
     # 逐行打印数据
     for i, sample in enumerate(paper.sample_set.all()):
-        row = [str(i + 1), sample.ipAddress]
+        row = [str(i + 1)]
+        if not survey.anonymous:
+            row.append(sample.ipAddress)
         # 如果是定向调查需要增加用户信息
-        if survey.custList:
+        if survey.custList and not survey.anonymous:
             phone = unicode(sample.targetCust.phone).encode(encoding)
             name = unicode(sample.targetCust.name).encode(encoding)
             row.extend([phone, name])

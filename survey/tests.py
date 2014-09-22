@@ -23,6 +23,7 @@ from qisite.utils import updateModelInstance
 from qisite.definitions import RESULT_CODE, RESULT_MESSAGE
 from qisite.settings import domain
 from BeautifulSoup import BeautifulSoup
+from io import BytesIO
 
 
 class TransactionTest(TestCase):
@@ -2171,6 +2172,10 @@ class AnswerNoneTargetSurvey(TestCase):
         self.assertIsNone(self.survey.custList)
         # 确定允许重复填写答案
         self.assertEqual(self.survey.resubmit, True)
+        # 确定没有设置调查密码
+        self.assertEqual(self.survey.password, '')
+        # 确定是非匿名调查
+        self.assertFalse(self.survey.anonymous)
         #
         self.answerTemplate = 'survey/surveyAnswerAll.html'
         self.messageTemplate = 'www/message.html'
@@ -2399,6 +2404,7 @@ class AnswerNoneTargetSurvey(TestCase):
         passwordEncoded = input.get('value')
         self.assertTrue(check_password(self.survey.password, passwordEncoded))
 
+
 class AnswerTargetSurvey(TestCase):
     '''
     定向调查提交规则测试
@@ -2413,10 +2419,14 @@ class AnswerTargetSurvey(TestCase):
         self.paper = self.survey.paper
         self.answerUrl = reverse('survey:view.survey.answer.all', args=[self.survey.id])
         self.answerSubmitUrl = reverse('survey:view.survey.answer.all.submit')
+        self.exportUrl = reverse('survey:view.survey.export', args=[self.survey.id])
         # 确认该调查为非定向调查
         self.assertIsNotNone(self.survey.custList)
         # 确定允许重复填写答案
         self.assertEqual(self.survey.resubmit, True)
+        # 确定没有设置调查密码
+        self.assertEqual(self.survey.password, '')
+
         # 相关模板
         self.answerTemplate = 'survey/surveyAnswerAll.html'
         self.surveyLoginTemplate = 'survey/surveyLogin.html'
@@ -2769,6 +2779,109 @@ class AnswerTargetSurvey(TestCase):
         input = soup.find(attrs={"name": "passwordEncoded"})
         passwordEncoded = input.get('value')
         self.assertTrue(check_password(self.survey.password, passwordEncoded))
+
+
+class NoTargetSurveyExportTest(TestCase):
+    '''
+    非定向调查的测试
+    '''
+    fixtures = ['initial_data.json']
+
+    def setUp(self):
+        setup_test_environment()
+        self.client = Client()
+        self.survey = Survey.objects.get(code='survey-no-target-01')  #网购客户满意度调查(非定向)
+        self.exportUrl = reverse('survey:view.survey.export', args=[self.survey.id])
+        # 登录
+        self.user = User.objects.get(code='duhan')
+        loginForTest(self.client, self.user.phone, '123456')
+
+    def test_anonymous_export(self):
+        '''
+        测试匿名调查的导出是否含有用户信息
+        '''
+        client = self.client
+        encoding = 'gb18030'
+        ipColumn = u'IP'
+
+        # 读取csv文件的内容
+        response = client.post(self.exportUrl)
+        buffer = BytesIO()
+        for i in response.streaming_content:
+            buffer.write(i)
+        content = str(buffer.getvalue()).decode(encoding)
+
+        # 非匿名调查可以查看到用户的信息
+        self.assertIn(ipColumn, content)
+        #self.assertIn
+
+        # 将调查改为匿名调查
+        self.survey.anonymous = True
+        self.survey.save()
+
+        # 再次读取csv文件的内容（此时已经是匿名调查）
+        response = client.post(self.exportUrl)
+        buffer = BytesIO()
+        for i in response.streaming_content:
+            buffer.write(i)
+        content = str(buffer.getvalue()).decode(encoding)
+
+        # 匿名调查信息都无法查到
+        self.assertNotIn(ipColumn, content)
+
+class TargetSurveyExportTest(TestCase):
+    '''
+    定向调查的测试
+    '''
+    fixtures = ['initial_data.json']
+
+    def setUp(self):
+        setup_test_environment()
+        self.client = Client()
+        self.survey = Survey.objects.get(code='survey-target-01')  #网购客户满意度调查(定向)
+        self.exportUrl = reverse('survey:view.survey.export', args=[self.survey.id])
+        # 登录
+        self.user = User.objects.get(code='duhan')
+        loginForTest(self.client, self.user.phone, '123456')
+
+    def test_anonymous_export(self):
+        '''
+        测试匿名调查的导出是否含有用户信息
+        '''
+        client = self.client
+        encoding = 'gb18030'
+        nameColumn = u'用户姓名'
+        phoneColumn = u'手机号码'
+        ipColumn = u'IP'
+
+        # 读取csv文件的内容
+        response = client.post(self.exportUrl)
+        buffer = BytesIO()
+        for i in response.streaming_content:
+            buffer.write(i)
+        content = str(buffer.getvalue()).decode(encoding)
+
+        # 非匿名调查可以查看到用户的信息
+        self.assertIn(nameColumn, content)
+        self.assertIn(phoneColumn, content)
+        self.assertIn(ipColumn, content)
+        #self.assertIn
+
+        # 将调查改为匿名调查
+        self.survey.anonymous = True
+        self.survey.save()
+
+        # 再次读取csv文件的内容（此时已经是匿名调查）
+        response = client.post(self.exportUrl)
+        buffer = BytesIO()
+        for i in response.streaming_content:
+            buffer.write(i)
+        content = str(buffer.getvalue()).decode(encoding)
+
+        # 匿名调查信息都无法查到
+        self.assertNotIn(nameColumn, content)
+        self.assertNotIn(phoneColumn, content)
+        self.assertNotIn(ipColumn, content)
 
 
 class SendSurveyToPhoneTest(TestCase):
