@@ -283,6 +283,18 @@ def surveyAnswer(request, surveyId):
         raise Http404
     survey = surveyList[0]
 
+    # 检查调查是否过期
+    if survey.endTime <= datetime.now():
+        template = loader.get_template('www/message.html')
+        context = RequestContext(
+            request,
+            {'title': '出错',
+             'message': RESULT_MESSAGE.SURVEY_EXPIRED,
+             'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
+        )
+        return HttpResponse(template.render(context))
+        #
+
     # 根据是否需要分布答题
     if survey.paper.step:
         url = reverse('survey:view.survey.answer.step', args=[surveyId])
@@ -304,6 +316,18 @@ def surveyAnswerAllWithoutTarget(request, survey):
     submitedSurveyList = request.session.get('submitedSurveyList', [])
     password = request.REQUEST.get('password')
     resubmit = request.REQUEST.get('resubmit', False)
+
+    # 检查调查是否过期
+    if survey.endTime <= datetime.now():
+        template = loader.get_template('www/message.html')
+        context = RequestContext(
+            request,
+            {'title': '出错',
+             'message': RESULT_MESSAGE.SURVEY_EXPIRED,
+             'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
+        )
+        return HttpResponse(template.render(context))
+        #
 
     # 所有已选列表用于重填时显示已选的答案
     allBranchIdSelected = []
@@ -364,6 +388,18 @@ def surveyAnswerAllWithTarget(request, survey):
     phone = request.REQUEST.get('phone')
     password = request.REQUEST.get('password')
     resubmit = request.REQUEST.get('resubmit', False)
+
+    # 检查调查是否过期
+    if survey.endTime <= datetime.now():
+        template = loader.get_template('www/message.html')
+        context = RequestContext(
+            request,
+            {'title': '出错',
+             'message': RESULT_MESSAGE.SURVEY_EXPIRED,
+             'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
+        )
+        return HttpResponse(template.render(context))
+        #
 
     # 如果用户没有填写手机号码，显示填写手机号码的页面
     if not phone:
@@ -501,6 +537,10 @@ def surveyAnswerAllSubmit(request):
                 survey = Survey.objects.get(id=surveyId, state='A')
             except:
                 raise Exception(RESULT_MESSAGE.SURVEY_OBJECT_NOT_EXIST)  # 调查对象不存在
+
+            # 检查调查是否过期
+            if survey.endTime <= datetime.now():
+                raise Exception(RESULT_MESSAGE.SURVEY_EXPIRED)
 
             # 检验密码
             if survey.password:
@@ -777,6 +817,18 @@ def surveyPublish(request, surveyId):
     if not surveyList:
         raise Http404
     survey = surveyList[0]
+
+    # 检查调查是否过期
+    if survey.endTime <= datetime.now():
+        template = loader.get_template('www/message.html')
+        context = RequestContext(
+            request,
+            {'title': '出错',
+             'message': RESULT_MESSAGE.SURVEY_EXPIRED,
+             'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
+        )
+        return HttpResponse(template.render(context))
+        #
 
     # 检查当前用户是否有查看权限
     user = getCurrentUser(request)

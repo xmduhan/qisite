@@ -2404,6 +2404,29 @@ class AnswerNoneTargetSurvey(TestCase):
         passwordEncoded = input.get('value')
         self.assertTrue(check_password(self.survey.password, passwordEncoded))
 
+    def test_submit_expired_survey(self):
+        '''
+        测试提交过期的调查
+        '''
+        client = self.client
+
+        # 修改调查使之过期
+        self.survey.endTime = datetime.now()
+        self.survey.save()
+
+        # 过期后是无法提交的
+        response = client.post(self.answerSubmitUrl, self.data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.SURVEY_EXPIRED)
+
+        # 过期后答题页面也是进不去的
+        response = self.client.get(self.answerUrl)
+        self.assertEqual(response.status_code, 200)
+        template = response.templates[0]
+        self.assertEqual(template.name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.SURVEY_EXPIRED)
+
 
 class AnswerTargetSurvey(TestCase):
     '''
@@ -2420,6 +2443,7 @@ class AnswerTargetSurvey(TestCase):
         self.answerUrl = reverse('survey:view.survey.answer.all', args=[self.survey.id])
         self.answerSubmitUrl = reverse('survey:view.survey.answer.all.submit')
         self.exportUrl = reverse('survey:view.survey.export', args=[self.survey.id])
+        self.coverUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
         # 确认该调查为非定向调查
         self.assertIsNotNone(self.survey.custList)
         # 确定允许重复填写答案
@@ -2780,6 +2804,41 @@ class AnswerTargetSurvey(TestCase):
         passwordEncoded = input.get('value')
         self.assertTrue(check_password(self.survey.password, passwordEncoded))
 
+    def test_submit_expired_survey(self):
+        '''
+        测试过期后答题页面是进不去的
+        '''
+
+        # 修改调查使之过期
+        self.survey.endTime = datetime.now()
+        self.survey.save()
+
+        # 读取清单中的一个号码
+        phone = self.custList.custListItem_set.all()[0].phone
+        # 尝试进入答题页面
+        response = self.client.get(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+        # 返回调查已过期了
+        template = response.templates[0]
+        self.assertEqual(template.name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.SURVEY_EXPIRED)
+
+        # 注意：这里无法测试提交，因为没有办法进入答题页面就没有办法生成targetCust记录，也就没有办法提交了。
+
+    def test_enter_expired_survey_cover(self):
+        '''
+        尝试进入一个过期的调查的封面
+        '''
+        self.survey.endTime = datetime.now()
+        self.survey.save()
+        # 尝试进入调查封面
+        response = self.client.get(self.coverUrl)
+        self.assertEqual(response.status_code, 200)
+        # 返回调查已过期了
+        template = response.templates[0]
+        self.assertEqual(template.name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.SURVEY_EXPIRED)
+
 
 class NoTargetSurveyExportTest(TestCase):
     '''
@@ -2828,6 +2887,7 @@ class NoTargetSurveyExportTest(TestCase):
 
         # 匿名调查信息都无法查到
         self.assertNotIn(ipColumn, content)
+
 
 class TargetSurveyExportTest(TestCase):
     '''
@@ -2973,4 +3033,36 @@ class SendSurveyToPhoneTest(TestCase):
         self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NEED_WAIT)
 
 
+class SurveyPublishTest(TestCase):
+    '''
+    定向调查提交规则测试
+    '''
+    fixtures = ['initial_data.json']
 
+    def setUp(self):
+        # 读取用户并登录
+        self.user = User.objects.get(code='duhan')
+        self.client = Client()
+        loginForTest(self.client, self.user.phone, '123456')
+        # 读取调查信息
+        self.survey = Survey.objects.get(code='survey-target-01')  #网购客户满意度调查(定向)
+        # 生成访问url
+        self.serviceUrl = reverse('survey:view.survey.publish', args=[self.survey.id])
+        # 定义相关模板
+        self.messageTemplate = 'www/message.html'
+
+    def test_publish_expired_survey(self):
+        '''
+        测试进入一个过期调查的发布页面
+        '''
+        # 修改调查使之过期
+        self.survey.endTime = datetime.now()
+        self.survey.save()
+
+        # 尝试进入发布页面
+        response = self.client.get(self.serviceUrl)
+        self.assertEqual(response.status_code, 200)
+        # 返回调查已过期了
+        template = response.templates[0]
+        self.assertEqual(template.name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.SURVEY_EXPIRED)
