@@ -55,13 +55,13 @@
                             <td>{{ survey.paper.sample_set.count }}</td>
                             {# 编辑按钮 #}
                             {#  <td><span class="glyphicon glyphicon-edit"></span></td> #}
-                            {%   comment %}
+
                             <td>
                                 <a href="{% url 'survey:view.survey.edit' survey.id %}">
                                     <span class="glyphicon glyphicon-edit"></span>
                                 </a>
                             </td>
-                            {% endcomment %}
+
                             {# 发布/暂停调查 #}
                             {% comment %}
                             <td>
