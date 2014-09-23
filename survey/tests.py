@@ -2155,7 +2155,7 @@ class CustListItemDeleteTest(TestCase):
         self.assertEqual(len(custListItemList), 0)
 
 
-class AnswerNoneTargetSurvey(TestCase):
+class NoTargetSurveyAnswerTest(TestCase):
     '''
     无定向调查的提交规则测试
     '''
@@ -2297,6 +2297,21 @@ class AnswerNoneTargetSurvey(TestCase):
         template = response.templates[0]
         self.assertEqual(template.name, self.answerTemplate)
 
+        # 测试是否提供上次填写的答案
+        # 注意：这里已经假设了该问卷中全部都是单选题
+        # 读取上次提交所有选项
+        sample = self.survey.paper.sample_set.get(session=client.session.session_key)
+        soup = BeautifulSoup(response.content)
+        signer = Signer()
+        for sampleItem in sample.sampleitem_set.all():
+            for branch in sampleItem.branch_set.all():
+                input = soup.find(attrs={
+                    "name": signer.sign(sampleItem.question.id),
+                    'value': signer.sign(branch.id)
+                })
+                self.assertEqual(input.get('checked'), 'checked')
+
+
     def test_answer_resubmit_with_flag_without_survey_flag(self):
         '''
         使用重复填写标志，但是问卷本身不支持重复填写
@@ -2428,7 +2443,7 @@ class AnswerNoneTargetSurvey(TestCase):
         self.assertContains(response, RESULT_MESSAGE.SURVEY_EXPIRED)
 
 
-class AnswerTargetSurvey(TestCase):
+class TargetSurveyAnswerTest(TestCase):
     '''
     定向调查提交规则测试
     '''
@@ -2671,6 +2686,20 @@ class AnswerTargetSurvey(TestCase):
         template = response.templates[0]
         self.assertEqual(template.name, self.answerTemplate)
 
+        # 测试是否提供上次填写的答案
+        # 注意：这里已经假设了该问卷中全部都是单选题
+        # 读取上次提交所有选项
+        sample = self.survey.targetCust_set.get(phone=phone).sample_set.all()[0]
+        soup = BeautifulSoup(response.content)
+        signer = Signer()
+        for sampleItem in sample.sampleitem_set.all():
+            for branch in sampleItem.branch_set.all():
+                input = soup.find(attrs={
+                    "name": signer.sign(sampleItem.question.id),
+                    'value': signer.sign(branch.id)
+                })
+                self.assertEqual(input.get('checked'), 'checked')
+
     def test_answer_resubmit_same_phone_with_flag_without_survey_flag(self):
         '''
         测试使用重提交标志，但调查本身不允许重复提交
@@ -2803,6 +2832,16 @@ class AnswerTargetSurvey(TestCase):
         input = soup.find(attrs={"name": "passwordEncoded"})
         passwordEncoded = input.get('value')
         self.assertTrue(check_password(self.survey.password, passwordEncoded))
+
+        # 通过重填页面再次进入答题页面
+        # 注意：在重填页面我们不想让用再次输入密码，又不能把密码明文出现在html返回结果中，
+        # 所以只能在密码加密待答题页面对密码进行反向验证。
+        response = self.client.get(
+            self.answerUrl, {'resubmit': True, 'phone': phone, 'passwordEncoded': passwordEncoded})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.answerTemplate)
+
+
 
     def test_submit_expired_survey(self):
         '''

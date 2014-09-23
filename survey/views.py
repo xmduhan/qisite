@@ -423,17 +423,31 @@ def surveyAnswerAllWithTarget(request, survey):
     # 如果设置了密码，检查提交的密码是否正确
     passwordEncoded = ''
     if survey.password:
-        if survey.password != password:
-            template = loader.get_template('www/message.html')
-            context = RequestContext(
-                request,
-                {'title': '出错',
-                 'message': RESULT_MESSAGE.SURVEY_PASSWORD_INVALID,
-                 'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
-            )
-            return HttpResponse(template.render(context))
-        passwordEncoded = make_password(password)
-        #
+        if resubmit:
+            # 如果是重填的情况密码的密文已经在passwordEncoded中了，提出出来进行反向验证
+            passwordEncoded = request.REQUEST.get('passwordEncoded', False)
+            if not check_password(survey.password, passwordEncoded):
+                template = loader.get_template('www/message.html')
+                context = RequestContext(
+                    request,
+                    {'title': '出错',
+                     'message': RESULT_MESSAGE.SURVEY_PASSWORD_INVALID,
+                     'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
+                )
+                return HttpResponse(template.render(context))
+        else:
+            # 检查用户的密码是否正确，如果正确将密码加密
+            if survey.password != password:
+                template = loader.get_template('www/message.html')
+                context = RequestContext(
+                    request,
+                    {'title': '出错',
+                     'message': RESULT_MESSAGE.SURVEY_PASSWORD_INVALID,
+                     'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
+                )
+                return HttpResponse(template.render(context))
+            passwordEncoded = make_password(password)
+            #
 
     # 尝试寻找之前是否已经生成了targetCust
     targetCustList = survey.targetCust_set.filter(phone=phone)
