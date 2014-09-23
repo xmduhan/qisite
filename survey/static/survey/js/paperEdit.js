@@ -651,7 +651,7 @@ function initSpinner(scope) {
  ***************************************/
 
 function initDatetimepicker(scope) {
-    scope.find('.datetimepicker').datepicker();
+    scope.find('.datetimepicker').datepicker({ dateFormat: 'yy-mm-dd' });
 }
 
 /***************************************

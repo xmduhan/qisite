@@ -3198,58 +3198,32 @@ class SurveyPublishTest(TestCase):
         # 生成访问url
         self.serviceUrl = reverse('survey:view.survey.publish', args=[self.survey.id])
         # 定义相关模板
-        self.messageTemplate = 'www/message.html'
+        self.publishTemplate = 'survey/surveyPublish.html'
 
     def test_publish_expired_survey(self):
         '''
         测试进入一个过期调查的发布页面
         '''
+        # 尝试进入发布页面，可以进入页面且无提示信息
+        response = self.client.get(self.serviceUrl)
+        self.assertEqual(response.status_code, 200)
+        template = response.templates[0]
+        self.assertEqual(template.name, self.publishTemplate)
+        self.assertNotContains(response, RESULT_MESSAGE.SURVEY_EXPIRED)
+
         # 修改调查使之过期
         self.survey.endTime = datetime.now()
         self.survey.save()
 
-        # 尝试进入发布页面
+        # 尝试进入发布页面，可以进入页面但又提示过期
         response = self.client.get(self.serviceUrl)
         self.assertEqual(response.status_code, 200)
-        # 返回调查已过期了
         template = response.templates[0]
-        self.assertEqual(template.name, self.messageTemplate)
+        self.assertEqual(template.name, self.publishTemplate)
         self.assertContains(response, RESULT_MESSAGE.SURVEY_EXPIRED)
 
 
-class SurveyViewResultTest(TestCase):
-    '''
-    查看结果相关测试
-    '''
-    fixtures = ['initial_data.json']
 
-    def setUp(self):
-        setup_test_environment()
-        self.client = Client()
-        self.survey = Survey.objects.get(code='survey-no-target-01')  #网购客户满意度调查(非定向)
-        self.paper = self.survey.paper
-        self.answerUrl = reverse('survey:view.survey.answer.all', args=[self.survey.id])
-        self.viewUrl = reverse('survey:view.survey.viewResult', args=[self.survey.id])
-        # 确认该调查可以查看结果
-        self.assertTrue(self.survey.viewResult)
-        #
-        #self.answerTemplate = 'survey/surveyAnswerAll.html'
-        #self.messageTemplate = 'www/message.html'
-        #self.answeredTemplate = 'survey/surveyAnswered.html'
 
-        # 生成一个合法的答卷数据，供后面的过程提交使用
-        data_valid = {}
-        questionIdList = []
-        data_valid['surveyId'] = self.survey.getIdSigned()
-        for question in self.paper.question_set.all():
-            questionIdList.append(question.getIdSigned())
-            data_valid[question.getIdSigned()] = question.branch_set.all()[0].getIdSigned()
-        data_valid['questionIdList'] = questionIdList
-        self.data_valid = copy.copy(data_valid)
-        data_valid['resubmit'] = True
-        self.data_valid_resubmit = copy.copy(data_valid)
-
-    def test_view_result(self):
-        pass
 
 

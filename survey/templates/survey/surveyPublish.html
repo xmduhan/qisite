@@ -12,6 +12,15 @@
 {# 页面主体 #}
 <div class="container" style="padding-top: 30px;">
 
+    {# 警告框 #}
+    {% if resultMessage %}
+        <div class="row">
+            <div class="alert alert-danger" role="alert" align="center">
+                警告：{{ resultMessage }}
+            </div>
+        </div>
+    {% endif %}
+
     <div class="row">
         <div class="col-md-8">
             <div>

@@ -833,17 +833,9 @@ def surveyPublish(request, surveyId):
         raise Http404
     survey = surveyList[0]
 
-    # 检查调查是否过期
+    resultMessage = ''
     if survey.endTime <= datetime.now():
-        template = loader.get_template('www/message.html')
-        context = RequestContext(
-            request,
-            {'title': '出错',
-             'message': RESULT_MESSAGE.SURVEY_EXPIRED,
-             'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
-        )
-        return HttpResponse(template.render(context))
-        #
+        resultMessage = RESULT_MESSAGE.SURVEY_EXPIRED
 
     # 检查当前用户是否有查看权限
     user = getCurrentUser(request)
@@ -852,7 +844,8 @@ def surveyPublish(request, surveyId):
 
     # 调用模板返回结果
     template = loader.get_template('survey/surveyPublish.html')
-    context = RequestContext(request, {'session': request.session, 'survey': survey, 'domain': domain})
+    context = RequestContext(
+        request, {'session': request.session, 'survey': survey, 'domain': domain, 'resultMessage': resultMessage})
     return HttpResponse(template.render(context))
 
 
