@@ -332,20 +332,42 @@ def surveyAnswerAllWithoutTarget(request, survey):
     # 所有已选列表用于重填时显示已选的答案
     allBranchIdSelected = []
 
+
+
     # 如果设置了密码，检查提交的密码是否正确
     passwordEncoded = ''
     if survey.password:
-        if survey.password != password:
-            template = loader.get_template('www/message.html')
-            context = RequestContext(
-                request,
-                {'title': '出错',
-                 'message': RESULT_MESSAGE.SURVEY_PASSWORD_INVALID,
-                 'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
-            )
-            return HttpResponse(template.render(context))
-        passwordEncoded = make_password(password)
-        #
+        # 如果密码为空
+        if resubmit:
+            # 如果是重填的情况密码的密文已经在passwordEncoded中了，提出出来进行反向验证
+            passwordEncoded = request.REQUEST.get('passwordEncoded', False)
+            if not check_password(survey.password, passwordEncoded):
+                template = loader.get_template('www/message.html')
+                context = RequestContext(
+                    request,
+                    {'title': '出错',
+                     'message': RESULT_MESSAGE.SURVEY_PASSWORD_INVALID,
+                     'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
+                )
+                return HttpResponse(template.render(context))
+        else:
+            # 不是重复提交检查密码是否存在
+            if not password:
+                template = loader.get_template('survey/surveyLogin.html')
+                context = RequestContext(request, {'session': request.session, 'survey': survey, 'paper': survey.paper})
+                return HttpResponse(template.render(context))
+            if survey.password != password:
+                template = loader.get_template('www/message.html')
+                context = RequestContext(
+                    request,
+                    {'title': '出错',
+                     'message': RESULT_MESSAGE.SURVEY_PASSWORD_INVALID,
+                     'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
+                )
+                return HttpResponse(template.render(context))
+            passwordEncoded = make_password(password)
+
+
 
     # 检查是否发生重复提交
     if survey.id in submitedSurveyList:

@@ -2186,6 +2186,7 @@ class NoTargetSurveyAnswerTest(TestCase):
         self.answerTemplate = 'survey/surveyAnswerAll.html'
         self.messageTemplate = 'www/message.html'
         self.answeredTemplate = 'survey/surveyAnswered.html'
+        self.surveyLoginTemplate = 'survey/surveyLogin.html'
 
         # 生成一个合法的答卷数据，供后面的过程提交使用
         data_valid = {}
@@ -2363,8 +2364,14 @@ class NoTargetSurveyAnswerTest(TestCase):
         self.survey.password = '123456'
         self.survey.save()
 
-        # 没有提供密码没法正常进入页面
+        # 没有提供密码条状到登录页面
         response = self.client.get(self.answerUrl, {})
+        self.assertEqual(response.status_code, 200)
+        template = response.templates[0]
+        self.assertEqual(template.name, self.surveyLoginTemplate)
+
+        # 提供错误密码提示错误
+        response = self.client.get(self.answerUrl, {'password': '111'})
         self.assertEqual(response.status_code, 200)
         template = response.templates[0]
         self.assertEqual(template.name, self.messageTemplate)
@@ -2381,6 +2388,7 @@ class NoTargetSurveyAnswerTest(TestCase):
         input = soup.find(attrs={"name": "passwordEncoded"})
         passwordEncoded = input.get('value')
         self.assertTrue(check_password(self.survey.password, passwordEncoded))
+
 
     def test_submit_with_password(self):
         '''
@@ -2429,6 +2437,12 @@ class NoTargetSurveyAnswerTest(TestCase):
         input = soup.find(attrs={"name": "passwordEncoded"})
         passwordEncoded = input.get('value')
         self.assertTrue(check_password(self.survey.password, passwordEncoded))
+
+        # 利用页面的隐藏密码重新交进入答题
+        response = self.client.get(self.answerUrl, {'resubmit': True, 'passwordEncoded': passwordEncoded})
+        self.assertEqual(response.status_code, 200)
+        template = response.templates[0]
+        self.assertEqual(template.name, self.answerTemplate)
 
     def test_submit_expired_survey(self):
         '''

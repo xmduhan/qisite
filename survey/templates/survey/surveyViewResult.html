@@ -61,11 +61,11 @@
         <div class="row">
             <div class="col-md-12" align="center">
                 {# 发布按钮 #}
-                <div class="btn btn-primary "
-                     data-form-id="answerSubmit">
-                    <span class="glyphicon glyphicon-ok"></span>
+                <a href="{% url 'survey:view.survey.answer' survey.id %}"
+                   class="btn btn-warning ">
+                    <span class="glyphicon glyphicon-repeat"></span>
                     返回
-                </div>
+                </a>
             </div>
         </div>
     </div>
@@ -73,7 +73,6 @@
     <p></p>
 
     <br><br><br><br><br><br><br><br><br><br>
-
 
 
 </div>
