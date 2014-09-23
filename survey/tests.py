@@ -2842,7 +2842,6 @@ class TargetSurveyAnswerTest(TestCase):
         self.assertEqual(response.templates[0].name, self.answerTemplate)
 
 
-
     def test_submit_expired_survey(self):
         '''
         测试过期后答题页面是进不去的
@@ -3105,3 +3104,41 @@ class SurveyPublishTest(TestCase):
         template = response.templates[0]
         self.assertEqual(template.name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.SURVEY_EXPIRED)
+
+
+class SurveyViewResultTest(TestCase):
+    '''
+    查看结果相关测试
+    '''
+    fixtures = ['initial_data.json']
+
+    def setUp(self):
+        setup_test_environment()
+        self.client = Client()
+        self.survey = Survey.objects.get(code='survey-no-target-01')  #网购客户满意度调查(非定向)
+        self.paper = self.survey.paper
+        self.answerUrl = reverse('survey:view.survey.answer.all', args=[self.survey.id])
+        self.viewUrl = reverse('survey:view.survey.viewResult', args=[self.survey.id])
+        # 确认该调查可以查看结果
+        self.assertTrue(self.survey.viewResult)
+        #
+        #self.answerTemplate = 'survey/surveyAnswerAll.html'
+        #self.messageTemplate = 'www/message.html'
+        #self.answeredTemplate = 'survey/surveyAnswered.html'
+
+        # 生成一个合法的答卷数据，供后面的过程提交使用
+        data_valid = {}
+        questionIdList = []
+        data_valid['surveyId'] = self.survey.getIdSigned()
+        for question in self.paper.question_set.all():
+            questionIdList.append(question.getIdSigned())
+            data_valid[question.getIdSigned()] = question.branch_set.all()[0].getIdSigned()
+        data_valid['questionIdList'] = questionIdList
+        self.data_valid = copy.copy(data_valid)
+        data_valid['resubmit'] = True
+        self.data_valid_resubmit = copy.copy(data_valid)
+
+    def test_view_result(self):
+        pass
+
+
