@@ -38,5 +38,6 @@ class RESULT_MESSAGE:
     TARGETCUST_NOT_IN_SURVEY = u'客户清单项和本调查无关'
     SURVEY_PASSWORD_INVALID = u'您没有正确填写调查密码'
     SURVEY_EXPIRED = u'该调查已过期'
+    VIEW_RESULT_IS_NOT_ALLOWED = u'该调查不允许查看结果'
 
     SUCCESS = u'成功'

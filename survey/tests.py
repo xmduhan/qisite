@@ -2166,8 +2166,7 @@ class NoTargetSurveyAnswerTest(TestCase):
         self.client = Client()
         self.survey = Survey.objects.get(code='survey-no-target-01')  #网购客户满意度调查(非定向)
         self.paper = self.survey.paper
-        self.answerUrl = reverse('survey:view.survey.answer.all', args=[self.survey.id])
-        self.answerSubmitUrl = reverse('survey:view.survey.answer.all.submit')
+
         # 确认该调查为非定向调查
         self.assertIsNone(self.survey.custList)
         # 确定允许重复填写答案
@@ -2176,7 +2175,14 @@ class NoTargetSurveyAnswerTest(TestCase):
         self.assertEqual(self.survey.password, '')
         # 确定是非匿名调查
         self.assertFalse(self.survey.anonymous)
-        #
+        # 确认是允许查看结果的
+        self.assertTrue(self.survey.viewResult)
+
+        # 相关的url连接
+        self.answerUrl = reverse('survey:view.survey.answer.all', args=[self.survey.id])
+        self.answerSubmitUrl = reverse('survey:view.survey.answer.all.submit')
+
+        # 相关的页面模板地址
         self.answerTemplate = 'survey/surveyAnswerAll.html'
         self.messageTemplate = 'www/message.html'
         self.answeredTemplate = 'survey/surveyAnswered.html'
@@ -2340,8 +2346,13 @@ class NoTargetSurveyAnswerTest(TestCase):
         # 检查是否转向重填提示
         template = response.templates[0]
         self.assertEqual(template.name, self.answeredTemplate)
+
         # 确认页面没有生成重填按钮
-        self.assertNotContains(response, u'重填')
+        #self.assertNotContains(response, u'重填')
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"id": "resubmitButton"})
+        self.assertIsNone(input)
+
 
     def test_enter_page_with_password(self):
         '''
@@ -2455,22 +2466,30 @@ class TargetSurveyAnswerTest(TestCase):
         self.survey = Survey.objects.get(code='survey-target-01')  #网购客户满意度调查(定向)
         self.custList = self.survey.custList
         self.paper = self.survey.paper
-        self.answerUrl = reverse('survey:view.survey.answer.all', args=[self.survey.id])
-        self.answerSubmitUrl = reverse('survey:view.survey.answer.all.submit')
-        self.exportUrl = reverse('survey:view.survey.export', args=[self.survey.id])
-        self.coverUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
+
         # 确认该调查为非定向调查
         self.assertIsNotNone(self.survey.custList)
         # 确定允许重复填写答案
         self.assertEqual(self.survey.resubmit, True)
         # 确定没有设置调查密码
         self.assertEqual(self.survey.password, '')
+        # 确认是允许查看结果的
+        self.assertTrue(self.survey.viewResult)
+
+        # 相关的url链接
+        self.answerUrl = reverse('survey:view.survey.answer.all', args=[self.survey.id])
+        self.answerSubmitUrl = reverse('survey:view.survey.answer.all.submit')
+        self.exportUrl = reverse('survey:view.survey.export', args=[self.survey.id])
+        self.coverUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
+        self.viewUrl = reverse('survey:view.survey.viewResult', args=[self.survey.id])
 
         # 相关模板
         self.answerTemplate = 'survey/surveyAnswerAll.html'
         self.surveyLoginTemplate = 'survey/surveyLogin.html'
         self.messageTemplate = 'www/message.html'
         self.answeredTemplate = 'survey/surveyAnswered.html'
+        self.viewRusultTemplate = 'survey/surveyViewResult.html'
+
 
         # 生成一个合法的答卷数据，供后面的过程提交使用
         data_valid = {}
@@ -2739,7 +2758,10 @@ class TargetSurveyAnswerTest(TestCase):
         template = response.templates[0]
         self.assertEqual(template.name, self.answeredTemplate)
         # 确认页面没有生成重填按钮
-        self.assertNotContains(response, u'重填')
+        #self.assertNotContains(response, u'重填')
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"id": "resubmitButton"})
+        self.assertIsNone(input)
 
     def test_enter_page_with_password(self):
         '''
@@ -2876,6 +2898,95 @@ class TargetSurveyAnswerTest(TestCase):
         template = response.templates[0]
         self.assertEqual(template.name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.SURVEY_EXPIRED)
+
+
+    def test_enter_view_result_page_protect(self):
+        '''
+        测试进入viewResult界面的保护措施
+        '''
+        client = self.client
+
+        # 调用进入答卷页面生成targetCust记录
+        phone = self.custList.custListItem_set.all()[0].phone
+        response = self.client.get(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+
+        # 找到刚插入的targetCust记录
+        targetCust = self.survey.targetCust_set.filter(phone=phone)[0]
+        data_valid = copy.copy(self.data_valid)
+        data_valid['targetCustId'] = targetCust.getIdSigned()
+
+        # 第1此提交成功
+        response = client.post(self.answerSubmitUrl, data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 可以成功进入页面
+        response = client.post(self.viewUrl)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.viewRusultTemplate)
+
+        # 修改调查属性禁止查看结果
+        self.survey.viewResult = False
+        self.survey.save()
+
+        # 应该进不去了
+        response = client.post(self.viewUrl)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.VIEW_RESULT_IS_NOT_ALLOWED)
+
+
+    def test_view_result_button_in_answered_page(self):
+        '''
+        测试在answered页面中按钮是否可以根据viewResult变化。
+        '''
+        client = self.client
+
+        # 调用进入答卷页面生成targetCust记录
+        phone = self.custList.custListItem_set.all()[0].phone
+        response = self.client.get(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+
+        # 找到刚插入的targetCust记录
+        targetCust = self.survey.targetCust_set.filter(phone=phone)[0]
+        data_valid = copy.copy(self.data_valid)
+        data_valid['targetCustId'] = targetCust.getIdSigned()
+
+        # 第1此提交成功
+        response = client.post(self.answerSubmitUrl, data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 进入answered界面
+        response = self.client.get(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+        template = response.templates[0]
+        self.assertEqual(template.name, self.answeredTemplate)
+        self.assertContains(response, RESULT_MESSAGE.ANSWERED_ALREADY)
+
+        # 检查是否看见查看结果的按钮
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"id": "viewResultButton"})
+        self.assertIsNotNone(input)
+
+        # 修改调查属性禁止查看结果
+        self.survey.viewResult = False
+        self.survey.save()
+
+        # 再次进入answered界面
+        response = self.client.get(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+        template = response.templates[0]
+        self.assertEqual(template.name, self.answeredTemplate)
+        self.assertContains(response, RESULT_MESSAGE.ANSWERED_ALREADY)
+
+        # 应该要看不见按钮了
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"id": "viewResultButton"})
+        self.assertIsNone(input)
 
 
 class NoTargetSurveyExportTest(TestCase):

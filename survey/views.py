@@ -475,6 +475,7 @@ def surveyAnswerAllWithTarget(request, survey):
             for sampleItem in sample.sampleitem_set.all():
                 allBranchIdSelected.extend([branch.id for branch in sampleItem.branch_set.all()])
         else:
+            # 调用模板
             template = loader.get_template('survey/surveyAnswered.html')
             context = RequestContext(
                 request,
@@ -865,6 +866,17 @@ def surveyViewResult(request, surveyId):
     if not surveyList:
         raise Http404
     survey = surveyList[0]
+
+    if not survey.viewResult:
+        template = loader.get_template('www/message.html')
+        context = RequestContext(
+            request,
+            {'title': '出错',
+             'message': RESULT_MESSAGE.VIEW_RESULT_IS_NOT_ALLOWED,
+             'returnUrl': reverse('survey:view.survey.answer', args=[survey.id])}
+        )
+        return HttpResponse(template.render(context))
+        #
 
     # 统计选线的选择次数
     branchList = Branch.objects.filter(question__paper=survey.paper).annotate(sampleitem_count=Count('sampleitem'))

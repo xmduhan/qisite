@@ -658,7 +658,7 @@ function initDatetimepicker(scope) {
  *         初始表单提交按钮            *
  ***************************************/
 function initFormSubmitButton(scope) {
-    logger.debug('initFormSubmitButton is called');
+    //logger.debug('initFormSubmitButton is called');
     scope.find('.form-submit-button').on('click', function () {
         logger.debug('form-submit-button.click is called');
         formId = $(this).data('form-id');
