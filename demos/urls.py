@@ -10,4 +10,5 @@ urlpatterns = patterns(
     url(r'^demo05$', views.demo05, name='demo05'),
     url(r'^demo06$', views.demo06, name='demo06'),
     url(r'^demo07$', views.demo07, name='demo07'),
+    url(r'^demo08$', views.demo08.as_view(), name='demo07'),
 )

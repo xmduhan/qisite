@@ -1,6 +1,7 @@
 # Create your views here.
 from django.http import HttpResponse
 from django.template import Context, loader
+from django.views.generic import View
 
 
 def demo01(request):
@@ -43,3 +44,10 @@ def demo07(request):
     template = loader.get_template('demos/demo07.html')
     context = Context({})
     return HttpResponse(template.render(context))
+
+
+class demo08(View):
+
+    def get(self, request):
+        # <view logic>
+        return HttpResponse('result')

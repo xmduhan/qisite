@@ -19,6 +19,7 @@ from qrcode.image.pure import PymagingImage
 from qisite.settings import domain
 from django.db.models import Count
 from django.contrib.auth.hashers import make_password, check_password
+from controllers import SurveyController
 
 
 def getCurrentUser(request):
@@ -311,6 +312,9 @@ def surveyAnswerAllWithoutTarget(request, survey):
     '''
     处理无定向调查
     '''
+    surveyControaler = SurveyController(request, survey.id)
+    return surveyControaler.rander()
+
 
     # 读取session中的已提交列表数据
     submitedSurveyList = request.session.get('submitedSurveyList', [])
@@ -331,8 +335,6 @@ def surveyAnswerAllWithoutTarget(request, survey):
 
     # 所有已选列表用于重填时显示已选的答案
     allBranchIdSelected = []
-
-
 
     # 如果设置了密码，检查提交的密码是否正确
     passwordEncoded = ''
@@ -367,8 +369,6 @@ def surveyAnswerAllWithoutTarget(request, survey):
                 return HttpResponse(template.render(context))
             passwordEncoded = make_password(password)
 
-
-
     # 检查是否发生重复提交
     if survey.id in submitedSurveyList:
         if resubmit and survey.resubmit:
@@ -390,8 +390,6 @@ def surveyAnswerAllWithoutTarget(request, survey):
                  'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id]),
                  'survey': survey, 'passwordEncoded': passwordEncoded})
             return HttpResponse(template.render(context))
-
-
 
     # 进入答题界面
     template = loader.get_template('survey/surveyAnswerAll.html')
@@ -727,7 +725,6 @@ def surveyAnswerAllSubmit(request):
     if not survey.custList:
         submitedSurveyList.append(survey.id)
         request.session['submitedSurveyList'] = submitedSurveyList
-
 
     # 如果没有抛出异常说明操作成功了，返回成功的提示信息
     template = loader.get_template('www/message.html')
