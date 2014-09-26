@@ -404,6 +404,10 @@ def surveyAnswerAllWithTarget(request, survey):
     '''
     处理定向调查
     '''
+
+    surveyControaler = SurveyController(request, survey.id)
+    return surveyControaler.rander()
+
     # 如果是定向调查尝试读取手机号码
     phone = request.REQUEST.get('phone')
     password = request.REQUEST.get('password')

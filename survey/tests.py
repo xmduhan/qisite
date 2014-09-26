@@ -2373,15 +2373,16 @@ class NoTargetSurveyAnswerTest(TestCase):
         # 提供错误密码提示错误
         response = self.client.get(self.answerUrl, {'password': '111'})
         self.assertEqual(response.status_code, 200)
-        template = response.templates[0]
-        self.assertEqual(template.name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
+
 
         # 提供密码可以正常进入页面
         response = self.client.get(self.answerUrl, {'password': self.survey.password})
         self.assertEqual(response.status_code, 200)
         template = response.templates[0]
         self.assertEqual(template.name, self.answerTemplate)
+
 
         # 检查页面是否有包含密码
         soup = BeautifulSoup(response.content)

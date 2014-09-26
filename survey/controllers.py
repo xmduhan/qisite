@@ -1,6 +1,6 @@
 #-*- coding: utf-8 -*-
 
-from survey.models import Survey
+from survey.models import Survey, CustList, TargetCust
 from datetime import datetime
 from django.contrib.auth.hashers import make_password, check_password
 from django.template import Context, loader, RequestContext
@@ -28,7 +28,13 @@ class Authenticator:
     def isLogin(self):
         return True
 
-    def renderLoginPage(self):
+    def loginPage(self):
+        pass
+
+    def loginErrorPage(self):
+        pass
+
+    def saveLoginInfo(self):
         pass
 
 
@@ -57,7 +63,7 @@ class SurveyAuthenticator(Authenticator):
         else:
             return True
 
-    def makeEncodePassword(self):
+    def saveLoginInfo(self):
         self.passwordEncoded = make_password(self.password)
 
     def isAnswered(self):
@@ -70,6 +76,24 @@ class SurveyAuthenticator(Authenticator):
         '''
         pass
 
+    def loginPage(self):
+        '''
+        显示登录界面
+        '''
+        template = loader.get_template(self.loginTemplate)
+        context = RequestContext(
+            self.request, {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper})
+        return HttpResponse(template.render(context))
+
+    def loginErrorPage(self):
+        '''
+
+        '''
+        if not self.password:
+            return self.loginPage()
+        if self.password != self.survey.password:
+            return self.controller.errorPage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
+
 
 class NoTargetSurveyAuthenticator(SurveyAuthenticator):
     '''
@@ -79,7 +103,7 @@ class NoTargetSurveyAuthenticator(SurveyAuthenticator):
     def __init__(self, controller):
         SurveyAuthenticator.__init__(self, controller)
         self.submitedSurveyList = submitedSurveyList = self.request.session.get('submitedSurveyList', [])
-
+        self.loginTemplate = 'survey/surveyLogin.html'
 
     def isAnswered(self):
         '''
@@ -107,9 +131,109 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
 
     def __init__(self, controller):
         SurveyAuthenticator.__init__(self, controller)
+        self.phone = self.request.REQUEST.get('phone')
 
     def isLogin(self):
-        return Authenticator.isLogin(self)
+        '''
+
+        '''
+        if not self.phone:
+            return False
+        custListItemList = self.survey.custList.custListItem_set.filter(phone=self.phone)
+        if len(custListItemList) == 0:
+            return False
+        return SurveyAuthenticator.isLogin(self)
+
+    def saveLoginInfo(self):
+        '''
+
+        '''
+        # 调用父类的保存登录信息过程
+        SurveyAuthenticator.saveLoginInfo(self)
+
+        # 检查号码对应的targetCust记录是否已经生成，生成了就读取，没有生成就生成
+        targetCustList = self.survey.targetCust_set.filter(phone=self.phone)
+        if len(targetCustList) == 0:
+            custListItemList = self.survey.custList.custListItem_set.filter(phone=self.phone)
+            custListItem = custListItemList[0]
+            targetCust = TargetCust(
+                name=custListItem.name, phone=custListItem.phone, email=custListItem.email, survey=self.survey,
+                createBy=self.survey.createBy, modifyBy=self.survey.createBy,
+            )
+            targetCust.save()
+        else:
+            targetCust = targetCustList[0]
+
+        # 保存到对象变量中,以便后面可以访问
+        self.targetCust = targetCust
+
+
+class Generator:
+    '''
+    页面生成器基类
+    '''
+
+    def __init__(self, controller):
+        self.controller = controller
+        self.request = controller.request
+
+
+class SurveyGenerator(Generator):
+    '''
+    调查页面生成器
+    '''
+
+    def __init__(self, controller):
+        Generator.__init__(self, controller)
+        self.survey = self.controller.survey
+        self.url = reverse('survey:view.survey.answer.all', args=[self.survey.id])
+
+        self.answerAllTemplate = 'survey/surveyAnswerAll.html'
+        self.answeredTemplate = 'survey/surveyAnswered.html'
+
+
+    def answerPage(self):
+        '''
+        进入答题页面
+        '''
+        authenticator = self.controller.authenticator
+        allBranchIdSelected = self.controller.allBranchIdSelected
+        template = loader.get_template(self.answerAllTemplate)
+        context = RequestContext(
+            self.request,
+            {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper,
+             'resubmit': authenticator.resubmit, 'passwordEncoded': authenticator.passwordEncoded,
+             'allBranchIdSelected': allBranchIdSelected})
+        return HttpResponse(template.render(context))
+
+
+    def answeredPage(self):
+        '''
+        提示已答过
+        '''
+        authenticator = self.controller.authenticator
+        template = loader.get_template(self.answeredTemplate)
+        context = RequestContext(
+            self.request,
+            {'title': '提示',
+             'message': RESULT_MESSAGE.ANSWERED_ALREADY,
+             'returnUrl': self.url,
+             'survey': self.survey, 'passwordEncoded': authenticator.passwordEncoded})
+        return HttpResponse(template.render(context))
+
+
+class AllSurveyGenerator(SurveyGenerator):
+    '''
+    非分步调查的页面生成器
+    '''
+    pass
+
+
+class StepSurveyGenerator(SurveyGenerator):
+    '''
+    分步调查页面生成器
+    '''
+    pass
 
 
 class ResponseController(object):
@@ -129,24 +253,29 @@ class SurveyController(ResponseController):
     def __init__(self, request, surveyId):
         ResponseController.__init__(self, request)
         self.survey = Survey.objects.get(id=surveyId)
-        self.url = reverse('survey:view.survey.answer.all', args=[self.survey.id])
         self.allBranchIdSelected = []
         # 为控制器初始化鉴权器
         if self.survey.custList:
             self.authenticator = TargetSurveyAuthenticator(self)
         else:
             self.authenticator = NoTargetSurveyAuthenticator(self)
+        # 为控制器初始化页面生成器
+        if self.survey.paper.step:
+            self.generator = StepSurveyGenerator(self)
+        else:
+            self.generator = AllSurveyGenerator(self)
 
+        self.messageTemplate = 'www/message.html'
+        self.url = reverse('survey:view.survey.answer.all', args=[self.survey.id])
 
     def errorPage(self, resultMessage=u'未知错误'):
         '''
         显示出错信息
         '''
-        template = loader.get_template('www/message.html')
+        template = loader.get_template(self.messageTemplate)
         context = RequestContext(
             self.request, {'title': '出错', 'message': resultMessage, 'returnUrl': self.url})
         return HttpResponse(template.render(context))
-
 
     def loadLastAnswer(self):
         '''
@@ -156,74 +285,37 @@ class SurveyController(ResponseController):
         for sampleItem in sample.sampleitem_set.all():
             self.allBranchIdSelected.extend([branch.id for branch in sampleItem.branch_set.all()])
 
-    def loginPage(self):
-        '''
-        显示登录界面
-        '''
-        template = loader.get_template('survey/surveyLogin.html')
-        context = RequestContext(
-            self.request, {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper})
-        return HttpResponse(template.render(context))
-
-    def answerPage(self):
-        '''
-        进入答题页面
-        '''
-        template = loader.get_template('survey/surveyAnswerAll.html')
-        context = RequestContext(
-            self.request,
-            {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper,
-             'resubmit': self.authenticator.resubmit, 'passwordEncoded': self.authenticator.passwordEncoded,
-             'allBranchIdSelected': self.allBranchIdSelected})
-        return HttpResponse(template.render(context))
-
-
     def isExpired(self):
         '''
         检查是否调查是否过期了
         '''
         return self.survey.endTime <= datetime.now()
 
-
     def rander(self):
         '''
         生成页面主程序
         '''
+        generator = self.generator
         # 检查调查是否过期
         if self.isExpired():
             return self.errorPage(RESULT_MESSAGE.SURVEY_EXPIRED)
 
         # 检查是否提供登录信息
-        if not self.authenticator.isLogin():
-            if not self.authenticator.password:
-                return self.loginPage()
-            else:
-                return self.errorPage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
-        self.authenticator.makeEncodePassword()
+        authenticator = self.authenticator
+        if not authenticator.isLogin():
+            return authenticator.loginErrorPage()
+        authenticator.saveLoginInfo()
 
         # 检查是否已经回答过了
         if self.authenticator.isAnswered():
             if self.authenticator.resubmit and self.survey.resubmit:
                 self.loadLastAnswer()
             else:
-                return self.answeredPage()
+                return generator.answeredPage()
 
         # 返回答题界面
-        return self.answerPage()
+        return generator.answerPage()
 
-
-    def answeredPage(self):
-        '''
-        提示已答过
-        '''
-        template = loader.get_template('survey/surveyAnswered.html')
-        context = RequestContext(
-            self.request,
-            {'title': '提示',
-             'message': RESULT_MESSAGE.ANSWERED_ALREADY,
-             'returnUrl': reverse('survey:view.survey.answer.all', args=[self.survey.id]),
-             'survey': self.survey, 'passwordEncoded': self.authenticator.passwordEncoded})
-        return HttpResponse(template.render(context))
 
     def submit(self):
         pass
