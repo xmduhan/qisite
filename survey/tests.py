@@ -2445,6 +2445,70 @@ class NoTargetSurveyAnswerTest(TestCase):
         template = response.templates[0]
         self.assertEqual(template.name, self.answerTemplate)
 
+    def test_resubmit_with_password_without_survey_flag(self):
+        '''
+        调查设置了密码，但是调查是不允许重填的
+        '''
+        client = self.client
+        # 为调查设置密码
+        self.survey.password = '123456'
+        #self.survey.resubmit = False
+        self.survey.save()
+
+        ############################## 第1次提交 #############################
+        # 进入调查页面
+        response = self.client.get(self.answerUrl, {'password': self.survey.password})
+        self.assertEqual(response.status_code, 200)
+        template = response.templates[0]
+        self.assertEqual(template.name, self.answerTemplate)
+
+        # 读取页面中的隐藏密码
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"name": "passwordEncoded"})
+        passwordEncoded = input.get('value')
+        self.assertTrue(check_password(self.survey.password, passwordEncoded))
+
+        # 提交成功
+        data_valid = copy.copy(self.data_valid)
+        data_valid['passwordEncoded'] = passwordEncoded
+        response = client.post(self.answerSubmitUrl, data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        ############################## 第2次提交 #############################
+        # 进入调查页面(返回的是已经答过页面)
+        response = self.client.get(self.answerUrl, {'password': self.survey.password})
+        self.assertEqual(response.status_code, 200)
+        template = response.templates[0]
+        self.assertEqual(template.name, self.answeredTemplate)
+
+        # 读取页面中的隐藏密码
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"name": "passwordEncoded"})
+        passwordEncoded = input.get('value')
+        self.assertTrue(check_password(self.survey.password, passwordEncoded))
+
+        # 附上重提交标识和隐藏密码再次进入页面
+        response = self.client.get(self.answerUrl, {'passwordEncoded': passwordEncoded, 'resubmit': True})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.answerTemplate, response.templates[0].name),
+        soup = BeautifulSoup(response.content)
+        # 读取页面（答题页面）中的隐藏密码并检验
+        input = soup.find(attrs={"name": "passwordEncoded"})
+        passwordEncoded = input.get('value')
+        self.assertTrue(check_password(self.survey.password, passwordEncoded))
+
+        # 第2次提交返回失败
+        data_valid = copy.copy(self.data_valid)
+        data_valid['passwordEncoded'] = passwordEncoded
+        data_valid['resubmit'] = True
+        response = client.post(self.answerSubmitUrl, data_valid)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+
     def test_submit_expired_survey(self):
         '''
         测试提交过期的调查
@@ -2516,18 +2580,17 @@ class TargetSurveyAnswerTest(TestCase):
         data_valid['questionIdList'] = questionIdList
         self.data_valid = data_valid
 
-    def test_enter_answer_page_on_phone(self):
+    def test_enter_answer_page_no_phone(self):
         '''
         检查如果没有提供号码无法进入答题页面
         '''
         response = self.client.get(self.answerUrl)
         self.assertEqual(response.status_code, 200)
         # 检查是否直接转向答题模板
-        template = response.templates[0]
-        self.assertEqual(template.name, self.surveyLoginTemplate)
+        self.assertEqual(self.surveyLoginTemplate, response.templates[0].name)
 
 
-    def test_enter_answer_page_phone_not_in_list(self):
+    def test_enter_answer_page_with_phone_not_in_list(self):
         '''
         检查如果提供一个错误的号码无法进入答题页面
         '''

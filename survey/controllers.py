@@ -37,6 +37,9 @@ class Authenticator:
     def saveLoginInfo(self):
         pass
 
+    def getResubmitAuthInfo(self):
+        pass
+
 
 class SurveyAuthenticator(Authenticator):
     '''
@@ -49,7 +52,7 @@ class SurveyAuthenticator(Authenticator):
         self.password = self.request.REQUEST.get('password')
         self.resubmit = self.request.REQUEST.get('resubmit', False)
         self.passwordEncoded = self.request.REQUEST.get('passwordEncoded', False)
-
+        self.loginTemplate = 'survey/surveyLogin.html'
 
     def isLogin(self):
         '''
@@ -64,7 +67,16 @@ class SurveyAuthenticator(Authenticator):
             return True
 
     def saveLoginInfo(self):
-        self.passwordEncoded = make_password(self.password)
+        if not self.resubmit:
+            #if True:
+            # 重新提交的情况,其加密密码已经直接放在request中的passwordEncoded了
+            self.passwordEncoded = make_password(self.password)
+
+    def getResubmitAuthInfo(self):
+        result = {}
+        if self.password:
+            result['passwordEncoded'] = self.passwordEncoded
+        return result
 
     def isAnswered(self):
         return False
@@ -89,8 +101,6 @@ class SurveyAuthenticator(Authenticator):
         '''
 
         '''
-        if not self.password:
-            return self.loginPage()
         if self.password != self.survey.password:
             return self.controller.errorPage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
 
@@ -103,7 +113,7 @@ class NoTargetSurveyAuthenticator(SurveyAuthenticator):
     def __init__(self, controller):
         SurveyAuthenticator.__init__(self, controller)
         self.submitedSurveyList = submitedSurveyList = self.request.session.get('submitedSurveyList', [])
-        self.loginTemplate = 'survey/surveyLogin.html'
+
 
     def isAnswered(self):
         '''
@@ -123,6 +133,15 @@ class NoTargetSurveyAuthenticator(SurveyAuthenticator):
         else:
             return None
 
+    def loginErrorPage(self):
+        '''
+        非定向调查的登录错误返回
+        提示：非定向调查如果没有提供密码可能是第一次进入页面应该返回
+        '''
+        if not self.password:
+            return self.loginPage()
+        return SurveyAuthenticator.loginErrorPage(self)
+
 
 class TargetSurveyAuthenticator(SurveyAuthenticator):
     '''
@@ -132,16 +151,33 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
     def __init__(self, controller):
         SurveyAuthenticator.__init__(self, controller)
         self.phone = self.request.REQUEST.get('phone')
+        self.targetCust = None  # initial in saveLoginInfo()
+
+
+    def isPhoneInList(self, phone):
+        '''
+        检查号码是否在定向清单内
+        '''
+        custListItemList = self.survey.custList.custListItem_set.filter(phone=self.phone)
+        if len(custListItemList) == 0:
+            return False
+        else:
+            return True
+
 
     def isLogin(self):
         '''
 
         '''
+        # 检查是否提供了号码
         if not self.phone:
             return False
-        custListItemList = self.survey.custList.custListItem_set.filter(phone=self.phone)
-        if len(custListItemList) == 0:
+
+        # 检查号码是否在客户清单中
+        if not self.isPhoneInList(self.phone):
             return False
+
+        # 执行父类的登录检查
         return SurveyAuthenticator.isLogin(self)
 
     def saveLoginInfo(self):
@@ -166,6 +202,46 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
 
         # 保存到对象变量中,以便后面可以访问
         self.targetCust = targetCust
+
+    def getResubmitAuthInfo(self):
+        result = SurveyAuthenticator.getResubmitAuthInfo(self)
+
+        return result
+
+
+    def getLastSample(self):
+        return self.targetCust.sample_set.all()[0]
+
+
+    def loginErrorPage(self):
+        '''
+        定向调查的登录错误返回
+        提示：没有提供号码是第1次进入页面，不应提示错误
+        '''
+
+        # 检查是否提供了号码
+        if not self.phone:
+            return self.loginPage()
+
+        # 检查号码是否在客户清单中
+        if not self.isPhoneInList(self.phone):
+            return self.controller.errorPage(RESULT_MESSAGE.PHONE_NOT_IN_CUSTLIST)
+
+        # 返回父类的错误登录页面
+        return SurveyAuthenticator.loginErrorPage(self)
+
+    def isAnswered(self):
+        '''
+        定向调查检查是否已经答过题
+        提示：通过号码检查targetCust记录
+        '''
+        targetCustList = self.survey.targetCust_set.filter(phone=self.phone)
+        if len(targetCustList) == 0:
+            return False
+        targetCust = targetCustList[0]
+        if targetCust.sample_set.count() == 0:
+            return False
+        return True
 
 
 class Generator:
