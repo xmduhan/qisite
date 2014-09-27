@@ -2640,17 +2640,23 @@ class TargetSurveyAnswerTest(TestCase):
         phone = self.custList.custListItem_set.all()[0].phone
         response = self.client.get(self.answerUrl, {'phone': phone})
         self.assertEqual(response.status_code, 200)
+        # 找到页面中的targetCustId
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"name": "targetCustId"})
+        targetCustId = input.get('value')
+        data_valid = copy.copy(self.data_valid)
+        data_valid['targetCustId'] = targetCustId
 
         # 找到刚插入的targetCust记录
-        targetCust = self.survey.targetCust_set.filter(phone=phone)[0]
-        data_valid = copy.copy(self.data_valid)
-        data_valid['targetCustId'] = targetCust.getIdSigned()
+        #targetCust = self.survey.targetCust_set.filter(phone=phone)[0]
+        #data_valid = copy.copy(self.data_valid)
+        #data_valid['targetCustId'] = targetCust.getIdSigned()
 
         # 提交到服务器
         response = client.post(self.answerSubmitUrl, data_valid)
         self.assertEqual(response.status_code, 200)
 
-        # 检查提交的页面是否
+        # 检查提交的页面是否返回的是message页面
         self.assertEqual(response.templates[0].name, self.messageTemplate)
 
         # 检查是否返回成功信息
@@ -2776,6 +2782,17 @@ class TargetSurveyAnswerTest(TestCase):
         # 重填样本数量不能增加
         count2 = self.survey.paper.sample_set.count()
         self.assertEqual(count1, count2)
+
+        # 没有增加重填标志无法进入页面返回answered
+        response = self.client.get(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+        template = response.templates[0]
+        self.assertEqual(template.name, self.answeredTemplate)
+
+        # 检查页面是否正常传递了phone信息
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"name": "phone"})
+        self.assertEqual(phone, input.get('value'))
 
         # 增加了resubmit标志，提交过后还能进入页面
         response = self.client.get(self.answerUrl, {'phone': phone, 'resubmit': True})

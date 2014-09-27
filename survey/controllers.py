@@ -7,7 +7,7 @@ from django.template import Context, loader, RequestContext
 from django.http import HttpResponse, Http404, HttpResponseRedirect, StreamingHttpResponse
 from django.core.urlresolvers import reverse
 from qisite.definitions import RESULT_MESSAGE
-
+from django.core.signing import Signer, BadSignature
 
 #self.phone = request.REQUEST.get('phone')
 #self.submitedSurveyList = request.session.get('submitedSurveyList', [])
@@ -37,8 +37,8 @@ class Authenticator:
     def saveLoginInfo(self):
         pass
 
-    def getResubmitAuthInfo(self):
-        pass
+    def getSubmitAuthInfo(self):
+        return {}
 
 
 class SurveyAuthenticator(Authenticator):
@@ -72,10 +72,12 @@ class SurveyAuthenticator(Authenticator):
             # 重新提交的情况,其加密密码已经直接放在request中的passwordEncoded了
             self.passwordEncoded = make_password(self.password)
 
-    def getResubmitAuthInfo(self):
-        result = {}
-        if self.password:
+    def getSubmitAuthInfo(self):
+        result = Authenticator.getSubmitAuthInfo(self)
+        if self.survey.password:
             result['passwordEncoded'] = self.passwordEncoded
+        if self.resubmit:
+            result['resubmit'] = self.resubmit
         return result
 
     def isAnswered(self):
@@ -180,6 +182,7 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
         # 执行父类的登录检查
         return SurveyAuthenticator.isLogin(self)
 
+
     def saveLoginInfo(self):
         '''
 
@@ -203,11 +206,14 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
         # 保存到对象变量中,以便后面可以访问
         self.targetCust = targetCust
 
-    def getResubmitAuthInfo(self):
-        result = SurveyAuthenticator.getResubmitAuthInfo(self)
-
+    def getSubmitAuthInfo(self):
+        '''
+        定向调查提交是需要提供的targetCust信息
+        '''
+        result = SurveyAuthenticator.getSubmitAuthInfo(self)
+        result['targetCust'] = self.targetCust
+        result['phone'] = self.phone
         return result
-
 
     def getLastSample(self):
         return self.targetCust.sample_set.all()[0]
@@ -272,14 +278,17 @@ class SurveyGenerator(Generator):
         '''
         进入答题页面
         '''
-        authenticator = self.controller.authenticator
-        allBranchIdSelected = self.controller.allBranchIdSelected
+        # 准备进入页面的数据信息
+        data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper}
+        # 增加上次答题结果信息
+        allBranchIdSelected = self.controller.getAllBranchSelected()
+        data['allBranchIdSelected'] = allBranchIdSelected
+        # 增加鉴权信息
+        submitAuthInfo = self.controller.authenticator.getSubmitAuthInfo()
+        data = dict(data.items() + submitAuthInfo.items())
+        # 导入模板返回结果
         template = loader.get_template(self.answerAllTemplate)
-        context = RequestContext(
-            self.request,
-            {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper,
-             'resubmit': authenticator.resubmit, 'passwordEncoded': authenticator.passwordEncoded,
-             'allBranchIdSelected': allBranchIdSelected})
+        context = RequestContext(self.request, data)
         return HttpResponse(template.render(context))
 
 
@@ -287,14 +296,16 @@ class SurveyGenerator(Generator):
         '''
         提示已答过
         '''
-        authenticator = self.controller.authenticator
+
+        # 输送给answered页面的数据
+        data = {'title': '提示', 'message': RESULT_MESSAGE.ANSWERED_ALREADY,
+                'returnUrl': self.url, 'survey': self.survey}
+        # 增加鉴权信息
+        submitAuthInfo = self.controller.authenticator.getSubmitAuthInfo()
+        data = dict(data.items() + submitAuthInfo.items())
+        # 导入模板返回结果
         template = loader.get_template(self.answeredTemplate)
-        context = RequestContext(
-            self.request,
-            {'title': '提示',
-             'message': RESULT_MESSAGE.ANSWERED_ALREADY,
-             'returnUrl': self.url,
-             'survey': self.survey, 'passwordEncoded': authenticator.passwordEncoded})
+        context = RequestContext(self.request, data)
         return HttpResponse(template.render(context))
 
 
@@ -366,6 +377,9 @@ class SurveyController(ResponseController):
         检查是否调查是否过期了
         '''
         return self.survey.endTime <= datetime.now()
+
+    def getAllBranchSelected(self):
+        return self.allBranchIdSelected
 
     def rander(self):
         '''
