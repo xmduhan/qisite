@@ -34,7 +34,7 @@ class Authenticator:
     def loginErrorPage(self):
         pass
 
-    def saveLoginInfo(self):
+    def saveAuthInfo(self):
         pass
 
     def getSubmitAuthInfo(self):
@@ -66,7 +66,7 @@ class SurveyAuthenticator(Authenticator):
         else:
             return True
 
-    def saveLoginInfo(self):
+    def saveAuthInfo(self):
         if not self.resubmit:
             #if True:
             # 重新提交的情况,其加密密码已经直接放在request中的passwordEncoded了
@@ -183,12 +183,12 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
         return SurveyAuthenticator.isLogin(self)
 
 
-    def saveLoginInfo(self):
+    def saveAuthInfo(self):
         '''
 
         '''
         # 调用父类的保存登录信息过程
-        SurveyAuthenticator.saveLoginInfo(self)
+        SurveyAuthenticator.saveAuthInfo(self)
 
         # 检查号码对应的targetCust记录是否已经生成，生成了就读取，没有生成就生成
         targetCustList = self.survey.targetCust_set.filter(phone=self.phone)
@@ -394,7 +394,7 @@ class SurveyController(ResponseController):
         authenticator = self.authenticator
         if not authenticator.isLogin():
             return authenticator.loginErrorPage()
-        authenticator.saveLoginInfo()
+        authenticator.saveAuthInfo()
 
         # 检查是否已经回答过了
         if self.authenticator.isAnswered():
