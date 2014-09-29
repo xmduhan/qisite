@@ -2155,7 +2155,7 @@ class CustListItemDeleteTest(TestCase):
         self.assertEqual(len(custListItemList), 0)
 
 
-class NoTargetSurveyAnswerTest(TestCase):
+class TargetLessSurveyAnswerTest(TestCase):
     '''
     无定向调查的提交规则测试
     '''
@@ -3084,7 +3084,7 @@ class TargetSurveyAnswerTest(TestCase):
         self.assertIsNone(input)
 
 
-class NoTargetSurveyExportTest(TestCase):
+class TargetLessSurveyExportTest(TestCase):
     '''
     非定向调查的测试
     '''

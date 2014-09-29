@@ -49,24 +49,26 @@ class SurveyAuthenticator(Authenticator):
 
     def __init__(self, controller):
         '''
-
+        构造函数
         '''
+
         Authenticator.__init__(self, controller)
         self.survey = self.controller.survey
+        self.loginTemplate = 'survey/surveyLogin.html'
+        #SurveyAuthenticator.loadAuthInfo(self)
+        self.__loadAuthInfo()
+
+    def __loadAuthInfo(self):
+        # 鉴权相关信息
         self.password = self.request.REQUEST.get('password')
         self.resubmit = self.request.REQUEST.get('resubmit', False)
         self.passwordEncoded = self.request.REQUEST.get('passwordEncoded', False)
-        self.loginTemplate = 'survey/surveyLogin.html'
-
-    def loadAuthInfo(self):
-        '''
-        保存鉴权信息
-        '''
 
         if not self.resubmit:
             #if True:
             # 重新提交的情况,其加密密码已经直接放在request中的passwordEncoded了
             self.passwordEncoded = make_password(self.password)
+
 
     def pageEnterCheck(self):
         '''
@@ -179,9 +181,32 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
 
     def __init__(self, controller):
         SurveyAuthenticator.__init__(self, controller)
+        # 调用父类的保存登录信息过程
         self.phone = self.request.REQUEST.get('phone')
         self.targetCust = None  # initial in saveLoginInfo()
+        #TargetSurveyAuthenticator.loadAuthInfo(self)
+        self.__loadAuthInfo()
 
+    def __loadAuthInfo(self):
+        '''
+        初始化鉴权相关信息
+        '''
+        if self.isPhoneInList(self.phone):
+            # 检查号码对应的targetCust记录是否已经生成，生成了就读取，没有生成就生成
+            targetCustList = self.survey.targetCust_set.filter(phone=self.phone)
+            if len(targetCustList) == 0:
+                custListItemList = self.survey.custList.custListItem_set.filter(phone=self.phone)
+                custListItem = custListItemList[0]
+                targetCust = TargetCust(
+                    name=custListItem.name, phone=custListItem.phone, email=custListItem.email, survey=self.survey,
+                    createBy=self.survey.createBy, modifyBy=self.survey.createBy,
+                )
+                targetCust.save()
+            else:
+                targetCust = targetCustList[0]
+
+            # 保存到对象变量中,以便后面可以访问
+            self.targetCust = targetCust
 
     def isPhoneInList(self, phone):
         '''
@@ -209,29 +234,6 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
         # 执行父类的登录检查
         return SurveyAuthenticator.pageEnterCheck(self)
 
-
-    def loadAuthInfo(self):
-        '''
-
-        '''
-        # 调用父类的保存登录信息过程
-        SurveyAuthenticator.loadAuthInfo(self)
-
-        # 检查号码对应的targetCust记录是否已经生成，生成了就读取，没有生成就生成
-        targetCustList = self.survey.targetCust_set.filter(phone=self.phone)
-        if len(targetCustList) == 0:
-            custListItemList = self.survey.custList.custListItem_set.filter(phone=self.phone)
-            custListItem = custListItemList[0]
-            targetCust = TargetCust(
-                name=custListItem.name, phone=custListItem.phone, email=custListItem.email, survey=self.survey,
-                createBy=self.survey.createBy, modifyBy=self.survey.createBy,
-            )
-            targetCust.save()
-        else:
-            targetCust = targetCustList[0]
-
-        # 保存到对象变量中,以便后面可以访问
-        self.targetCust = targetCust
 
     def getSubmitAuthInfo(self):
         '''
@@ -448,7 +450,7 @@ class SurveyController(ResponseController):
         authenticator = self.authenticator
         if not authenticator.pageEnterCheck():
             return authenticator.loginErrorPage()
-        authenticator.loadAuthInfo()
+        #authenticator.loadAuthInfo()
 
         # 检查是否已经回答过了
         if self.authenticator.isAnswered():
