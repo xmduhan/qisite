@@ -25,7 +25,7 @@ class Authenticator:
         self.controller = controller
         self.request = controller.request
 
-    def isLogin(self):
+    def pageEnterCheck(self):
         return True
 
     def loginPage(self):
@@ -34,8 +34,9 @@ class Authenticator:
     def loginErrorPage(self):
         pass
 
-    def saveAuthInfo(self):
+    def loadAuthInfo(self):
         pass
+
 
     def getSubmitAuthInfo(self):
         return {}
@@ -54,9 +55,9 @@ class SurveyAuthenticator(Authenticator):
         self.passwordEncoded = self.request.REQUEST.get('passwordEncoded', False)
         self.loginTemplate = 'survey/surveyLogin.html'
 
-    def isLogin(self):
+    def pageEnterCheck(self):
         '''
-        检查是否已经登录过了
+        进入页面时的鉴权信息检查
         '''
         if self.survey.password:
             if not self.resubmit:
@@ -66,13 +67,24 @@ class SurveyAuthenticator(Authenticator):
         else:
             return True
 
-    def saveAuthInfo(self):
+    def loadAuthInfo(self):
+        '''
+        保存鉴权信息
+        '''
         if not self.resubmit:
             #if True:
             # 重新提交的情况,其加密密码已经直接放在request中的passwordEncoded了
             self.passwordEncoded = make_password(self.password)
 
+
+    def setSample(self, sample):
+        pass
+
+
     def getSubmitAuthInfo(self):
+        '''
+        获取鉴权信息提供给表单和重填控制页面，用于鉴权信息的传递
+        '''
         result = Authenticator.getSubmitAuthInfo(self)
         if self.survey.password:
             result['passwordEncoded'] = self.passwordEncoded
@@ -84,9 +96,9 @@ class SurveyAuthenticator(Authenticator):
         return False
 
 
-    def getLastSample(self):
+    def getSample(self):
         '''
-        获取上次用户回答的样本记录
+        获取上次用户回答的样本记录，用于样本信息的关联、再次读取和清空
         '''
         pass
 
@@ -101,13 +113,13 @@ class SurveyAuthenticator(Authenticator):
 
     def loginErrorPage(self):
         '''
-
+        登陆错误
         '''
         if self.password != self.survey.password:
             return self.controller.errorPage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
 
 
-class NoTargetSurveyAuthenticator(SurveyAuthenticator):
+class TargetLessSurveyAuthenticator(SurveyAuthenticator):
     '''
     非定向调查的鉴权器
     '''
@@ -124,7 +136,7 @@ class NoTargetSurveyAuthenticator(SurveyAuthenticator):
         '''
         return self.survey.id in self.submitedSurveyList
 
-    def getLastSample(self):
+    def getSample(self):
         '''
         非定向调查通过session_key来获得上一次提交的sample记录
         '''
@@ -135,10 +147,21 @@ class NoTargetSurveyAuthenticator(SurveyAuthenticator):
         else:
             return None
 
+    def setSample(self, sample):
+        '''
+        鉴权信息保存在样本中
+        '''
+        # 非定向调查一样需要关联客户端信息(session)
+        self.request.session['submitedSurveyList'] = self.submitedSurveyList
+        self.request.session.save()  # 确保session记录是存在的
+        sample.session = self.request.session._session_key
+        sample.save()
+
+
     def loginErrorPage(self):
         '''
         非定向调查的登录错误返回
-        提示：非定向调查如果没有提供密码可能是第一次进入页面应该返回
+        提示：非定向调查如果没有提供密码可能是第一次进入页面应该返回登陆界面，如果提供密码但错误返回密码错误提示。
         '''
         if not self.password:
             return self.loginPage()
@@ -167,7 +190,7 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
             return True
 
 
-    def isLogin(self):
+    def pageEnterCheck(self):
         '''
 
         '''
@@ -180,15 +203,15 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
             return False
 
         # 执行父类的登录检查
-        return SurveyAuthenticator.isLogin(self)
+        return SurveyAuthenticator.pageEnterCheck(self)
 
 
-    def saveAuthInfo(self):
+    def loadAuthInfo(self):
         '''
 
         '''
         # 调用父类的保存登录信息过程
-        SurveyAuthenticator.saveAuthInfo(self)
+        SurveyAuthenticator.loadAuthInfo(self)
 
         # 检查号码对应的targetCust记录是否已经生成，生成了就读取，没有生成就生成
         targetCustList = self.survey.targetCust_set.filter(phone=self.phone)
@@ -215,8 +238,24 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
         result['phone'] = self.phone
         return result
 
-    def getLastSample(self):
-        return self.targetCust.sample_set.all()[0]
+    def setSample(self, sample):
+        '''
+        鉴权信息保存在样本中
+        '''
+        sample.targetCust = self.targetCust
+        sample.save()
+
+
+
+    def getSample(self):
+        '''
+
+        '''
+        sampleList = self.targetCust.sample_set.all()
+        if len(sampleList) != 0:
+            return sampleList[0]
+        else:
+            return None
 
 
     def loginErrorPage(self):
@@ -250,33 +289,47 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
         return True
 
 
-class Generator:
+class SubmitController:
     '''
-    页面生成器基类
+    生成提交的表单页面，并对表单进行处理
     '''
 
     def __init__(self, controller):
         self.controller = controller
         self.request = controller.request
 
+    def render(self):
+        pass
 
-class SurveyGenerator(Generator):
+    def submit(self):
+        pass
+
+
+class SurveySubmitControllor(SubmitController):
     '''
     调查页面生成器
     '''
 
     def __init__(self, controller):
-        Generator.__init__(self, controller)
+        SubmitController.__init__(self, controller)
         self.survey = self.controller.survey
         self.url = reverse('survey:view.survey.answer.all', args=[self.survey.id])
-
         self.answerAllTemplate = 'survey/surveyAnswerAll.html'
-        self.answeredTemplate = 'survey/surveyAnswered.html'
 
 
-    def answerPage(self):
+    def answerPage(self, data):
         '''
-        进入答题页面
+        答题页面
+        '''
+        # 导入模板返回结果
+        template = loader.get_template(self.answerAllTemplate)
+        context = RequestContext(self.request, data)
+        return HttpResponse(template.render(context))
+
+
+    def render(self):
+        '''
+        生成答题页面返回
         '''
         # 准备进入页面的数据信息
         data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper}
@@ -286,37 +339,18 @@ class SurveyGenerator(Generator):
         # 增加鉴权信息
         submitAuthInfo = self.controller.authenticator.getSubmitAuthInfo()
         data = dict(data.items() + submitAuthInfo.items())
-        # 导入模板返回结果
-        template = loader.get_template(self.answerAllTemplate)
-        context = RequestContext(self.request, data)
-        return HttpResponse(template.render(context))
+        # 返回页面
+        return self.answerPage(data)
 
 
-    def answeredPage(self):
-        '''
-        提示已答过
-        '''
-
-        # 输送给answered页面的数据
-        data = {'title': '提示', 'message': RESULT_MESSAGE.ANSWERED_ALREADY,
-                'returnUrl': self.url, 'survey': self.survey}
-        # 增加鉴权信息
-        submitAuthInfo = self.controller.authenticator.getSubmitAuthInfo()
-        data = dict(data.items() + submitAuthInfo.items())
-        # 导入模板返回结果
-        template = loader.get_template(self.answeredTemplate)
-        context = RequestContext(self.request, data)
-        return HttpResponse(template.render(context))
-
-
-class AllSurveyGenerator(SurveyGenerator):
+class AllSurveyGenerator(SurveySubmitControllor):
     '''
     非分步调查的页面生成器
     '''
     pass
 
 
-class StepSurveyGenerator(SurveyGenerator):
+class StepSurveyGenerator(SurveySubmitControllor):
     '''
     分步调查页面生成器
     '''
@@ -345,15 +379,32 @@ class SurveyController(ResponseController):
         if self.survey.custList:
             self.authenticator = TargetSurveyAuthenticator(self)
         else:
-            self.authenticator = NoTargetSurveyAuthenticator(self)
+            self.authenticator = TargetLessSurveyAuthenticator(self)
         # 为控制器初始化页面生成器
         if self.survey.paper.step:
-            self.generator = StepSurveyGenerator(self)
+            self.submitController = StepSurveyGenerator(self)
         else:
-            self.generator = AllSurveyGenerator(self)
+            self.submitController = AllSurveyGenerator(self)
 
         self.messageTemplate = 'www/message.html'
+        self.answeredTemplate = 'survey/surveyAnswered.html'
         self.url = reverse('survey:view.survey.answer.all', args=[self.survey.id])
+
+    def answeredPage(self):
+        '''
+        提示已答过
+        '''
+
+        # 输送给answered页面的数据
+        data = {'title': '提示', 'message': RESULT_MESSAGE.ANSWERED_ALREADY,
+                'returnUrl': self.url, 'survey': self.survey}
+        # 增加鉴权信息
+        submitAuthInfo = self.authenticator.getSubmitAuthInfo()
+        data = dict(data.items() + submitAuthInfo.items())
+        # 导入模板返回结果
+        template = loader.get_template(self.answeredTemplate)
+        context = RequestContext(self.request, data)
+        return HttpResponse(template.render(context))
 
     def errorPage(self, resultMessage=u'未知错误'):
         '''
@@ -368,7 +419,7 @@ class SurveyController(ResponseController):
         '''
         读取上次答题的结果
         '''
-        sample = self.authenticator.getLastSample()
+        sample = self.authenticator.getSample()
         for sampleItem in sample.sampleitem_set.all():
             self.allBranchIdSelected.extend([branch.id for branch in sampleItem.branch_set.all()])
 
@@ -385,26 +436,26 @@ class SurveyController(ResponseController):
         '''
         生成页面主程序
         '''
-        generator = self.generator
+        submitController = self.submitController
         # 检查调查是否过期
         if self.isExpired():
             return self.errorPage(RESULT_MESSAGE.SURVEY_EXPIRED)
 
         # 检查是否提供登录信息
         authenticator = self.authenticator
-        if not authenticator.isLogin():
+        if not authenticator.pageEnterCheck():
             return authenticator.loginErrorPage()
-        authenticator.saveAuthInfo()
+        authenticator.loadAuthInfo()
 
         # 检查是否已经回答过了
         if self.authenticator.isAnswered():
             if self.authenticator.resubmit and self.survey.resubmit:
                 self.loadLastAnswer()
             else:
-                return generator.answeredPage()
+                return self.answeredPage()
 
         # 返回答题界面
-        return generator.answerPage()
+        return submitController.render()
 
 
     def submit(self):
