@@ -48,12 +48,25 @@ class SurveyAuthenticator(Authenticator):
     '''
 
     def __init__(self, controller):
+        '''
+
+        '''
         Authenticator.__init__(self, controller)
         self.survey = self.controller.survey
         self.password = self.request.REQUEST.get('password')
         self.resubmit = self.request.REQUEST.get('resubmit', False)
         self.passwordEncoded = self.request.REQUEST.get('passwordEncoded', False)
         self.loginTemplate = 'survey/surveyLogin.html'
+
+    def loadAuthInfo(self):
+        '''
+        保存鉴权信息
+        '''
+
+        if not self.resubmit:
+            #if True:
+            # 重新提交的情况,其加密密码已经直接放在request中的passwordEncoded了
+            self.passwordEncoded = make_password(self.password)
 
     def pageEnterCheck(self):
         '''
@@ -66,15 +79,6 @@ class SurveyAuthenticator(Authenticator):
                 return check_password(self.survey.password, self.passwordEncoded)
         else:
             return True
-
-    def loadAuthInfo(self):
-        '''
-        保存鉴权信息
-        '''
-        if not self.resubmit:
-            #if True:
-            # 重新提交的情况,其加密密码已经直接放在request中的passwordEncoded了
-            self.passwordEncoded = make_password(self.password)
 
 
     def setSample(self, sample):
@@ -244,7 +248,6 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
         '''
         sample.targetCust = self.targetCust
         sample.save()
-
 
 
     def getSample(self):
