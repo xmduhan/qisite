@@ -86,34 +86,41 @@ class SurveyAuthController(AuthController):
 
         # 处理显示控制器
         if type(self.controller) == SurveyRenderController:
-            if self.survey.password:
-                if not self.resubmit:
-                    if self.survey.password == self.password:
-                        return True
-                    else:
-                        self.setAuthErrorMessage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
-                        return False
-                else:
-                    # 重提交密码信息已经加密放在passwordEncoded中进行反向验证
-                    if check_password(self.survey.password, self.passwordEncoded):
-                        return True
-                    else:
-                        self.setAuthErrorMessage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
-                        return False
-            else:
-                # 调查没有设置密码则无需验证
+
+            # 调查没有设置密码则无需验证
+            if not self.survey.password:
                 return True
 
-        # 处理提交控制器
-        if type(self.controller) == SurveySubmitController:
-            if self.survey.password:
+            # 重提情况的密码特殊处理
+            if self.resubmit:
+                # 重提交密码信息已经加密放在passwordEncoded中进行反向验证
                 if check_password(self.survey.password, self.passwordEncoded):
                     return True
                 else:
                     self.setAuthErrorMessage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
                     return False
-            else:
+
+            # 非重提交情况下密码检查
+            if self.survey.password == self.password:
                 return True
+            else:
+                self.setAuthErrorMessage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
+                return False
+
+        # 处理提交控制器
+        if type(self.controller) == SurveySubmitController:
+
+            # 调查没有设置密码
+            if not self.survey.password:
+                return True
+
+            # 密码验证不正确
+            if not check_password(self.survey.password, self.passwordEncoded):
+                self.setAuthErrorMessage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
+                return False
+
+            return True
+
 
     def getSample(self):
         '''
