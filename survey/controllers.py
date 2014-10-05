@@ -16,7 +16,7 @@ from django.core.signing import Signer, BadSignature
 #self.passwordEncoded = request.REQUEST.get('passwordEncoded', False)
 #self.questionIdList = request.REQUEST.getlist('questionIdList')
 
-class Authenticator:
+class AuthController:
     '''
     鉴权器定义
     '''
@@ -42,7 +42,7 @@ class Authenticator:
         return {}
 
 
-class SurveyAuthenticator(Authenticator):
+class SurveyAuthController(AuthController):
     '''
     调查鉴权器定义
     '''
@@ -52,10 +52,9 @@ class SurveyAuthenticator(Authenticator):
         构造函数
         '''
 
-        Authenticator.__init__(self, controller)
+        AuthController.__init__(self, controller)
         self.survey = self.controller.survey
         self.loginTemplate = 'survey/surveyLogin.html'
-        #SurveyAuthenticator.loadAuthInfo(self)
         self.__loadAuthInfo()
 
     def __loadAuthInfo(self):
@@ -95,7 +94,7 @@ class SurveyAuthenticator(Authenticator):
         '''
         获取鉴权信息提供给表单和重填控制页面，用于鉴权信息的传递
         '''
-        result = Authenticator.getSubmitAuthInfo(self)
+        result = AuthController.getSubmitAuthInfo(self)
         if self.survey.password:
             result['passwordEncoded'] = self.passwordEncoded
         if self.resubmit:
@@ -129,13 +128,13 @@ class SurveyAuthenticator(Authenticator):
             return self.controller.errorPage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
 
 
-class TargetLessSurveyAuthenticator(SurveyAuthenticator):
+class TargetLessSurveyAuthController(SurveyAuthController):
     '''
     非定向调查的鉴权器
     '''
 
     def __init__(self, controller):
-        SurveyAuthenticator.__init__(self, controller)
+        SurveyAuthController.__init__(self, controller)
         self.submitedSurveyList = submitedSurveyList = self.request.session.get('submitedSurveyList', [])
 
 
@@ -175,20 +174,19 @@ class TargetLessSurveyAuthenticator(SurveyAuthenticator):
         '''
         if not self.password:
             return self.loginPage()
-        return SurveyAuthenticator.loginErrorPage(self)
+        return SurveyAuthController.loginErrorPage(self)
 
 
-class TargetSurveyAuthenticator(SurveyAuthenticator):
+class TargetSurveyAuthController(SurveyAuthController):
     '''
     定向调查的鉴权器
     '''
 
     def __init__(self, controller):
-        SurveyAuthenticator.__init__(self, controller)
+        SurveyAuthController.__init__(self, controller)
         # 调用父类的保存登录信息过程
         self.phone = self.request.REQUEST.get('phone')
         self.targetCust = None  # initial in saveLoginInfo()
-        #TargetSurveyAuthenticator.loadAuthInfo(self)
         self.__loadAuthInfo()
 
     def __loadAuthInfo(self):
@@ -237,7 +235,7 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
             return False
 
         # 执行父类的登录检查
-        return SurveyAuthenticator.randerAuthCheck(self)
+        return SurveyAuthController.randerAuthCheck(self)
 
     def submitAuthCheck(self):
         '''
@@ -249,7 +247,7 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
         '''
         定向调查提交是需要提供的targetCust信息
         '''
-        result = SurveyAuthenticator.getSubmitAuthInfo(self)
+        result = SurveyAuthController.getSubmitAuthInfo(self)
         result['targetCust'] = self.targetCust
         result['phone'] = self.phone
         return result
@@ -288,7 +286,7 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
             return self.controller.errorPage(RESULT_MESSAGE.PHONE_NOT_IN_CUSTLIST)
 
         # 返回父类的错误登录页面
-        return SurveyAuthenticator.loginErrorPage(self)
+        return SurveyAuthController.loginErrorPage(self)
 
     def isAnswered(self):
         '''
@@ -352,7 +350,7 @@ class SurveyAnswerController(SubmitController):
         allBranchIdSelected = self.controller.getAllBranchSelected()
         data['allBranchIdSelected'] = allBranchIdSelected
         # 增加鉴权信息
-        submitAuthInfo = self.controller.authenticator.getSubmitAuthInfo()
+        submitAuthInfo = self.controller.authController.getSubmitAuthInfo()
         data = dict(data.items() + submitAuthInfo.items())
         # 返回页面
         return self.answerPage(data)
@@ -394,47 +392,12 @@ class SurveyResponseController(ResponseController):
 
     def __init__(self, request, surveyId):
         ResponseController.__init__(self, request)
-
-
-class SurveyRenderController(SurveyResponseController):
-    '''
-    调查返回控制器
-    '''
-
-    def __init__(self, request, surveyId):
-        SurveyResponseController.__init__(self, request, surveyId)
         self.survey = Survey.objects.get(id=surveyId)
-        self.allBranchIdSelected = []
-        # 为控制器初始化鉴权器
-        if self.survey.custList:
-            self.authenticator = TargetSurveyAuthenticator(self)
-        else:
-            self.authenticator = TargetLessSurveyAuthenticator(self)
-        # 为控制器初始化页面生成器
-        if self.survey.paper.step:
-            self.submitController = SurveyStepAnswerController(self)
-        else:
-            self.submitController = SurveyBulkAnswerController(self)
-
-        self.messageTemplate = 'www/message.html'
         self.answeredTemplate = 'survey/surveyAnswered.html'
+        self.messageTemplate = 'www/message.html'
         self.url = reverse('survey:view.survey.answer.all', args=[self.survey.id])
-
-    def answeredPage(self):
-        '''
-        提示已答过
-        '''
-
-        # 输送给answered页面的数据
-        data = {'title': '提示', 'message': RESULT_MESSAGE.ANSWERED_ALREADY,
-                'returnUrl': self.url, 'survey': self.survey}
-        # 增加鉴权信息
-        submitAuthInfo = self.authenticator.getSubmitAuthInfo()
-        data = dict(data.items() + submitAuthInfo.items())
-        # 导入模板返回结果
-        template = loader.get_template(self.answeredTemplate)
-        context = RequestContext(self.request, data)
-        return HttpResponse(template.render(context))
+        self.authController = None
+        self.answerController = None
 
     def errorPage(self, resultMessage=u'未知错误'):
         '''
@@ -445,11 +408,52 @@ class SurveyRenderController(SurveyResponseController):
             self.request, {'title': '出错', 'message': resultMessage, 'returnUrl': self.url})
         return HttpResponse(template.render(context))
 
+
+    def answeredPage(self):
+        '''
+        提示已答过
+        '''
+
+        # 输送给answered页面的数据
+        data = {'title': '提示', 'message': RESULT_MESSAGE.ANSWERED_ALREADY,
+                'returnUrl': self.url, 'survey': self.survey}
+        # 增加鉴权信息
+        submitAuthInfo = self.authController.getSubmitAuthInfo()
+        data = dict(data.items() + submitAuthInfo.items())
+        # 导入模板返回结果
+        template = loader.get_template(self.answeredTemplate)
+        context = RequestContext(self.request, data)
+        return HttpResponse(template.render(context))
+
+
+class SurveyRenderController(SurveyResponseController):
+    '''
+    调查返回控制器
+    '''
+
+    def __init__(self, request, surveyId):
+        SurveyResponseController.__init__(self, request, surveyId)
+
+        self.allBranchIdSelected = []
+
+        # 为控制器初始化鉴权器
+        if self.survey.custList:
+            self.authController = TargetSurveyAuthController(self)
+        else:
+            self.authController = TargetLessSurveyAuthController(self)
+
+        # 为控制器初始化页面生成器
+        if self.survey.paper.step:
+            self.answerController = SurveyStepAnswerController(self)
+        else:
+            self.answerController = SurveyBulkAnswerController(self)
+
+
     def loadLastAnswer(self):
         '''
         读取上次答题的结果
         '''
-        sample = self.authenticator.getSample()
+        sample = self.authController.getSample()
         for sampleItem in sample.sampleitem_set.all():
             self.allBranchIdSelected.extend([branch.id for branch in sampleItem.branch_set.all()])
 
@@ -478,20 +482,19 @@ class SurveyRenderController(SurveyResponseController):
             return self.errorPage(RESULT_MESSAGE.SURVEY_EXPIRED)
 
         # 检查是否提供登录信息
-        authenticator = self.authenticator
-        if not authenticator.randerAuthCheck():
-            return authenticator.loginErrorPage()
-        #authenticator.loadAuthInfo()
+        authController = self.authController
+        if not authController.randerAuthCheck():
+            return authController.loginErrorPage()
 
         # 检查是否已经回答过了
-        if self.authenticator.isAnswered():
-            if self.authenticator.resubmit and self.survey.resubmit:
+        if self.authController.isAnswered():
+            if self.authController.resubmit and self.survey.resubmit:
                 self.loadLastAnswer()
             else:
                 return self.answeredPage()
 
         # 返回答题界面
-        submitController = self.submitController
+        submitController = self.answerController
         return submitController.render()
 
 
@@ -515,6 +518,6 @@ class SurveySubmitController(SurveyResponseController):
             return self.errorPage(RESULT_MESSAGE.SURVEY_EXPIRED)
 
         # 检查是否提供登录信息
-        authenticator = self.authenticator
-        if not authenticator.submitAuthCheck():
-            return authenticator.loginErrorPage()
+        authController = self.authController
+        if not authController.submitAuthCheck():
+            return authController.loginErrorPage()
