@@ -25,7 +25,7 @@ class AuthController:
         self.controller = controller
         self.request = controller.request
 
-    def randerAuthCheck(self):
+    def authCheck(self):
         return True
 
     def loginPage(self):
@@ -58,30 +58,43 @@ class SurveyAuthController(AuthController):
         self.__loadAuthInfo()
 
     def __loadAuthInfo(self):
-        # 鉴权相关信息
-        self.password = self.request.REQUEST.get('password')
-        self.resubmit = self.request.REQUEST.get('resubmit', False)
-        self.passwordEncoded = self.request.REQUEST.get('passwordEncoded', False)
+        '''
+        鉴权相关信息
+        '''
 
-        if not self.resubmit:
-            #if True:
-            # 重新提交的情况,其加密密码已经直接放在request中的passwordEncoded了
-            self.passwordEncoded = make_password(self.password)
+        # 处理提交控制器
+        if type(self.controller) == SurveyRenderController:
+            self.password = self.request.REQUEST.get('password')
+            self.resubmit = self.request.REQUEST.get('resubmit', False)
+            self.passwordEncoded = self.request.REQUEST.get('passwordEncoded', False)
+            if not self.resubmit:
+                #if True:
+                # 重新提交的情况,其加密密码已经直接放在request中的passwordEncoded了
+                self.passwordEncoded = make_password(self.password)
 
-    def randerAuthCheck(self):
+        if type(self.controller) == SurveySubmitController:
+            pass
+
+
+    def authCheck(self):
         '''
         进入页面时的鉴权信息检查
         '''
-        if self.survey.password:
-            if not self.resubmit:
-                return self.survey.password == self.password
-            else:
-                return check_password(self.survey.password, self.passwordEncoded)
-        else:
-            return True
 
-    def submitAuthCheck(self):
-        return check_password(self.survey.password, self.passwordEncoded)
+        # 处理进入页面
+        if type(self.controller) == SurveyRenderController:
+            if self.survey.password:
+                if not self.resubmit:
+                    return self.survey.password == self.password
+                else:
+                    return check_password(self.survey.password, self.passwordEncoded)
+            else:
+                return True
+
+        # 处理提交时的检查
+        if type(self.controller) == SurveySubmitController:
+            return check_password(self.survey.password, self.passwordEncoded)
+
 
     def getSample(self):
         '''
@@ -221,26 +234,25 @@ class TargetSurveyAuthController(SurveyAuthController):
         else:
             return True
 
-    def randerAuthCheck(self):
+    def authCheck(self):
         '''
         进入页面鉴权检查
         '''
-        # 检查是否提供了号码
-        if not self.phone:
-            return False
+        if type(self.controller) == SurveyRenderController:
+            # 检查是否提供了号码
+            if not self.phone:
+                return False
 
-        # 检查号码是否在客户清单中
-        if not self.isPhoneInList(self.phone):
-            return False
+            # 检查号码是否在客户清单中
+            if not self.isPhoneInList(self.phone):
+                return False
 
-        # 执行父类的登录检查
-        return SurveyAuthController.randerAuthCheck(self)
+            # 执行父类的登录检查
+            return SurveyAuthController.authCheck(self)
 
-    def submitAuthCheck(self):
-        '''
-        提交鉴权检查
-        '''
-        targetCustIdSigned = self.request.REQUEST.get('targetCustId')
+        if type(self.controller) == SurveySubmitController:
+            targetCustIdSigned = self.request.REQUEST.get('targetCustId')
+
 
     def getSubmitAuthInfo(self):
         '''
@@ -301,7 +313,7 @@ class TargetSurveyAuthController(SurveyAuthController):
     pass
 
 
-class SubmitController:
+class AnswerController:
     '''
     生成提交的表单页面，并对表单进行处理
     '''
@@ -317,13 +329,13 @@ class SubmitController:
         pass
 
 
-class SurveyAnswerController(SubmitController):
+class SurveyAnswerController(AnswerController):
     '''
     调查页面生成器
     '''
 
     def __init__(self, controller):
-        SubmitController.__init__(self, controller)
+        AnswerController.__init__(self, controller)
         self.survey = self.controller.survey
         self.url = reverse('survey:view.survey.answer.all', args=[self.survey.id])
         self.answerAllTemplate = 'survey/surveyAnswerAll.html'
@@ -498,7 +510,7 @@ class SurveyRenderController(SurveyResponseController):
 
         # 检查是否提供登录信息
         authController = self.authController
-        if not authController.randerAuthCheck():
+        if not authController.authCheck():
             return authController.loginErrorPage()
 
         # 检查是否已经回答过了
@@ -537,5 +549,5 @@ class SurveySubmitController(SurveyResponseController):
 
         # 检查是否提供登录信息
         authController = self.authController
-        if not authController.submitAuthCheck():
+        if not authController.authCheck():
             return authController.loginErrorPage()
