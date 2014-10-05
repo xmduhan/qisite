@@ -30,6 +30,7 @@ class RESULT_MESSAGE:
     BRANCH_NOT_IN_QUESTION = u'提交答案不在选项范围内'
     THANKS_FOR_ANSWER_SURVEY = u'提交完成，感谢您的参与!'
     ANSWERED_ALREADY = u'您已经回答过这份问卷'
+    NO_PHONE = u'没有提供手机号码'
     PHONE_NOT_IN_CUSTLIST = u'您输入的手机号码不再调查清单的范围中'
     NO_MESSAGE = u'没有提供发送消息'
     FAIL_TO_SEND_SMS = u'发送短信失败'

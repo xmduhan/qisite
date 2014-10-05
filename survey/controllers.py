@@ -34,11 +34,8 @@ class AuthController:
     def authErrorPage(self):
         pass
 
-    def loadAuthInfo(self):
-        pass
 
-
-    def geAuthInfo(self):
+    def getAuthInfo(self):
         return {}
 
 
@@ -131,12 +128,12 @@ class SurveyAuthController(AuthController):
     def setSample(self, sample):
         pass
 
-    def geAuthInfo(self):
+    def getAuthInfo(self):
         '''
         获取鉴权信息提供给表单和重填控制页面，用于鉴权信息的传递
         '''
         # 这里无论显示还是提交的操作是一样的
-        result = AuthController.geAuthInfo(self)
+        result = AuthController.getAuthInfo(self)
         if self.survey.password:
             result['passwordEncoded'] = self.passwordEncoded
         if self.resubmit:
@@ -328,10 +325,12 @@ class TargetSurveyAuthController(SurveyAuthController):
         if type(self.controller) == SurveyRenderController:
             # 检查是否提供了号码
             if not self.phone:
+                self.setAuthErrorMessage(RESULT_MESSAGE.NO_PHONE)
                 return False
 
             # 检查号码是否在客户清单中
             if not self.isPhoneInList(self.phone):
+                self.setAuthErrorMessage(RESULT_MESSAGE.PHONE_NOT_IN_CUSTLIST)
                 return False
 
             # 执行父类的登录检查
@@ -339,7 +338,7 @@ class TargetSurveyAuthController(SurveyAuthController):
 
         if type(self.controller) == SurveySubmitController:
             if not self.targetCust:
-                # 这里注意__authErrorMessage和父类的__authErrorMessage(setAuthErrorMessage)不是一回事
+                # 这里注意__authErrorMessage和父类的__authErrorMessage(通过setAuthErrorMessage访问)不是一回事
                 self.setAuthErrorMessage(self.__authErrorMessage)
                 return False
 
@@ -347,14 +346,21 @@ class TargetSurveyAuthController(SurveyAuthController):
             return SurveyAuthController.authCheck(self)
 
 
-    def geAuthInfo(self):
+    def getAuthInfo(self):
         '''
         定向调查提交是需要提供的targetCust信息
         '''
-        result = SurveyAuthController.geAuthInfo(self)
-        result['targetCust'] = self.targetCust
-        result['phone'] = self.phone
-        return result
+        if type(self.controller) == SurveyRenderController:
+            result = SurveyAuthController.getAuthInfo(self)
+            result['targetCust'] = self.targetCust
+            result['phone'] = self.phone
+            return result
+
+        if type(self.controller) == SurveySubmitController:
+            result = SurveyAuthController.getAuthInfo(self)
+            result['targetCust'] = self.targetCust
+            result['phone'] = self.targetCust.phone
+            return result
 
     def setSample(self, sample):
         '''
@@ -365,7 +371,7 @@ class TargetSurveyAuthController(SurveyAuthController):
 
     def getSample(self):
         '''
-
+        获取鉴权信息对应的样本记录
         '''
         sampleList = self.targetCust.sample_set.all()
         if len(sampleList) != 0:
@@ -376,16 +382,16 @@ class TargetSurveyAuthController(SurveyAuthController):
     def authErrorPage(self):
         '''
         定向调查的登录错误返回
-        提示：没有提供号码是第1次进入页面，不应提示错误
+        没有提供号码是第1次进入页面，不应提示错误
         '''
 
         # 检查是否提供了号码
-        if not self.phone:
+        if self.getAuthErrorMessage() == RESULT_MESSAGE.NO_PHONE:
             return self.loginPage()
 
         # 检查号码是否在客户清单中
-        if not self.isPhoneInList(self.phone):
-            return self.controller.errorPage(RESULT_MESSAGE.PHONE_NOT_IN_CUSTLIST)
+        #if not self.isPhoneInList(self.phone):
+        #    return self.controller.errorPage(RESULT_MESSAGE.PHONE_NOT_IN_CUSTLIST)
 
         # 返回父类的错误登录页面
         return SurveyAuthController.authErrorPage(self)
@@ -395,13 +401,17 @@ class TargetSurveyAuthController(SurveyAuthController):
         定向调查检查是否已经答过题
         提示：通过号码检查targetCust记录
         '''
-        targetCustList = self.survey.targetCust_set.filter(phone=self.phone)
-        if len(targetCustList) == 0:
-            return False
-        targetCust = targetCustList[0]
-        if targetCust.sample_set.count() == 0:
+        #targetCustList = self.survey.targetCust_set.filter(phone=self.phone)
+        #if len(targetCustList) == 0:
+        #    return False
+        #targetCust = targetCustList[0]
+        #if targetCust.sample_set.count() == 0:
+        #    return False
+        #return True
+        if not self.getSample():
             return False
         return True
+
 
     pass
 
@@ -454,7 +464,7 @@ class SurveyAnswerController(AnswerController):
         allBranchIdSelected = self.controller.getAllBranchSelected()
         data['allBranchIdSelected'] = allBranchIdSelected
         # 增加鉴权信息
-        submitAuthInfo = self.controller.authController.geAuthInfo()
+        submitAuthInfo = self.controller.authController.getAuthInfo()
         data = dict(data.items() + submitAuthInfo.items())
         # 返回页面
         return self.answerPage(data)
@@ -575,7 +585,7 @@ class SurveyResponseController(ResponseController):
         data = {'title': '提示', 'message': RESULT_MESSAGE.ANSWERED_ALREADY,
                 'returnUrl': self.url, 'survey': self.survey}
         # 增加鉴权信息
-        submitAuthInfo = self.authController.geAuthInfo()
+        submitAuthInfo = self.authController.getAuthInfo()
         data = dict(data.items() + submitAuthInfo.items())
         # 导入模板返回结果
         template = loader.get_template(self.answeredTemplate)
