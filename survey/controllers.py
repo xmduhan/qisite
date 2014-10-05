@@ -31,14 +31,14 @@ class AuthController:
     def loginPage(self):
         pass
 
-    def loginErrorPage(self):
+    def authErrorPage(self):
         pass
 
     def loadAuthInfo(self):
         pass
 
 
-    def getSubmitAuthInfo(self):
+    def geAuthInfo(self):
         return {}
 
 
@@ -56,13 +56,14 @@ class SurveyAuthController(AuthController):
         self.survey = self.controller.survey
         self.loginTemplate = 'survey/surveyLogin.html'
         self.__loadAuthInfo()
+        self.__authErrorMessage = ''
 
     def __loadAuthInfo(self):
         '''
-        鉴权相关信息
+        导入鉴权相关信息
         '''
 
-        # 处理提交控制器
+        # 处理显示控制器
         if type(self.controller) == SurveyRenderController:
             self.password = self.request.REQUEST.get('password')
             self.resubmit = self.request.REQUEST.get('resubmit', False)
@@ -72,8 +73,10 @@ class SurveyAuthController(AuthController):
                 # 重新提交的情况,其加密密码已经直接放在request中的passwordEncoded了
                 self.passwordEncoded = make_password(self.password)
 
+        # 处理提交控制器
         if type(self.controller) == SurveySubmitController:
-            pass
+            self.passwordEncoded = self.request.REQUEST.get('passwordEncoded', False)
+            self.resubmit = self.request.REQUEST.get('resubmit', False)
 
 
     def authCheck(self):
@@ -81,20 +84,36 @@ class SurveyAuthController(AuthController):
         进入页面时的鉴权信息检查
         '''
 
-        # 处理进入页面
+        # 处理显示控制器
         if type(self.controller) == SurveyRenderController:
             if self.survey.password:
                 if not self.resubmit:
-                    return self.survey.password == self.password
+                    if self.survey.password == self.password:
+                        return True
+                    else:
+                        self.setAuthErrorMessage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
+                        return False
                 else:
-                    return check_password(self.survey.password, self.passwordEncoded)
+                    # 重提交密码信息已经加密放在passwordEncoded中进行反向验证
+                    if check_password(self.survey.password, self.passwordEncoded):
+                        return True
+                    else:
+                        self.setAuthErrorMessage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
+                        return False
             else:
+                # 调查没有设置密码则无需验证
                 return True
 
-        # 处理提交时的检查
+        # 处理提交控制器
         if type(self.controller) == SurveySubmitController:
-            return check_password(self.survey.password, self.passwordEncoded)
-
+            if self.survey.password:
+                if check_password(self.survey.password, self.passwordEncoded):
+                    return True
+                else:
+                    self.setAuthErrorMessage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
+                    return False
+            else:
+                return True
 
     def getSample(self):
         '''
@@ -105,11 +124,12 @@ class SurveyAuthController(AuthController):
     def setSample(self, sample):
         pass
 
-    def getSubmitAuthInfo(self):
+    def geAuthInfo(self):
         '''
         获取鉴权信息提供给表单和重填控制页面，用于鉴权信息的传递
         '''
-        result = AuthController.getSubmitAuthInfo(self)
+        # 这里无论显示还是提交的操作是一样的
+        result = AuthController.geAuthInfo(self)
         if self.survey.password:
             result['passwordEncoded'] = self.passwordEncoded
         if self.resubmit:
@@ -128,12 +148,30 @@ class SurveyAuthController(AuthController):
             self.request, {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper})
         return HttpResponse(template.render(context))
 
-    def loginErrorPage(self):
+    def authErrorPage(self):
         '''
         登陆错误
         '''
-        if self.password != self.survey.password:
-            return self.controller.errorPage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
+        if type(self.controller) == SurveyRenderController:
+            if self.password != self.survey.password:
+                #return self.controller.errorPage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
+                return self.controller.errorPage(self.getAuthErrorMessage())
+
+        if type(self.controller) == SurveySubmitController:
+            pass
+
+    def getAuthErrorMessage(self):
+        '''
+        获取最后一次的鉴权检查的错误原因
+        类似getLastError这样的过程，要先调用authCheck返回检查失败后在调用这个方法才能获取出错信息，否则返回可能无意义
+        '''
+        if self.__authErrorMessage == '':
+            raise Exception(u'试图读取不存在的鉴权错误信息')
+        return self.__authErrorMessage
+
+    def setAuthErrorMessage(self, errorMessage):
+        self.__authErrorMessage = errorMessage
+
 
     pass
 
@@ -148,6 +186,7 @@ class TargetlessSurveyAuthController(SurveyAuthController):
         self.__loadAuthInfo()
 
     def __loadAuthInfo(self):
+        # 对于显示和提交操作相同
         self.submitedSurveyList = submitedSurveyList = self.request.session.get('submitedSurveyList', [])
 
     def isAnswered(self):
@@ -178,14 +217,20 @@ class TargetlessSurveyAuthController(SurveyAuthController):
         sample.session = self.request.session._session_key
         sample.save()
 
-    def loginErrorPage(self):
+    def authErrorPage(self):
         '''
         非定向调查的登录错误返回
         提示：非定向调查如果没有提供密码可能是第一次进入页面应该返回登陆界面，如果提供密码但错误返回密码错误提示。
         '''
-        if not self.password:
-            return self.loginPage()
-        return SurveyAuthController.loginErrorPage(self)
+        # 显示处理器
+        if type(self.controller) == SurveyRenderController:
+            if not self.password:
+                return self.loginPage()
+            return SurveyAuthController.authErrorPage(self)
+
+        # 提交处理器
+        if type(self.controller) == SurveySubmitController:
+            return SurveyAuthController.authErrorPage(self)
 
     pass
 
@@ -206,22 +251,57 @@ class TargetSurveyAuthController(SurveyAuthController):
         '''
         初始化鉴权相关信息
         '''
+        # 显示处理器
+        if type(self.controller) == SurveyRenderController:
+            if self.isPhoneInList(self.phone):
+                # 检查号码对应的targetCust记录是否已经生成，生成了就读取，没有生成就生成
+                targetCustList = self.survey.targetCust_set.filter(phone=self.phone)
+                if len(targetCustList) == 0:
+                    custListItemList = self.survey.custList.custListItem_set.filter(phone=self.phone)
+                    custListItem = custListItemList[0]
+                    targetCust = TargetCust(
+                        name=custListItem.name, phone=custListItem.phone, email=custListItem.email, survey=self.survey,
+                        createBy=self.survey.createBy, modifyBy=self.survey.createBy,
+                    )
+                    targetCust.save()
+                else:
+                    targetCust = targetCustList[0]
 
-        if self.isPhoneInList(self.phone):
-            # 检查号码对应的targetCust记录是否已经生成，生成了就读取，没有生成就生成
-            targetCustList = self.survey.targetCust_set.filter(phone=self.phone)
-            if len(targetCustList) == 0:
-                custListItemList = self.survey.custList.custListItem_set.filter(phone=self.phone)
-                custListItem = custListItemList[0]
-                targetCust = TargetCust(
-                    name=custListItem.name, phone=custListItem.phone, email=custListItem.email, survey=self.survey,
-                    createBy=self.survey.createBy, modifyBy=self.survey.createBy,
-                )
-                targetCust.save()
-            else:
-                targetCust = targetCustList[0]
+                # 保存到对象变量中,以便后面可以访问
+                self.targetCust = targetCust
 
-            # 保存到对象变量中,以便后面可以访问
+        # 提交处理器
+        if type(self.controller) == SurveySubmitController:
+            self.targetCust = None
+            targetCustIdSigned = self.request.REQUEST.get('targetCustId')
+            if not targetCustIdSigned:
+                #raise Exception(RESULT_MESSAGE.TARGET_SURVEY_NEED_CUSTLIST)  #定向调查需要提供客户清单
+                self.__authErrorMessage = RESULT_MESSAGE.TARGET_SURVEY_NEED_CUSTLIST
+                return
+            # 验证目标清单的数字签名
+            try:
+                signer = Signer()
+                targetCustId = signer.unsign(targetCustIdSigned)
+            except:
+                #raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 无效的数字签名
+                self.__authErrorMessage = RESULT_MESSAGE.BAD_SAGNATURE
+                return
+
+            # 读取目标客户对象
+            try:
+                targetCust = TargetCust.objects.get(id=targetCustId)
+            except:
+                #raise Exception(RESULT_MESSAGE.CUSTLIST_OBJECT_NOT_EXIST)  # 所指定的客户清单的对象不存在
+                self.__authErrorMessage = RESULT_MESSAGE.CUSTLIST_OBJECT_NOT_EXIST
+                return
+
+            # 检查目标清单和当前调查是否有关联，防止篡改
+            if targetCust.survey != self.survey:
+                #raise Exception(RESULT_MESSAGE.TARGETCUST_NOT_IN_SURVEY)
+                self.__authErrorMessage = RESULT_MESSAGE.TARGETCUST_NOT_IN_SURVEY
+                return
+
+            # 将登录信息保存
             self.targetCust = targetCust
 
     def isPhoneInList(self, phone):
@@ -251,14 +331,20 @@ class TargetSurveyAuthController(SurveyAuthController):
             return SurveyAuthController.authCheck(self)
 
         if type(self.controller) == SurveySubmitController:
-            targetCustIdSigned = self.request.REQUEST.get('targetCustId')
+            if not self.targetCust:
+                # 这里注意__authErrorMessage和父类的__authErrorMessage(setAuthErrorMessage)不是一回事
+                self.setAuthErrorMessage(self.__authErrorMessage)
+                return False
+
+            # 执行父类的检查
+            return SurveyAuthController.authCheck(self)
 
 
-    def getSubmitAuthInfo(self):
+    def geAuthInfo(self):
         '''
         定向调查提交是需要提供的targetCust信息
         '''
-        result = SurveyAuthController.getSubmitAuthInfo(self)
+        result = SurveyAuthController.geAuthInfo(self)
         result['targetCust'] = self.targetCust
         result['phone'] = self.phone
         return result
@@ -280,7 +366,7 @@ class TargetSurveyAuthController(SurveyAuthController):
         else:
             return None
 
-    def loginErrorPage(self):
+    def authErrorPage(self):
         '''
         定向调查的登录错误返回
         提示：没有提供号码是第1次进入页面，不应提示错误
@@ -295,7 +381,7 @@ class TargetSurveyAuthController(SurveyAuthController):
             return self.controller.errorPage(RESULT_MESSAGE.PHONE_NOT_IN_CUSTLIST)
 
         # 返回父类的错误登录页面
-        return SurveyAuthController.loginErrorPage(self)
+        return SurveyAuthController.authErrorPage(self)
 
     def isAnswered(self):
         '''
@@ -361,7 +447,7 @@ class SurveyAnswerController(AnswerController):
         allBranchIdSelected = self.controller.getAllBranchSelected()
         data['allBranchIdSelected'] = allBranchIdSelected
         # 增加鉴权信息
-        submitAuthInfo = self.controller.authController.getSubmitAuthInfo()
+        submitAuthInfo = self.controller.authController.geAuthInfo()
         data = dict(data.items() + submitAuthInfo.items())
         # 返回页面
         return self.answerPage(data)
@@ -482,7 +568,7 @@ class SurveyResponseController(ResponseController):
         data = {'title': '提示', 'message': RESULT_MESSAGE.ANSWERED_ALREADY,
                 'returnUrl': self.url, 'survey': self.survey}
         # 增加鉴权信息
-        submitAuthInfo = self.authController.getSubmitAuthInfo()
+        submitAuthInfo = self.authController.geAuthInfo()
         data = dict(data.items() + submitAuthInfo.items())
         # 导入模板返回结果
         template = loader.get_template(self.answeredTemplate)
@@ -511,7 +597,7 @@ class SurveyRenderController(SurveyResponseController):
         # 检查是否提供登录信息
         authController = self.authController
         if not authController.authCheck():
-            return authController.loginErrorPage()
+            return authController.authErrorPage()
 
         # 检查是否已经回答过了
         if self.authController.isAnswered():
@@ -550,4 +636,4 @@ class SurveySubmitController(SurveyResponseController):
         # 检查是否提供登录信息
         authController = self.authController
         if not authController.authCheck():
-            return authController.loginErrorPage()
+            return authController.authErrorPage()
