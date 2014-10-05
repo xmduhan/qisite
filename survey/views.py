@@ -19,7 +19,7 @@ from qrcode.image.pure import PymagingImage
 from qisite.settings import domain
 from django.db.models import Count
 from django.contrib.auth.hashers import make_password, check_password
-from controllers import SurveyController
+from controllers import SurveyRenderController, SurveySubmitController
 
 
 def getCurrentUser(request):
@@ -312,8 +312,8 @@ def surveyAnswerAllWithoutTarget(request, survey):
     '''
     处理无定向调查
     '''
-    surveyControaler = SurveyController(request, survey.id)
-    return surveyControaler.rander()
+    surveyRenderController = SurveyRenderController(request, survey.id)
+    return surveyRenderController.process()
 
 
     # 读取session中的已提交列表数据
@@ -405,8 +405,8 @@ def surveyAnswerAllWithTarget(request, survey):
     处理定向调查
     '''
 
-    surveyControaler = SurveyController(request, survey.id)
-    return surveyControaler.rander()
+    surveyRenderController = SurveyRenderController(request, survey.id)
+    return surveyRenderController.process()
 
     # 如果是定向调查尝试读取手机号码
     phone = request.REQUEST.get('phone')
@@ -540,8 +540,32 @@ def surveyAnswerAll(request, surveyId):
 
 def surveyAnswerAllSubmit(request):
     '''
-    问卷一次性提交服务
+    问卷批量提交服务
     '''
+
+    # 读取surveyId
+    surveyIdSigned = request.REQUEST.get('surveyId')
+    if not surveyIdSigned:
+        #raise Exception(RESULT_MESSAGE.NO_SURVEY_ID)  # 没有提供调查对象
+        template = loader.get_template('www/message.html')
+        context = RequestContext(request, {'title': u'出错', 'message': RESULT_MESSAGE.NO_SURVEY_ID, 'returnUrl': '/'})
+        return HttpResponse(template.render(context))
+
+    # 对调查标识的数据签名进行检查
+    try:
+        signer = Signer()
+        surveyId = signer.unsign(surveyIdSigned)
+    except:
+        #raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 无效的数字签名
+        template = loader.get_template('www/message.html')
+        context = RequestContext(request, {'title': u'出错', 'message': RESULT_MESSAGE.BAD_SAGNATURE, 'returnUrl': '/'})
+        return HttpResponse(template.render(context))
+
+    # 调用survey处理并生成返回结果
+    surveySubmitController = SurveySubmitController(request, surveyId)
+    #return surveySubmitController.process()
+
+
     # 初始化变量
     survey = None
     targetCust = None

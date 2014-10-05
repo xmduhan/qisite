@@ -25,7 +25,7 @@ class Authenticator:
         self.controller = controller
         self.request = controller.request
 
-    def pageEnterCheck(self):
+    def randerAuthCheck(self):
         return True
 
     def loginPage(self):
@@ -70,7 +70,7 @@ class SurveyAuthenticator(Authenticator):
             self.passwordEncoded = make_password(self.password)
 
 
-    def pageEnterCheck(self):
+    def randerAuthCheck(self):
         '''
         进入页面时的鉴权信息检查
         '''
@@ -81,6 +81,10 @@ class SurveyAuthenticator(Authenticator):
                 return check_password(self.survey.password, self.passwordEncoded)
         else:
             return True
+
+
+    def submitAuthCheck(self):
+        return check_password(self.survey.password, self.passwordEncoded)
 
 
     def setSample(self, sample):
@@ -191,6 +195,7 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
         '''
         初始化鉴权相关信息
         '''
+
         if self.isPhoneInList(self.phone):
             # 检查号码对应的targetCust记录是否已经生成，生成了就读取，没有生成就生成
             targetCustList = self.survey.targetCust_set.filter(phone=self.phone)
@@ -219,9 +224,9 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
             return True
 
 
-    def pageEnterCheck(self):
+    def randerAuthCheck(self):
         '''
-
+        进入页面鉴权检查
         '''
         # 检查是否提供了号码
         if not self.phone:
@@ -232,8 +237,13 @@ class TargetSurveyAuthenticator(SurveyAuthenticator):
             return False
 
         # 执行父类的登录检查
-        return SurveyAuthenticator.pageEnterCheck(self)
+        return SurveyAuthenticator.randerAuthCheck(self)
 
+    def submitAuthCheck(self):
+        '''
+        提交鉴权检查
+        '''
+        targetCustIdSigned = self.request.REQUEST.get('targetCustId')
 
     def getSubmitAuthInfo(self):
         '''
@@ -310,7 +320,7 @@ class SubmitController:
         pass
 
 
-class SurveySubmitControllor(SubmitController):
+class SurveyAnswerController(SubmitController):
     '''
     调查页面生成器
     '''
@@ -348,14 +358,14 @@ class SurveySubmitControllor(SubmitController):
         return self.answerPage(data)
 
 
-class AllSurveyGenerator(SurveySubmitControllor):
+class SurveyBulkAnswerController(SurveyAnswerController):
     '''
     非分步调查的页面生成器
     '''
     pass
 
 
-class StepSurveyGenerator(SurveySubmitControllor):
+class SurveyStepAnswerController(SurveyAnswerController):
     '''
     分步调查页面生成器
     '''
@@ -369,15 +379,30 @@ class ResponseController(object):
 
     def __init__(self, request):
         self.request = request
+        # 获取客户端的ip地址信息
+        self.ipAddress = self.request.META['REMOTE_ADDR']
 
 
-class SurveyController(ResponseController):
+    def process(self):
+        pass
+
+
+class SurveyResponseController(ResponseController):
+    '''
+    调查(Survey)返回控制器
+    '''
+
+    def __init__(self, request, surveyId):
+        ResponseController.__init__(self, request)
+
+
+class SurveyRenderController(SurveyResponseController):
     '''
     调查返回控制器
     '''
 
     def __init__(self, request, surveyId):
-        ResponseController.__init__(self, request)
+        SurveyResponseController.__init__(self, request, surveyId)
         self.survey = Survey.objects.get(id=surveyId)
         self.allBranchIdSelected = []
         # 为控制器初始化鉴权器
@@ -387,9 +412,9 @@ class SurveyController(ResponseController):
             self.authenticator = TargetLessSurveyAuthenticator(self)
         # 为控制器初始化页面生成器
         if self.survey.paper.step:
-            self.submitController = StepSurveyGenerator(self)
+            self.submitController = SurveyStepAnswerController(self)
         else:
-            self.submitController = AllSurveyGenerator(self)
+            self.submitController = SurveyBulkAnswerController(self)
 
         self.messageTemplate = 'www/message.html'
         self.answeredTemplate = 'survey/surveyAnswered.html'
@@ -434,21 +459,27 @@ class SurveyController(ResponseController):
         '''
         return self.survey.endTime <= datetime.now()
 
+    def isActive(self):
+        '''
+        检查调查是否还在用
+        '''
+        return self.survey.state == 'A'
+
     def getAllBranchSelected(self):
         return self.allBranchIdSelected
 
-    def rander(self):
+    def process(self):
         '''
         生成页面主程序
         '''
-        submitController = self.submitController
+
         # 检查调查是否过期
         if self.isExpired():
             return self.errorPage(RESULT_MESSAGE.SURVEY_EXPIRED)
 
         # 检查是否提供登录信息
         authenticator = self.authenticator
-        if not authenticator.pageEnterCheck():
+        if not authenticator.randerAuthCheck():
             return authenticator.loginErrorPage()
         #authenticator.loadAuthInfo()
 
@@ -460,11 +491,30 @@ class SurveyController(ResponseController):
                 return self.answeredPage()
 
         # 返回答题界面
+        submitController = self.submitController
         return submitController.render()
 
 
-    def submit(self):
-        pass
+class SurveySubmitController(SurveyResponseController):
+    '''
+
+    '''
 
 
+    def process(self):
+        '''
+        处理用户提交
+        '''
 
+        # 检查调查状态是否在用
+        if not self.isActive():
+            return self.errorPage(RESULT_MESSAGE.SURVEY_OBJECT_NOT_EXIST)
+
+        # 检查是否过期
+        if self.isExpired():
+            return self.errorPage(RESULT_MESSAGE.SURVEY_EXPIRED)
+
+        # 检查是否提供登录信息
+        authenticator = self.authenticator
+        if not authenticator.submitAuthCheck():
+            return authenticator.loginErrorPage()
