@@ -66,11 +66,24 @@
                     <div class="input-group input-group-sm ">
                         <span class="input-group-addon width50">匿名调查</span>
                         <input class="bootstrap-switch data-binding-field" type="checkbox"
-                               {% if survey.viewResult %}checked{% endif %}
+                               {% if survey.anonymous %}checked{% endif %}
                                 {# 数据绑定信息 #}
                                data-binding-action="{% url 'survey:service.survey.modify' %}"
                                data-binding-id="{{ survey.getIdSigned }}"
                                data-binding-field-name="anonymous"/>
+                    </div>
+                </div>
+
+                {# 分步答题 #}
+                <div class="col-md-3">
+                    <div class="input-group input-group-sm ">
+                        <span class="input-group-addon width50">分步答题</span>
+                        <input class="bootstrap-switch data-binding-field" type="checkbox"
+                               {% if survey.paper.step %}checked{% endif %}
+                                {# 数据绑定信息 #}
+                               data-binding-action="{% url 'survey:service.paper.modify' %}"
+                               data-binding-id="{{ survey.paper.getIdSigned }}"
+                               data-binding-field-name="step"/>
                     </div>
                 </div>
             </div>

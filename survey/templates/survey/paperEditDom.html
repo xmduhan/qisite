@@ -82,7 +82,7 @@
                                     {#data-placement="bottom" #}
                                     {#data-content="这里是提示的内容"#}
                                     >
-                                  分页显示
+                                  分步答题
                             </span>
                         <input class="bootstrap-switch data-binding-field with-popover"
                                type="checkbox"
@@ -90,7 +90,7 @@
                                 {# 数据绑定信息 #}
                                data-binding-action="{% url 'survey:service.paper.modify' %}"
                                data-binding-id="{{ paper.getIdSigned }}"
-                               data-binding-field-name="paging"
+                               data-binding-field-name="step"
                                 {# 弹出框提示信息 #}
                                data-placement="bottom"
                                data-content="这个开关控制答题时问卷是否分页显示"/>

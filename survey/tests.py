@@ -69,7 +69,7 @@ class SurveyModelTest(TestCase):
 
     def addPaper(self):
         paper = Paper(
-            title='tsPaper', description='tsPaper.description', inOrder=True, lookBack=False, paging=False,
+            title='tsPaper', description='tsPaper.description', inOrder=True, lookBack=False,
             createBy=self.tsUser, modifyBy=self.tsUser
         )
         paper.save()
