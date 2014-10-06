@@ -70,7 +70,7 @@ class SurveyAuthController(AuthController):
         if type(self.controller) == SurveyRenderController:
             self.password = self.request.REQUEST.get('password')
             self.resubmit = self.request.REQUEST.get('resubmit', False)
-            self.passwordEncoded = self.request.REQUEST.get('passwordEncoded', False)
+            self.passwordEncoded = self.request.REQUEST.get('passwordEncoded', '')
             if not self.resubmit:
                 #if True:
                 # 重新提交的情况,其加密密码已经直接放在request中的passwordEncoded了
@@ -78,7 +78,7 @@ class SurveyAuthController(AuthController):
 
         # 处理提交控制器
         if type(self.controller) == SurveySubmitController:
-            self.passwordEncoded = self.request.REQUEST.get('passwordEncoded', False)
+            self.passwordEncoded = self.request.REQUEST.get('passwordEncoded', '')
             self.resubmit = self.request.REQUEST.get('resubmit', False)
 
 
@@ -168,7 +168,7 @@ class SurveyAuthController(AuthController):
                 return self.controller.errorPage(self.getAuthErrorMessage())
 
         if type(self.controller) == SurveySubmitController:
-            pass
+            return self.controller.errorPage(self.getAuthErrorMessage())
 
     def getAuthErrorMessage(self):
         '''
@@ -742,8 +742,8 @@ class SurveyRenderController(SurveyResponseController):
                 return self.answeredPage()
 
         # 返回答题界面
-        submitController = self.answerController
-        return submitController.render()
+        answerController = self.answerController
+        return answerController.render()
 
 
 class SurveySubmitController(SurveyResponseController):
@@ -773,3 +773,13 @@ class SurveySubmitController(SurveyResponseController):
         if not authController.authCheck():
             return authController.authErrorPage()
 
+        # 检查是否已经回答过了
+        if self.authController.isAnswered():
+            if self.authController.resubmit and self.survey.resubmit:
+                authController.getSample().delete()
+            else:
+                return self.answeredPage()
+
+        # 处理提交并返回结果
+        answerController = self.answerController
+        return answerController.submit()

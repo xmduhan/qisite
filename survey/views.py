@@ -558,7 +558,7 @@ def surveyAnswerAllSubmit(request):
 
     # 调用survey处理并生成返回结果
     surveySubmitController = SurveySubmitController(request, surveyId)
-    #return surveySubmitController.process()
+    return surveySubmitController.process()
 
 
     # 初始化变量
