@@ -289,20 +289,12 @@ def surveyAnswer(request, surveyId):
              'returnUrl': reverse('survey:view.survey.answer.render', args=[survey.id])}
         )
         return HttpResponse(template.render(context))
-        #
 
-    # 根据是否需要分布答题
-    if survey.paper.step:
-        url = reverse('survey:view.survey.answer.step', args=[surveyId])
-    else:
-        url = reverse('survey:view.survey.answer.render', args=[surveyId])
-
-    # 返回问卷封面页面
+    # 返回问卷封面
+    answerRenderUrl = reverse('survey:view.survey.answer.render', args=[surveyId])
     template = loader.get_template('survey/surveyCover.html')
-    context = RequestContext(request, {'session': request.session, 'survey': survey, 'url': url})
+    context = RequestContext(request, {'session': request.session, 'survey': survey, 'url': answerRenderUrl})
     return HttpResponse(template.render(context))
-
-
 
 
 def surveyAnswerRender(request, surveyId):
@@ -347,8 +339,6 @@ def surveyAnswerSubmit(request):
     # 调用提交控制器生成处理数据，并生成返回结果
     surveySubmitController = SurveySubmitController(request, surveyId)
     return surveySubmitController.process()
-
-
 
 
 def surveyExport(request, surveyId):
