@@ -9,6 +9,7 @@ from django.http import HttpResponse, Http404, HttpResponseRedirect, StreamingHt
 from django.core.urlresolvers import reverse
 from qisite.definitions import RESULT_MESSAGE
 from django.core.signing import Signer, BadSignature
+from django.db import transaction
 
 #self.phone = request.REQUEST.get('phone')
 #self.submitedSurveyList = request.session.get('submitedSurveyList', [])
@@ -421,7 +422,6 @@ class TargetSurveyAuthController(SurveyAuthController):
     pass
 
 
-
 class SurveyAnswerController:
     '''
     调查页面生成器
@@ -480,12 +480,89 @@ class SurveyBulkAnswerController(SurveyAnswerController):
         # 返回页面
         return self.answerPage(data)
 
+    @transaction.atomic()
+    def __processSubmit(self):
+        '''
+        处理提交的操作
+        '''
+        # 答题处理
+        user = getAnonymousUser()
+        paper = self.survey.paper
+
+        # 读取提交的问题列表
+        questionIdList = self.request.REQUEST.getlist('questionIdList')
+
+        # 检查提交问题数量是否和问卷定义一致
+        if paper.question_set.count() != len(questionIdList):
+            raise Exception(RESULT_MESSAGE.ANSWER_COUNT_DIFF_WITH_QUESTION)  # 提交问题的数量和问卷不一致
+
+        # 添加样本对象
+        ipAddress = self.controller.getClientIP()
+        sample = Sample(user=user, ipAddress=ipAddress, paper=paper, createBy=user, modifyBy=user)
+
+        # 关联鉴权信息
+        self.controller.getAuthController().setSample(sample)
+
+        # 保存样本
+        sample.save()
+
+        # 循环写入每一个选项的值
+        for questionIdSigned in questionIdList:
+
+            branchIdSinged = self.request.REQUEST.get(questionIdSigned)
+            if not branchIdSinged:
+                raise Exception(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
+
+            # 检查数字签名
+            try:
+                signer = Signer()
+                questionId = signer.unsign(questionIdSigned)
+                branchId = signer.unsign(branchIdSinged)
+            except:
+                raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 数字签名无效
+
+            # 读取问题对象
+            try:
+                question = Question.objects.get(id=questionId)
+            except:
+                raise Exception(RESULT_MESSAGE.QUESTION_OBJECT_NO_EXIST)  # 问题对象不存在
+
+            # 选项对象不存在
+            try:
+                branch = Branch.objects.get(id=branchId)
+            except:
+                raise Exception(RESULT_MESSAGE.BRANCH_OBJECT_NO_EXIST)  # 选项对象不存在
+
+            #
+            if question.paper != paper:
+                raise Exception(RESULT_MESSAGE.QUESTION_NOT_IN_PAPER)  #提交问题的问题此问卷无关
+
+            branch_set = list(question.branch_set.all())
+            if branch not in branch_set:
+                raise Exception(RESULT_MESSAGE.BRANCH_NOT_IN_QUESTION)  #提交答案不在选项范围内
+
+            # 将数据写到样本项信息中去
+            sampleItem = SampleItem(
+                question=question, content=None, score=0, sample=sample, createBy=user, modifyBy=user)
+            sampleItem.save()
+            sampleItem.branch_set.add(branch)
+            sampleItem.save()
+
     def submit(self):
         '''
         处理答题提交数据(保存到数据库)
         '''
+        # 尝试执行提交过程
+        try:
+            self.__processSubmit()
+        except Exception as e:
+            return self.controller.errorPage(unicode(e))
 
+        # 返回成功
+        returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
+        return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
 
+    pass
 
 
 class SurveyStepAnswerController(SurveyAnswerController):
@@ -543,6 +620,8 @@ class SurveyResponseController(ResponseController):
         else:
             self.authController = TargetlessSurveyAuthController(self)
 
+    def getAuthController(self):
+        return self.authController
 
     def __init__AnswerController(self):
         '''
@@ -553,6 +632,9 @@ class SurveyResponseController(ResponseController):
             self.answerController = SurveyStepAnswerController(self)
         else:
             self.answerController = SurveyBulkAnswerController(self)
+
+    def getAnswerController(self):
+        return self.answerController
 
 
     def isExpired(self):
@@ -579,15 +661,26 @@ class SurveyResponseController(ResponseController):
     def getAllBranchSelected(self):
         return self.allBranchIdSelected
 
-    def errorPage(self, resultMessage=u'未知错误'):
+
+    def messagePage(self, title, message, returnUrl):
         '''
-        显示出错信息
+        显示消息页面
         '''
         template = loader.get_template(self.messageTemplate)
         context = RequestContext(
-            self.request, {'title': '出错', 'message': resultMessage, 'returnUrl': self.url})
+            self.request, {'title': title, 'message': message, 'returnUrl': returnUrl})
         return HttpResponse(template.render(context))
 
+
+    def errorPage(self, errorMessage=u'未知错误'):
+        '''
+        显示出错信息
+        '''
+        #template = loader.get_template(self.messageTemplate)
+        #context = RequestContext(
+        #    self.request, {'title': '出错', 'message': resultMessage, 'returnUrl': self.url})
+        #return HttpResponse(template.render(context))
+        return self.messagePage('出错', errorMessage, self.url)
 
     def answeredPage(self):
         '''
@@ -668,61 +761,3 @@ class SurveySubmitController(SurveyResponseController):
         if not authController.authCheck():
             return authController.authErrorPage()
 
-        #----------------------------------------------------------------------
-        # 答题处理
-        user = getAnonymousUser()
-        paper = self.survey.paper
-        # 读取提交的问题列表
-        questionIdList = self.request.REQUEST.getlist('questionIdList')
-
-        # 检查提交问题数量是否和问卷定义一致
-        if paper.question_set.count() != len(questionIdList):
-            raise Exception(RESULT_MESSAGE.ANSWER_COUNT_DIFF_WITH_QUESTION)  # 提交问题的数量和问卷不一致
-
-        # 添加样本对象
-        sample = Sample(user=user, ipAddress=self.getClientIP, paper=paper, createBy=user, modifyBy=user)
-
-        # 关联鉴权信息
-        authController.setSample(sample)
-
-        # 保存样本
-        sample.save()
-
-        # 循环写入每一个选项的值
-        for questionIdSigned in questionIdList:
-            branchIdSinged = self.request.REQUEST.get(questionIdSigned)
-            if not branchIdSinged:
-                raise Exception(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
-            try:
-                signer = Signer()
-                questionId = signer.unsign(questionIdSigned)
-                branchId = signer.unsign(branchIdSinged)
-            except:
-                raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 数字签名无效
-
-            # 读取问题对象
-            try:
-                question = Question.objects.get(id=questionId)
-            except:
-                raise Exception(RESULT_MESSAGE.QUESTION_OBJECT_NO_EXIST)  # 问题对象不存在
-
-            # 选项对象不存在
-            try:
-                branch = Branch.objects.get(id=branchId)
-            except:
-                raise Exception(RESULT_MESSAGE.BRANCH_OBJECT_NO_EXIST)  # 选项对象不存在
-
-            #
-            if question.paper != paper:
-                raise Exception(RESULT_MESSAGE.QUESTION_NOT_IN_PAPER)  #提交问题的问题此问卷无关
-
-            branch_set = list(question.branch_set.all())
-            if branch not in branch_set:
-                raise Exception(RESULT_MESSAGE.BRANCH_NOT_IN_QUESTION)  #提交答案不在选项范围内
-
-            # 将数据写到样本项信息中去
-            sampleItem = SampleItem(
-                question=question, content=None, score=0, sample=sample, createBy=user, modifyBy=user)
-            sampleItem.save()
-            sampleItem.branch_set.add(branch)
-            sampleItem.save()
