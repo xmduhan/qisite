@@ -182,6 +182,11 @@ class SurveyAuthController(AuthController):
     def setAuthErrorMessage(self, errorMessage):
         self.__authErrorMessage = errorMessage
 
+    def onSubmitFinished(self):
+        '''
+        提交完成后的处理，主要是处理session相关信息
+        '''
+        pass
 
     pass
 
@@ -241,6 +246,10 @@ class TargetlessSurveyAuthController(SurveyAuthController):
         # 提交处理器
         if type(self.controller) == SurveySubmitController:
             return SurveyAuthController.authErrorPage(self)
+
+    def onSubmitFinished(self):
+        self.submitedSurveyList.append(self.survey.id)
+        self.request.session['submitedSurveyList'] = self.submitedSurveyList
 
     pass
 
@@ -557,6 +566,9 @@ class SurveyBulkAnswerController(SurveyAnswerController):
             self.__processSubmit()
         except Exception as e:
             return self.controller.errorPage(unicode(e))
+
+        # 通知鉴权器保存session信息
+        self.controller.getAuthController().onSubmitFinished()
 
         # 返回成功
         returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
