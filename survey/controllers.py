@@ -216,7 +216,7 @@ class TargetlessSurveyAuthController(SurveyAuthController):
         非定向调查通过session_key来获得上一次提交的sample记录
         '''
         session_key = self.request.session._session_key
-        sampleList = self.survey.paper.sample_set.filter(session=session_key)
+        sampleList = self.survey.paper.sample_set.filter(session=session_key, finished=True)
         if sampleList:
             return sampleList[0]
         else:
@@ -388,7 +388,7 @@ class TargetSurveyAuthController(SurveyAuthController):
         '''
         获取鉴权信息对应的样本记录
         '''
-        sampleList = self.targetCust.sample_set.all()
+        sampleList = self.targetCust.sample_set.filter(finished=True)
         if len(sampleList) != 0:
             return sampleList[0]
         else:

@@ -1565,7 +1565,7 @@ class PaperCreateInstanceTest(TestCase):
     def setUp(self):
         setup_test_environment()
         self.user = User.objects.get(code='duhan')
-        self.paper = Paper.objects.get(code='paper-template-test01', type='T')  #网购客户满意度调查(非定向)
+        self.paper = Paper.objects.get(code='paper-template-01', type='T')  #网购客户满意度调查(非定向)
 
     def test_createPaperInstance(self):
         newPaper = self.paper.createPaperInstance(self.user)
@@ -1637,7 +1637,7 @@ class UpdateModelInstanceTest(TestCase):
     def setUp(self):
         admin = User.objects.get(code='admin')
         user = User.objects.get(code='duhan')
-        paper = Paper.objects.get(code='paper-template-test01', type='T')  #网购客户满意度调查(非定向)
+        paper = Paper.objects.get(code='paper-template-01', type='T')  #网购客户满意度调查(非定向)
         survey = Survey()
         survey.createBy = admin
         survey.modifyBy = admin
@@ -2164,7 +2164,7 @@ class TargetLessSurveyAnswerTest(TestCase):
     def setUp(self):
         setup_test_environment()
         self.client = Client()
-        self.survey = Survey.objects.get(code='survey-no-target-01')  #网购客户满意度调查(非定向)
+        self.survey = Survey.objects.get(code='survey-targetless-01')  #网购客户满意度调查(非定向)
         self.paper = self.survey.paper
 
         # 确认该调查为非定向调查
@@ -3093,7 +3093,7 @@ class TargetLessSurveyExportTest(TestCase):
     def setUp(self):
         setup_test_environment()
         self.client = Client()
-        self.survey = Survey.objects.get(code='survey-no-target-01')  #网购客户满意度调查(非定向)
+        self.survey = Survey.objects.get(code='survey-targetless-01')  #网购客户满意度调查(非定向)
         self.exportUrl = reverse('survey:view.survey.export', args=[self.survey.id])
         # 登录
         self.user = User.objects.get(code='duhan')

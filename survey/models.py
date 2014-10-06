@@ -164,7 +164,8 @@ class Question(TimeModel):
     # 题支 branch_set 对象集 (ok) (已在branche中设置反向外键)
     confused = models.BooleanField('乱序', default=False)
     branchNumStyle = models.CharField('标号样式', max_length=50, choices=BRANCH_NUM_STYLE, default=defaultBranchNumStyle)
-    nextQuestion = models.ForeignKey('self', verbose_name='下一题', blank=True, null=True)  # 是否需要这个信息,似乎多余?
+    # nextQuestion 是否需要这个信息,似乎多余?
+    nextQuestion = models.ForeignKey('self', verbose_name='下一题', blank=True, null=True, on_delete=models.SET_NULL)
     paper = models.ForeignKey(Paper, verbose_name='所属问卷', null=True, blank=True)
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='questionCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='questionModified_set')
@@ -410,6 +411,8 @@ class Sample(TimeModel):
     ipAddress = models.CharField('受访IP', max_length=50)
     #macAddress = models.CharField('受访MAC', max_length=50) web端实际无法获得该字段
     finished = models.BooleanField('是否完成', default=True)
+    # lastQuestion用于单步答题，保存最后一次回答的题目，以便之后继续回答
+    lastQuestion = models.ForeignKey('Question', verbose_name='下一题', null=True, blank=True, on_delete=models.SET_NULL)
     isValid = models.BooleanField('是否有效', default=True)
     paper = models.ForeignKey(Paper, verbose_name='所属问卷')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='sampleCreated_set')
