@@ -27,10 +27,10 @@ urlpatterns = patterns(
     url(r'^view/question/edit/(?P<questionId>\S+)$', views.questionEdit, name='view.question.edit'),
     ## 答卷
     url(r'^view/survey/answer/(?P<surveyId>\d+)$', views.surveyAnswer, name='view.survey.answer'),
-    url(r'^view/survey/answer/all/(?P<surveyId>\d+)$', views.surveyAnswerAll, name='view.survey.answer.all'),
-    url(r'^view/survey/answer/all/submit$', views.surveyAnswerAllSubmit, name='view.survey.answer.all.submit'),
-    url(r'^view/survey/answer/step/(?P<surveyId>\d+)$', views.surveyAnswerStep, name='view.survey.answer.step'),
-    url(r'^view/survey/answer/step/submit$', views.surveyAnswerStepSubmit, name='view.survey.answer.step.submit'),
+    url(r'^view/survey/answer/render/(?P<surveyId>\d+)$', views.surveyAnswerRender, name='view.survey.answer.render'),
+    url(r'^view/survey/answer/submit$', views.surveyAnswerSubmit, name='view.survey.answer.submit'),
+    #url(r'^view/survey/answer/step/(?P<surveyId>\d+)$', views.surveyAnswerStep, name='view.survey.answer.step'),
+    #url(r'^view/survey/answer/step/submit$', views.surveyAnswerStepSubmit, name='view.survey.answer.step.submit'),
 
     ## 样本导出
     url(r'^view/survey/export/(?P<surveyId>\d+)$', views.surveyExport, name='view.survey.export'),

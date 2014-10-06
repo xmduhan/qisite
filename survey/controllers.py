@@ -440,7 +440,7 @@ class SurveyAnswerController:
         self.controller = controller
         self.request = controller.request
         self.survey = self.controller.survey
-        self.url = reverse('survey:view.survey.answer.all', args=[self.survey.id])
+        self.url = reverse('survey:view.survey.answer.render', args=[self.survey.id])
         self.answerAllTemplate = 'survey/surveyAnswerAll.html'
 
 
@@ -623,7 +623,7 @@ class SurveyResponseController(ResponseController):
         '''
         self.answeredTemplate = 'survey/surveyAnswered.html'
         self.messageTemplate = 'www/message.html'
-        self.url = reverse('survey:view.survey.answer.all', args=[self.survey.id])
+        self.url = reverse('survey:view.survey.answer.render', args=[self.survey.id])
 
     def __init__AuthController(self):
         '''

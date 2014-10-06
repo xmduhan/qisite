@@ -286,7 +286,7 @@ def surveyAnswer(request, surveyId):
             request,
             {'title': '出错',
              'message': RESULT_MESSAGE.SURVEY_EXPIRED,
-             'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
+             'returnUrl': reverse('survey:view.survey.answer.render', args=[survey.id])}
         )
         return HttpResponse(template.render(context))
         #
@@ -295,7 +295,7 @@ def surveyAnswer(request, surveyId):
     if survey.paper.step:
         url = reverse('survey:view.survey.answer.step', args=[surveyId])
     else:
-        url = reverse('survey:view.survey.answer.all', args=[surveyId])
+        url = reverse('survey:view.survey.answer.render', args=[surveyId])
 
     # 返回问卷封面页面
     template = loader.get_template('survey/surveyCover.html')
@@ -303,219 +303,9 @@ def surveyAnswer(request, surveyId):
     return HttpResponse(template.render(context))
 
 
-def surveyAnswerAllWithoutTarget(request, survey):
-    '''
-    处理无定向调查
-    '''
-    surveyRenderController = SurveyRenderController(request, survey.id)
-    return surveyRenderController.process()
 
 
-    # 读取session中的已提交列表数据
-    submitedSurveyList = request.session.get('submitedSurveyList', [])
-    password = request.REQUEST.get('password')
-    resubmit = request.REQUEST.get('resubmit', False)
-
-    # 检查调查是否过期
-    if survey.endTime <= datetime.now():
-        template = loader.get_template('www/message.html')
-        context = RequestContext(
-            request,
-            {'title': '出错',
-             'message': RESULT_MESSAGE.SURVEY_EXPIRED,
-             'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
-        )
-        return HttpResponse(template.render(context))
-        #
-
-    # 所有已选列表用于重填时显示已选的答案
-    allBranchIdSelected = []
-
-    # 如果设置了密码，检查提交的密码是否正确
-    passwordEncoded = ''
-    if survey.password:
-        # 如果密码为空
-        if resubmit:
-            # 如果是重填的情况密码的密文已经在passwordEncoded中了，提出出来进行反向验证
-            passwordEncoded = request.REQUEST.get('passwordEncoded', False)
-            if not check_password(survey.password, passwordEncoded):
-                template = loader.get_template('www/message.html')
-                context = RequestContext(
-                    request,
-                    {'title': '出错',
-                     'message': RESULT_MESSAGE.SURVEY_PASSWORD_INVALID,
-                     'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
-                )
-                return HttpResponse(template.render(context))
-        else:
-            # 不是重复提交检查密码是否存在
-            if not password:
-                template = loader.get_template('survey/surveyLogin.html')
-                context = RequestContext(request, {'session': request.session, 'survey': survey, 'paper': survey.paper})
-                return HttpResponse(template.render(context))
-            if survey.password != password:
-                template = loader.get_template('www/message.html')
-                context = RequestContext(
-                    request,
-                    {'title': '出错',
-                     'message': RESULT_MESSAGE.SURVEY_PASSWORD_INVALID,
-                     'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
-                )
-                return HttpResponse(template.render(context))
-            passwordEncoded = make_password(password)
-
-    # 检查是否发生重复提交
-    if survey.id in submitedSurveyList:
-        if resubmit and survey.resubmit:
-            # 重答且使用了重填标志
-            # 读取原来填写的数据信息
-            session_key = request.session._session_key
-            sampleList = survey.paper.sample_set.filter(session=session_key)
-            # 将所有的已选项放在一个列表中
-            if len(sampleList) != 0:
-                sample = sampleList[0]
-                for sampleItem in sample.sampleitem_set.all():
-                    allBranchIdSelected.extend([branch.id for branch in sampleItem.branch_set.all()])
-        else:
-            template = loader.get_template('survey/surveyAnswered.html')
-            context = RequestContext(
-                request,
-                {'title': '出错',
-                 'message': RESULT_MESSAGE.ANSWERED_ALREADY,
-                 'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id]),
-                 'survey': survey, 'passwordEncoded': passwordEncoded})
-            return HttpResponse(template.render(context))
-
-    # 进入答题界面
-    template = loader.get_template('survey/surveyAnswerAll.html')
-    context = RequestContext(
-        request,
-        {'session': request.session, 'survey': survey, 'paper': survey.paper,
-         'resubmit': resubmit, 'passwordEncoded': passwordEncoded, 'allBranchIdSelected': allBranchIdSelected})
-    return HttpResponse(template.render(context))
-
-
-def surveyAnswerAllWithTarget(request, survey):
-    '''
-    处理定向调查
-    '''
-
-    surveyRenderController = SurveyRenderController(request, survey.id)
-    return surveyRenderController.process()
-
-    # 如果是定向调查尝试读取手机号码
-    phone = request.REQUEST.get('phone')
-    password = request.REQUEST.get('password')
-    resubmit = request.REQUEST.get('resubmit', False)
-
-    # 检查调查是否过期
-    if survey.endTime <= datetime.now():
-        template = loader.get_template('www/message.html')
-        context = RequestContext(
-            request,
-            {'title': '出错',
-             'message': RESULT_MESSAGE.SURVEY_EXPIRED,
-             'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
-        )
-        return HttpResponse(template.render(context))
-        #
-
-    # 如果用户没有填写手机号码，显示填写手机号码的页面
-    if not phone:
-        template = loader.get_template('survey/surveyLogin.html')
-        context = RequestContext(request, {'session': request.session, 'survey': survey, 'paper': survey.paper})
-        return HttpResponse(template.render(context))
-
-    # 手机号码不在清单中提示用户
-    custListItemList = survey.custList.custListItem_set.filter(phone=phone)
-    if len(custListItemList) == 0:
-        template = loader.get_template('www/message.html')
-        context = RequestContext(
-            request,
-            {'title': '出错',
-             'message': RESULT_MESSAGE.PHONE_NOT_IN_CUSTLIST,
-             'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
-        )
-        return HttpResponse(template.render(context))
-    custListItem = custListItemList[0]
-
-    # 如果设置了密码，检查提交的密码是否正确
-    passwordEncoded = ''
-    if survey.password:
-        if resubmit:
-            # 如果是重填的情况密码的密文已经在passwordEncoded中了，提出出来进行反向验证
-            passwordEncoded = request.REQUEST.get('passwordEncoded', False)
-            if not check_password(survey.password, passwordEncoded):
-                template = loader.get_template('www/message.html')
-                context = RequestContext(
-                    request,
-                    {'title': '出错',
-                     'message': RESULT_MESSAGE.SURVEY_PASSWORD_INVALID,
-                     'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
-                )
-                return HttpResponse(template.render(context))
-        else:
-            # 检查用户的密码是否正确，如果正确将密码加密
-            if survey.password != password:
-                template = loader.get_template('www/message.html')
-                context = RequestContext(
-                    request,
-                    {'title': '出错',
-                     'message': RESULT_MESSAGE.SURVEY_PASSWORD_INVALID,
-                     'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id])}
-                )
-                return HttpResponse(template.render(context))
-            passwordEncoded = make_password(password)
-            #
-
-    # 尝试寻找之前是否已经生成了targetCust
-    targetCustList = survey.targetCust_set.filter(phone=phone)
-    if len(targetCustList) == 0:
-        # 如果还没有生成targetCust记录尝试去生成
-        targetCust = TargetCust(
-            name=custListItem.name, phone=custListItem.phone, email=custListItem.email, survey=survey,
-            createBy=survey.createBy, modifyBy=survey.createBy,
-        )
-        targetCust.save()
-    else:
-        # 如果targetCust已经生成直接提取出来
-        targetCust = targetCustList[0]
-
-
-        # 所有已选列表用于重填时显示已选的答案
-    allBranchIdSelected = []
-
-    # 检查调查是否已经填写过了
-    if targetCust.sample_set.count() != 0:
-        # 如果没有使用重复提交标志
-        if resubmit and survey.resubmit:
-            # 将所有的已选项放在一个列表中
-            sample = targetCust.sample_set.all()[0]
-            for sampleItem in sample.sampleitem_set.all():
-                allBranchIdSelected.extend([branch.id for branch in sampleItem.branch_set.all()])
-        else:
-            # 调用模板
-            template = loader.get_template('survey/surveyAnswered.html')
-            context = RequestContext(
-                request,
-                {'title': '出错',
-                 'message': RESULT_MESSAGE.ANSWERED_ALREADY,
-                 'returnUrl': reverse('survey:view.survey.answer.all', args=[survey.id]),
-                 'survey': survey, 'phone': phone, 'passwordEncoded': passwordEncoded}
-            )
-            return HttpResponse(template.render(context))
-
-    # 生成含页面目标客户(targetCust)的调查页面
-    template = loader.get_template('survey/surveyAnswerAll.html')
-    context = RequestContext(
-        request,
-        {'session': request.session, 'survey': survey, 'paper':
-            survey.paper, 'targetCust': targetCust, 'resubmit': resubmit, 'passwordEncoded': passwordEncoded,
-         'allBranchIdSelected': allBranchIdSelected})
-    return HttpResponse(template.render(context))
-
-
-def surveyAnswerAll(request, surveyId):
+def surveyAnswerRender(request, surveyId):
     '''
     答题（一次性回答所有问题）
 
@@ -526,14 +316,12 @@ def surveyAnswerAll(request, surveyId):
         raise Http404
     survey = surveyList[0]
 
-    # 如果是非定向调查
-    if survey.custList:
-        return surveyAnswerAllWithTarget(request, survey)
-    else:
-        return surveyAnswerAllWithoutTarget(request, survey)
+    # 调用显示控制器生成答题页面
+    surveyRenderController = SurveyRenderController(request, survey.id)
+    return surveyRenderController.process()
 
 
-def surveyAnswerAllSubmit(request):
+def surveyAnswerSubmit(request):
     '''
     问卷批量提交服务
     '''
@@ -556,219 +344,11 @@ def surveyAnswerAllSubmit(request):
         context = RequestContext(request, {'title': u'出错', 'message': RESULT_MESSAGE.BAD_SAGNATURE, 'returnUrl': '/'})
         return HttpResponse(template.render(context))
 
-    # 调用survey处理并生成返回结果
+    # 调用提交控制器生成处理数据，并生成返回结果
     surveySubmitController = SurveySubmitController(request, surveyId)
     return surveySubmitController.process()
 
 
-    # 初始化变量
-    survey = None
-    targetCust = None
-    passwordEncoded = request.REQUEST.get('passwordEncoded')
-
-    try:
-        with transaction.atomic():
-            # 尝试获取用户
-            user = getCurrentUser(request)
-            if not user:
-                user = getAnonymousUser()
-
-            # 初始一个Signer
-            signer = Signer()
-
-            # 获取客户端的地址信息
-            ipAddress = request.META['REMOTE_ADDR']
-
-            # 尝试读取调查标识
-            surveyIdSigned = request.REQUEST.get('surveyId')
-            if not surveyIdSigned:
-                raise Exception(RESULT_MESSAGE.NO_SURVEY_ID)  # 没有提供调查对象
-
-            # 对调查标识的数据签名进行检查
-            try:
-                surveyId = signer.unsign(surveyIdSigned)
-            except:
-                raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 无效的数字签名
-
-            # 检查调查对象的状态是否有效
-            try:
-                survey = Survey.objects.get(id=surveyId, state='A')
-            except:
-                raise Exception(RESULT_MESSAGE.SURVEY_OBJECT_NOT_EXIST)  # 调查对象不存在
-
-            # 检查调查是否过期
-            if survey.endTime <= datetime.now():
-                raise Exception(RESULT_MESSAGE.SURVEY_EXPIRED)
-
-            # 检验密码
-            if survey.password:
-                if not check_password(survey.password, passwordEncoded):
-                    raise Exception(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)  # 密码检验不通过
-
-            # 读取重复提交标志
-            resubmit = request.REQUEST.get('resubmit', False)
-            #print 'resubmit=', resubmit
-            #print  request.REQUEST
-
-            # 定向调查检查是否重复提交
-            # 如果是定向调查，则先检查目标客户信息是否正确
-            if survey.custList:
-                targetCustIdSigned = request.REQUEST.get('targetCustId')
-                if not targetCustIdSigned:
-                    raise Exception(RESULT_MESSAGE.TARGET_SURVEY_NEED_CUSTLIST)  #定向调查需要提供客户清单
-                # 验证目标清单的数字签名
-                try:
-                    targetCustId = signer.unsign(targetCustIdSigned)
-                except:
-                    raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 无效的数字签名
-
-                # 读取目标客户对象
-                try:
-                    targetCust = TargetCust.objects.get(id=targetCustId)
-                except:
-                    raise Exception(RESULT_MESSAGE.CUSTLIST_OBJECT_NOT_EXIST)  # 所指定的客户清单的对象不存在
-
-                # 检查目标清单和当前调查是否有关联，防止篡改
-                if targetCust.survey != survey:
-                    raise Exception(RESULT_MESSAGE.TARGETCUST_NOT_IN_SURVEY)
-
-                # 检查该target是否已经提交过数据(sample)
-                if targetCust.sample_set.count() != 0:
-                    if resubmit and survey.resubmit:
-                        # 如果有重提交标志删除原来的提交数据(注意这是在一个事务中，如果后面检查有错，删除会被回滚)
-                        targetCust.sample_set.all().delete()
-                    else:
-                        # 如果重复提交又没有使用重提交标志返回错误
-                        raise Exception(RESULT_MESSAGE.ANSWERED_ALREADY)  # 重复提交
-            else:
-                # 非定向调查检查是否发生重复提交
-                # 读取session中的已提交列表数据
-                submitedSurveyList = request.session.get('submitedSurveyList', [])
-                if survey.id in submitedSurveyList:
-                    if resubmit and survey.resubmit:
-                        # 如果有重提交标志删除原来的提交数据(注意这是在一个事务中，如果后面检查有错，删除会被回滚)
-                        session_key = request.session._session_key
-                        survey.paper.sample_set.filter(session=session_key).delete()
-                    else:
-                        # 如果重复提交又没有使用重提交标志返回错误
-                        raise Exception(RESULT_MESSAGE.ANSWERED_ALREADY)  # 重复提交
-
-            # 读取调查对应的问卷
-            paper = survey.paper
-
-            # 读取提交的问题列表
-            questionIdList = request.REQUEST.getlist('questionIdList')
-
-            # 检查提交问题数量是否和问卷定义一致
-            if paper.question_set.count() != len(questionIdList):
-                raise Exception(RESULT_MESSAGE.ANSWER_COUNT_DIFF_WITH_QUESTION)  # 提交问题的数量和问卷不一致
-
-            # 添加样本对象
-            sample = Sample(user=user, ipAddress=ipAddress, paper=paper, createBy=user, modifyBy=user)
-
-            # 如果是定向调查，检查是否提交目标客户信息，并绑定目标客户信息到样本
-            if survey.custList:
-                sample.targetCust = targetCust
-            else:
-                # 非定向调查一样需要关联客户端信息(session)
-                request.session['submitedSurveyList'] = submitedSurveyList
-                request.session.save()  # 确保session记录是存在的
-                sample.session = request.session._session_key
-
-            # 保存样本
-            sample.save()
-
-            # 循环写入每一个选项的值
-            for questionIdSigned in questionIdList:
-                branchIdSinged = request.REQUEST.get(questionIdSigned)
-                if not branchIdSinged:
-                    raise Exception(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
-                try:
-                    questionId = signer.unsign(questionIdSigned)
-                    branchId = signer.unsign(branchIdSinged)
-                except:
-                    raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 数字签名无效
-
-                # 读取问题对象
-                try:
-                    question = Question.objects.get(id=questionId)
-                except:
-                    raise Exception(RESULT_MESSAGE.QUESTION_OBJECT_NO_EXIST)  # 问题对象不存在
-
-                # 选项对象不存在
-                try:
-                    branch = Branch.objects.get(id=branchId)
-                except:
-                    raise Exception(RESULT_MESSAGE.BRANCH_OBJECT_NO_EXIST)  # 选项对象不存在
-
-                #
-                if question.paper != paper:
-                    raise Exception(RESULT_MESSAGE.QUESTION_NOT_IN_PAPER)  #提交问题的问题此问卷无关
-
-                branch_set = list(question.branch_set.all())
-                if branch not in branch_set:
-                    raise Exception(RESULT_MESSAGE.BRANCH_NOT_IN_QUESTION)  #提交答案不在选项范围内
-
-                # 将数据写到样本项信息中去
-                sampleItem = SampleItem(
-                    question=question, content=None, score=0, sample=sample, createBy=user, modifyBy=user)
-                sampleItem.save()
-                sampleItem.branch_set.add(branch)
-                sampleItem.save()
-
-    except Exception as e:
-
-        # 检查提交的表单中是否包含合法的survey信息，如果包含则说明可以返回答题页面
-        if survey:
-            returnUrl = reverse('survey:view.survey.answer.all', args=[survey.id])
-        else:
-            returnUrl = '/'
-
-        # 检查如果有目标客户的在表单
-        if targetCust:
-            formData = {'phone': targetCust.phone}
-        else:
-            formData = {}
-
-        if unicode(e) == RESULT_MESSAGE.ANSWERED_ALREADY:
-            # 转向重复提交专用处理页面(含查看结果按钮)
-            template = loader.get_template('survey/surveyAnswered.html')
-            context = RequestContext(
-                request, {'title': u'出错', 'message': unicode(e), 'returnUrl': returnUrl,
-                          'formData': formData, 'survey': survey, 'passwordEncoded': passwordEncoded})
-            return HttpResponse(template.render(context))
-        else:
-            # 转向通用出错处理页面
-            template = loader.get_template('www/message.html')
-            context = RequestContext(
-                request, {'title': u'出错', 'message': unicode(e), 'returnUrl': returnUrl, 'formData': formData})
-            return HttpResponse(template.render(context))
-
-    # 非定向调查使用session保存调查信息
-    if not survey.custList:
-        submitedSurveyList.append(survey.id)
-        request.session['submitedSurveyList'] = submitedSurveyList
-
-    # 如果没有抛出异常说明操作成功了，返回成功的提示信息
-    template = loader.get_template('www/message.html')
-    context = RequestContext(
-        request, {'title': u'完成', 'message': RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY,
-                  'returnUrl': reverse('survey:view.survey.answer', args=[survey.id])})
-    return HttpResponse(template.render(context))
-
-
-def surveyAnswerStep(request, surveyId):
-    '''
-    答题（分步）
-    '''
-    pass
-
-
-def surveyAnswerStepSubmit(request):
-    '''
-    单步答题
-    '''
-    pass
 
 
 def surveyExport(request, surveyId):
@@ -854,7 +434,7 @@ def surveyImageCode(request, surveyId):
 
     # 拼接url
 
-    url = '%s/%s' % (domain, reverse('survey:view.survey.answer.all', args=[survey.id]))
+    url = '%s/%s' % (domain, reverse('survey:view.survey.answer.render', args=[survey.id]))
 
     # 将url转化为二维码形式返回客户端
     img = qrcode.make(url, image_factory=PymagingImage)

@@ -2179,8 +2179,8 @@ class TargetLessSurveyAnswerTest(TestCase):
         self.assertTrue(self.survey.viewResult)
 
         # 相关的url连接
-        self.answerUrl = reverse('survey:view.survey.answer.all', args=[self.survey.id])
-        self.answerSubmitUrl = reverse('survey:view.survey.answer.all.submit')
+        self.answerUrl = reverse('survey:view.survey.answer.render', args=[self.survey.id])
+        self.answerSubmitUrl = reverse('survey:view.survey.answer.submit')
 
         # 相关的页面模板地址
         self.answerTemplate = 'survey/surveyAnswerAll.html'
@@ -2556,8 +2556,8 @@ class TargetSurveyAnswerTest(TestCase):
         self.assertTrue(self.survey.viewResult)
 
         # 相关的url链接
-        self.answerUrl = reverse('survey:view.survey.answer.all', args=[self.survey.id])
-        self.answerSubmitUrl = reverse('survey:view.survey.answer.all.submit')
+        self.answerUrl = reverse('survey:view.survey.answer.render', args=[self.survey.id])
+        self.answerSubmitUrl = reverse('survey:view.survey.answer.submit')
         self.exportUrl = reverse('survey:view.survey.export', args=[self.survey.id])
         self.coverUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
         self.viewUrl = reverse('survey:view.survey.viewResult', args=[self.survey.id])
@@ -3084,6 +3084,38 @@ class TargetSurveyAnswerTest(TestCase):
         self.assertIsNone(input)
 
 
+class StepSurveyAnswerTest(TestCase):
+    '''
+    分步调查的答题测试
+    '''
+    fixtures = ['initial_data.json']
+
+    def setUp(self):
+        setup_test_environment()
+        # 登录
+        self.client = Client()
+        self.user = User.objects.get(code='duhan')
+        loginForTest(self.client, self.user.phone, '123456')
+
+        # 导入待测试的调查
+        self.survey = Survey.objects.get(code='survey-targetless-step-01')  #网购客户满意度调查(非定向,分步)
+        self.paper = self.survey.paper
+
+        # 确认该调查为非定向调查
+        self.assertIsNone(self.survey.custList)
+        # 确定允许重复填写答案
+        self.assertEqual(self.survey.resubmit, True)
+        # 确定没有设置调查密码
+        self.assertEqual(self.survey.password, '')
+        # 确定是非匿名调查
+        self.assertFalse(self.survey.anonymous)
+        # 确认是允许查看结果的
+        self.assertTrue(self.survey.viewResult)
+
+    def test_enter_answer_page(self):
+        pass
+
+
 class TargetLessSurveyExportTest(TestCase):
     '''
     非定向调查的测试
@@ -3201,7 +3233,7 @@ class SendSurveyToPhoneTest(TestCase):
         self.survey = self.user.surveyCreated_set.filter(state='A')[0]
         self.survey_others = self.user_other.surveyCreated_set.filter(state='A')[0]
         self.survey_del = self.user.surveyCreated_set.filter(state='P')[0]
-        self.urlToPush = domain + reverse('survey:view.survey.answer.all', args=[self.survey.id])
+        self.urlToPush = domain + reverse('survey:view.survey.answer.render', args=[self.survey.id])
         self.message = 'xxxllx%slkkejlls' % self.urlToPush
         self.message_bad = 'xxxllx%slkkejlls'
         self.data_valid = {'id': self.survey.getIdSigned(), 'message': self.message}

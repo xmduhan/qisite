@@ -11,14 +11,16 @@
 <div class="container">
     <div class="row">
 
-        <form id="answerSubmit" method="post" action="{% url 'survey:view.survey.answer.all.submit' %}">
+        <form id="answerSubmit" method="post" action="{% url 'survey:view.survey.answer.submit' %}">
             {% csrf_token %}
             <div class="col-md-12">
                 <div class="panel panel-primary ">
                     <div class="panel-heading" align="center">
+                        {# 问卷标题 #}
                         <h4>{{ paper.title }}</h4>
                     </div>
                     <div class="panel-body">
+                        {# 问卷说明 #}
                         {{ paper.description }}
                     </div>
                     <input type="hidden" name="surveyId" value="{{ survey.getIdSigned }}">
@@ -28,29 +30,28 @@
                 </div>
             </div>
             <br>
-            {% for question in paper.getQuestionSetInOrder %}
-                <input type="hidden" name="questionIdList" value="{{ question.getIdSigned }}"/>
-                <div class="col-md-12">
-                    <div class="panel panel-info ">
-                        <div class="panel-heading">
-                            {{ question.getNum }} {{ question.text }} <br>
-                        </div>
-                        <div class="panel-body">
-                            {% for branch in question.getBranchSetInOrder %}
-                                <div class="radio">
-                                    <input type="radio"
-                                           name="{{ question.getIdSigned }}"
-                                           value="{{ branch.getIdSigned }}"
-                                           {% if forloop.first %}required{% endif %}>
-                                    {{ branch.getNum }} {{ branch.text }}
-                                </div>
-                                <br>
-                            {% endfor %}
 
-                        </div>
+            <input type="hidden" name="questionIdList" value="{{ question.getIdSigned }}"/>
+            <div class="col-md-12">
+                <div class="panel panel-info ">
+                    <div class="panel-heading">
+                        {{ question.getNum }} {{ question.text }} <br>
+                    </div>
+                    <div class="panel-body">
+                        {% for branch in question.getBranchSetInOrder %}
+                            <div class="radio">
+                                <input type="radio"
+                                       name="{{ question.getIdSigned }}"
+                                       value="{{ branch.getIdSigned }}"
+                                       {% if forloop.first %}required{% endif %}>
+                                {{ branch.getNum }} {{ branch.text }}
+                            </div>
+                            <br>
+                        {% endfor %}
                     </div>
                 </div>
-            {% endfor %}
+            </div>
+
         </form>
 
         {#  底部按钮 #}
