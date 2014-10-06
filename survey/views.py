@@ -23,11 +23,6 @@ from controllers import SurveyRenderController, SurveySubmitController
 
 
 def getCurrentUser(request):
-    #userList = User.objects.filter(name='杜涵')
-    #if len(userList) > 0:
-    #    return userList[0]
-    #else:
-    #    return None
     return request.session.get(USER_SESSION_NAME, None)
 
 
