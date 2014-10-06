@@ -510,7 +510,10 @@ class SurveyBulkAnswerController(SurveyAnswerController):
         sample = Sample(user=user, ipAddress=ipAddress, paper=paper, createBy=user, modifyBy=user)
 
         # 关联鉴权信息
-        self.controller.getAuthController().setSample(sample)
+        authController = self.controller.getAuthController()
+        if authController.isAnswered():
+            authController.getSample().delete()
+        authController.setSample(sample)
 
         # 保存样本
         sample.save()
@@ -775,9 +778,7 @@ class SurveySubmitController(SurveyResponseController):
 
         # 检查是否已经回答过了
         if self.authController.isAnswered():
-            if self.authController.resubmit and self.survey.resubmit:
-                authController.getSample().delete()
-            else:
+            if not (self.authController.resubmit and self.survey.resubmit):
                 return self.answeredPage()
 
         # 处理提交并返回结果
