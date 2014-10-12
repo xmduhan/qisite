@@ -24,6 +24,7 @@ from qisite.definitions import RESULT_CODE, RESULT_MESSAGE
 from qisite.settings import domain
 from BeautifulSoup import BeautifulSoup
 from io import BytesIO
+import copy
 
 
 class TransactionTest(TestCase):
@@ -3348,6 +3349,57 @@ class SurveyPublishTest(TestCase):
         template = response.templates[0]
         self.assertEqual(template.name, self.publishTemplate)
         self.assertContains(response, RESULT_MESSAGE.SURVEY_EXPIRED)
+
+
+class SurveyAddTest(TestCase):
+    '''
+    新增调查测试用例
+    '''
+    fixtures = ['initial_data.json']
+
+
+    def setUp(self):
+        # 为测试客户端登录
+        self.user = User.objects.get(code='duhan')
+        self.client = Client()
+        loginForTest(self.client, self.user.phone, '123456')
+        # 导入对应的
+        self.paper = Paper.objects.get(code='paper-template-01', type='T')  #网购客户满意度调查(非定向)
+        # 构造提交数据
+        self.data_valid = {'paperId': self.paper.getIdSigned()}
+        self.data_bad_signature = {'id': self.paper.id}
+        # 准备url和模板
+        self.url = reverse('survey:view.survey.add.action')
+        self.publishTemplate = 'survey/surveyPublish.html'
+
+    def test_success(self):
+        '''
+        测试提交成功的情况
+        '''
+        # 统计当前用户的调查数量
+        surveyCount0 = self.user.surveyCreated_set.count()
+
+        # 准备提交数据,viewResult默认值是True，这里特地设置成False测试设置可以生效
+        data = copy.copy(self.data_valid)
+        data['viewResult'] = False
+
+        # 向服务器发出请求
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, 302)
+
+        # 检查对应的survey是否成功添加
+        surveyCount1 = self.user.surveyCreated_set.count()
+        self.assertEqual(surveyCount1, surveyCount0 + 1)
+
+        # 提取添加的调查
+        surveyList = self.user.surveyCreated_set.order_by('-createTime')
+        survey = surveyList[0]
+        self.assertFalse(survey.viewResult)
+
+
+
+
+
 
 
 

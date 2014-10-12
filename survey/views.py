@@ -142,6 +142,7 @@ def surveyAdd(request, paperId):
 
 @transaction.atomic
 def surveyAddAction(request):
+    print request.REQUEST
     # 读取问卷标识
     paperIdSigned = request.REQUEST['paperId']
 
