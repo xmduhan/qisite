@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>Python</ID>
+  <OriginalElement>#E:/pydev/qisite/survey/controllers.py</OriginalElement>
+  <nodes>
+    <node x="162.0" y="158.0">survey.controllers.ResponseController</node>
+    <node x="300.0" y="316.0">survey.controllers.SurveySubmitController</node>
+    <node x="186.0" y="469.0">survey.controllers.SurveyAuthController</node>
+    <node x="324.0" y="701.0">survey.controllers.SurveyStepAnswerController</node>
+    <node x="174.0" y="622.0">survey.controllers.SurveyAnswerController</node>
+    <node x="204.0" y="390.0">survey.controllers.AuthController</node>
+    <node x="144.0" y="237.0">survey.controllers.SurveyResponseController</node>
+    <node x="0.0" y="316.0">survey.controllers.SurveyRenderController</node>
+    <node x="0.0" y="548.0">survey.controllers.TargetSurveyAuthController</node>
+    <node x="255.0" y="79.0">object</node>
+    <node x="0.0" y="701.0">survey.controllers.SurveyBulkAnswerController</node>
+    <node x="324.0" y="548.0">survey.controllers.TargetlessSurveyAuthController</node>
+    <node x="213.0" y="0.0">_abcoll.Hashable</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="survey.controllers.TargetlessSurveyAuthController" target="survey.controllers.SurveyAuthController">
+      <point x="0.0" y="-14.5" />
+      <point x="488.0" y="523.0" />
+      <point x="387.0" y="523.0" />
+      <point x="67.0" y="14.5" />
+    </edge>
+    <edge source="survey.controllers.SurveyBulkAnswerController" target="survey.controllers.SurveyAnswerController">
+      <point x="0.0" y="-14.5" />
+      <point x="152.0" y="676.0" />
+      <point x="244.0" y="676.0" />
+      <point x="-70.0" y="14.5" />
+    </edge>
+    <edge source="object" target="_abcoll.Hashable">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="survey.controllers.ResponseController" target="object">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="survey.controllers.TargetSurveyAuthController" target="survey.controllers.SurveyAuthController">
+      <point x="0.0" y="-14.5" />
+      <point x="152.0" y="523.0" />
+      <point x="253.0" y="523.0" />
+      <point x="-67.0" y="14.5" />
+    </edge>
+    <edge source="survey.controllers.SurveySubmitController" target="survey.controllers.SurveyResponseController">
+      <point x="0.0" y="-14.5" />
+      <point x="440.0" y="291.0" />
+      <point x="363.0" y="291.0" />
+      <point x="73.0" y="14.5" />
+    </edge>
+    <edge source="survey.controllers.SurveyResponseController" target="survey.controllers.ResponseController">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="survey.controllers.SurveyRenderController" target="survey.controllers.SurveyResponseController">
+      <point x="0.0" y="-14.5" />
+      <point x="140.0" y="291.0" />
+      <point x="217.0" y="291.0" />
+      <point x="-73.0" y="14.5" />
+    </edge>
+    <edge source="survey.controllers.SurveyAuthController" target="survey.controllers.AuthController">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="survey.controllers.SurveyStepAnswerController" target="survey.controllers.SurveyAnswerController">
+      <point x="0.0" y="-14.5" />
+      <point x="476.0" y="676.0" />
+      <point x="384.0" y="676.0" />
+      <point x="70.0" y="14.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="0.8519999999999999" x="289.0184044699122" y="437.01370963423136" />
+  <SelectedNodes>
+    <node>survey.controllers.ResponseController</node>
+    <node>survey.controllers.SurveySubmitController</node>
+    <node>survey.controllers.SurveyAuthController</node>
+    <node>survey.controllers.SurveyStepAnswerController</node>
+    <node>survey.controllers.SurveyAnswerController</node>
+    <node>survey.controllers.AuthController</node>
+    <node>survey.controllers.SurveyResponseController</node>
+    <node>survey.controllers.SurveyRenderController</node>
+    <node>survey.controllers.TargetSurveyAuthController</node>
+    <node>object</node>
+    <node>survey.controllers.SurveyBulkAnswerController</node>
+    <node>survey.controllers.TargetlessSurveyAuthController</node>
+    <node>_abcoll.Hashable</node>
+  </SelectedNodes>
+  <Categories />
+</Diagram>
+

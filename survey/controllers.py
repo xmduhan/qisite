@@ -442,17 +442,7 @@ class SurveyAnswerController:
         self.survey = self.controller.survey
         self.url = reverse('survey:view.survey.answer.render', args=[self.survey.id])
         self.answerAllTemplate = 'survey/surveyAnswerAll.html'
-
-
-    def answerPage(self, data):
-        '''
-        答题页面
-        '''
-        # 导入模板返回结果
-        template = loader.get_template(self.answerAllTemplate)
-        context = RequestContext(self.request, data)
-        return HttpResponse(template.render(context))
-
+        self.answerStepTemplate = 'survey/surveyAnswerStep.html'
 
     def render(self):
         '''
@@ -473,6 +463,15 @@ class SurveyBulkAnswerController(SurveyAnswerController):
     '''
     非分步调查的页面生成器
     '''
+
+    def answerPage(self, data):
+        '''
+        答题页面
+        '''
+        # 导入模板返回结果
+        template = loader.get_template(self.answerAllTemplate)
+        context = RequestContext(self.request, data)
+        return HttpResponse(template.render(context))
 
     def render(self):
         '''
@@ -584,7 +583,29 @@ class SurveyStepAnswerController(SurveyAnswerController):
     '''
     分步调查页面生成器
     '''
-    pass
+    def answerPage(self, data):
+        '''
+        答题页面
+        '''
+        # 导入模板返回结果
+        template = loader.get_template(self.answerStepTemplate)
+        context = RequestContext(self.request, data)
+        return HttpResponse(template.render(context))
+
+    def render(self):
+        '''
+        生成答题页面返回
+        '''
+        # 准备进入页面的数据信息
+        data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper}
+        # 增加上次答题结果信息
+        allBranchIdSelected = self.controller.getAllBranchSelected()
+        data['allBranchIdSelected'] = allBranchIdSelected
+        # 增加鉴权信息
+        submitAuthInfo = self.controller.authController.getAuthInfo()
+        data = dict(data.items() + submitAuthInfo.items())
+        # 返回页面
+        return self.answerPage(data)
 
 
 class ResponseController(object):
