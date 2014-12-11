@@ -469,6 +469,7 @@ class SurveyBulkAnswerController(SurveyAnswerController):
         答题页面
         '''
         # 导入模板返回结果
+        print data
         template = loader.get_template(self.answerAllTemplate)
         context = RequestContext(self.request, data)
         return HttpResponse(template.render(context))
