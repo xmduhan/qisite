@@ -469,7 +469,6 @@ class SurveyBulkAnswerController(SurveyAnswerController):
         答题页面
         '''
         # 导入模板返回结果
-        print data
         template = loader.get_template(self.answerAllTemplate)
         context = RequestContext(self.request, data)
         return HttpResponse(template.render(context))
@@ -481,8 +480,7 @@ class SurveyBulkAnswerController(SurveyAnswerController):
         # 准备进入页面的数据信息
         data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper}
         # 增加上次答题结果信息
-        allBranchIdSelected = self.controller.getAllBranchSelected()
-        data['allBranchIdSelected'] = allBranchIdSelected
+        data['allBranchIdSelected'] = self.controller.getAllBranchSelected()
         # 增加鉴权信息
         submitAuthInfo = self.controller.authController.getAuthInfo()
         data = dict(data.items() + submitAuthInfo.items())
@@ -584,6 +582,7 @@ class SurveyStepAnswerController(SurveyAnswerController):
     '''
     分步调查页面生成器
     '''
+
     def answerPage(self, data):
         '''
         答题页面
@@ -593,20 +592,53 @@ class SurveyStepAnswerController(SurveyAnswerController):
         context = RequestContext(self.request, data)
         return HttpResponse(template.render(context))
 
+    def getNextQuestion(self):
+        '''
+        获取上次回答的题目,否则返回空
+        '''
+        # 检查上次答题的断点，从下一题开始答
+        sample = self.controller.authController.getSample()
+        if sample and sample.nextQuestion:
+            return sample.nextQuestion
+        else:
+            # 如果没有上次答题断点信息，则从第1题开始答
+            return self.survey.paper.getQuestionSetInOrder()[0]
+
+
     def render(self):
         '''
         生成答题页面返回
         '''
+        # 读取上次答题的断点
+        nextQuestion = self.getNextQuestion()
         # 准备进入页面的数据信息
-        data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper}
+        data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper,
+                'question': nextQuestion}
         # 增加上次答题结果信息
-        allBranchIdSelected = self.controller.getAllBranchSelected()
-        data['allBranchIdSelected'] = allBranchIdSelected
+        data['allBranchIdSelected'] = self.controller.getAllBranchSelected()
         # 增加鉴权信息
         submitAuthInfo = self.controller.authController.getAuthInfo()
         data = dict(data.items() + submitAuthInfo.items())
         # 返回页面
         return self.answerPage(data)
+
+    def submit(self):
+        '''
+        处理答题提交数据(保存到数据库)
+        '''
+        # 读取http请求中的信息
+        request = self.controller.request
+        surveyId = request.REQUEST.getlist('surveyId')
+        questionIdList = request.REQUEST.getlist('questionIdList')
+        questionId = questionIdList[0]
+        branchId = request.REQUEST[questionId]
+
+        ret = {}
+        ret['surveyId'] = surveyId
+        ret['questionId'] = questionId
+        ret['branchId'] = branchId
+
+        return HttpResponse(unicode(ret))
 
 
 class ResponseController(object):

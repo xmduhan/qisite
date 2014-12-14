@@ -3113,8 +3113,37 @@ class StepSurveyAnswerTest(TestCase):
         # 确认是允许查看结果的
         self.assertTrue(self.survey.viewResult)
 
+        # 答题页面的url链接
+        self.answerUrl = reverse('survey:view.survey.answer.render', args=[self.survey.id])
+        self.answerSubmitUrl = reverse('survey:view.survey.answer.submit')
+
+        # 构造一个数据提交问题1
+        self.data = {}
+        question = self.paper.getQuestionSetInOrder()[0]
+        self.data['surveyId'] = self.survey.getIdSigned()
+        self.data['questionIdList'] = [question.getIdSigned()]
+        self.data[question.getIdSigned()] = question.branch_set.all()[0].getIdSigned()
+
     def test_enter_answer_page(self):
-        pass
+        '''
+        测试是否能正常进入页面
+        '''
+        #提交数据到服务器
+        response = self.client.get(self.answerUrl)
+        self.assertEqual(response.status_code, 200)
+        # 检查显示的是否是第1题
+        question = self.paper.getQuestionSetInOrder()[0]
+        self.assertContains(response, question.text)
+
+
+    def test_submit_question(self):
+        '''
+        测试提交一个问题
+        '''
+        response = self.client.post(self.answerSubmitUrl, self.data)
+        self.assertEqual(response.status_code, 200)
+
+        # 检查是否进入下一题页面
 
 
 class TargetLessSurveyExportTest(TestCase):

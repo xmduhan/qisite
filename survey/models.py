@@ -412,7 +412,10 @@ class Sample(TimeModel):
     #macAddress = models.CharField('受访MAC', max_length=50) web端实际无法获得该字段
     finished = models.BooleanField('是否完成', default=True)
     # lastQuestion用于单步答题，保存最后一次回答的题目，以便之后继续回答
-    lastQuestion = models.ForeignKey('Question', verbose_name='下一题', null=True, blank=True, on_delete=models.SET_NULL)
+    # lastQuestion = models.ForeignKey('Question', verbose_name='下一题', null=True, blank=True, on_delete=models.SET_NULL)
+    # nextQuestion用于单步答题，保存最后一次回答的题目，以便之后继续回答
+    # 之前考虑使用的是lastQuestion但是每次进入答题页面时,还要显示判断上次答题结果才能知道要从哪题开始，不直观。
+    nextQuestion = models.ForeignKey('Question', verbose_name='下一题', null=True, blank=True, on_delete=models.SET_NULL)
     isValid = models.BooleanField('是否有效', default=True)
     paper = models.ForeignKey(Paper, verbose_name='所属问卷')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='sampleCreated_set')
