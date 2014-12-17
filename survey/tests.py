@@ -3117,12 +3117,19 @@ class StepSurveyAnswerTest(TestCase):
         self.answerUrl = reverse('survey:view.survey.answer.render', args=[self.survey.id])
         self.answerSubmitUrl = reverse('survey:view.survey.answer.submit')
 
-        # 构造一个数据提交问题1
+
+        # 导入问卷的4个问题
+        self.question1 = self.paper.getQuestionSetInOrder()[0]
+        self.question2 = self.paper.getQuestionSetInOrder()[1]
+        self.question3 = self.paper.getQuestionSetInOrder()[2]
+        self.question4 = self.paper.getQuestionSetInOrder()[3]
+
+        # 构造一个数据提交问题1的第1个选项，该选项nextQuestion为空表示直接进入下一题
         self.data = {}
-        question = self.paper.getQuestionSetInOrder()[0]
         self.data['surveyId'] = self.survey.getIdSigned()
-        self.data['questionIdList'] = [question.getIdSigned()]
-        self.data[question.getIdSigned()] = question.branch_set.all()[0].getIdSigned()
+        self.data['questionIdList'] = [self.question1.getIdSigned()]
+        self.data[self.question1.getIdSigned()] = self.question1.branch_set.all()[0].getIdSigned()
+
 
     def test_enter_answer_page(self):
         '''
@@ -3144,6 +3151,13 @@ class StepSurveyAnswerTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # 检查是否进入下一题页面
+        self.assertContains(response, self.question2.text)
+
+        # 再次进入页面，检查显示的是否是第2题
+        response = self.client.get(self.answerUrl)
+        self.assertEqual(response.status_code, 200)
+        print response
+        self.assertContains(response, self.question2.text)
 
 
 class TargetLessSurveyExportTest(TestCase):

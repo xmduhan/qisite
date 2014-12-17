@@ -622,9 +622,11 @@ class SurveyStepAnswerController(SurveyAnswerController):
         # 返回页面
         return self.answerPage(data)
 
-    def submit(self):
+
+    @transaction.atomic()
+    def __processSubmit(self):
         '''
-        处理答题提交数据(保存到数据库)
+        处理提交的操作
         '''
         # 读取http请求中的信息
         request = self.controller.request
@@ -632,13 +634,88 @@ class SurveyStepAnswerController(SurveyAnswerController):
         questionIdList = request.REQUEST.getlist('questionIdList')
         questionId = questionIdList[0]
         branchId = request.REQUEST[questionId]
-
         ret = {}
         ret['surveyId'] = surveyId
         ret['questionId'] = questionId
         ret['branchId'] = branchId
 
-        return HttpResponse(unicode(ret))
+    def submit(self):
+        '''
+        处理答题提交数据(保存到数据库)
+        '''
+        request = self.controller.request
+        questionIdList = request.REQUEST.getlist('questionIdList')
+        _questionId = questionIdList[0]
+        _branchId = request.REQUEST[_questionId]
+
+        # 验证对象的数字签名
+        try:
+            signer = Signer()
+            questionId = signer.unsign(_questionId)
+            branchId = signer.unsign(_branchId)
+        except Exception as e:
+            return self.controller.errorPage(RESULT_MESSAGE.BAD_SAGNATURE)
+
+        # 读取问题对象
+        try:
+            question = Question.objects.get(id=questionId)
+        except:
+            raise Exception(RESULT_MESSAGE.QUESTION_OBJECT_NO_EXIST)  # 问题对象不存在
+
+        # 读取选项对象
+        try:
+            branch = Branch.objects.get(id=branchId)
+        except:
+            raise Exception(RESULT_MESSAGE.BRANCH_OBJECT_NO_EXIST)  # 选项对象不存在
+
+        # 读取问题的数量
+        paper = self.survey.paper
+        questionCount = paper.question_set.count()
+
+        # 尝试执行提交过程
+        try:
+            self.__processSubmit()
+        except Exception as e:
+            return self.controller.errorPage(unicode(e))
+
+        # 通知鉴权器保存session信息
+        authController = self.controller.getAuthController()
+        authController.onSubmitFinished()
+        sample = authController.getSample()
+        if sample == None:
+            user = getAnonymousUser()
+            ipAddress = self.controller.getClientIP()
+            sample = Sample(user=user, ipAddress=ipAddress, paper=paper, createBy=user, modifyBy=user)
+            sample.save()
+
+
+        # 处理为空情况
+        if branch.nextQuestion == None:
+            if question.ord + 1 >= questionCount:
+                # 返回成功
+                returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
+                return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
+            else:
+                nextQuestion = paper.getQuestionSetInOrder()[question.ord + 1]
+                # 准备进入页面的数据信息
+                data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper,
+                        'question': nextQuestion}
+                # 增加上次答题结果信息
+                data['allBranchIdSelected'] = self.controller.getAllBranchSelected()
+                # 增加鉴权信息
+                submitAuthInfo = self.controller.authController.getAuthInfo()
+                data = dict(data.items() + submitAuthInfo.items())
+                # 保存答题断点到sample对象
+                sample.nextQuestion = nextQuestion
+                sample.save()
+                # 返回页面
+                return self.answerPage(data)
+
+        # 有效与无效结束
+        if branch.nextQuestion.type in ( 'EndValid', 'EndInvalid'):
+            # 返回成功
+            returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
+            return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
 
 
 class ResponseController(object):
