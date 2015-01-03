@@ -3143,6 +3143,7 @@ class StepSurveyAnswerTest(TestCase):
         self.assertContains(response, question.text)
 
 
+
     def test_submit_question(self):
         '''
         测试提交一个问题
@@ -3156,8 +3157,9 @@ class StepSurveyAnswerTest(TestCase):
         # 再次进入页面，检查显示的是否是第2题
         response = self.client.get(self.answerUrl)
         self.assertEqual(response.status_code, 200)
-        print response
         self.assertContains(response, self.question2.text)
+
+
 
 
 class TargetLessSurveyExportTest(TestCase):

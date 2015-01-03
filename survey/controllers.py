@@ -689,7 +689,7 @@ class SurveyStepAnswerController(SurveyAnswerController):
             sample.save()
 
 
-        # 处理为空情况
+        # 选项对应的nextQuestion为空(表示进入下一题)
         if branch.nextQuestion == None:
             if question.ord + 1 >= questionCount:
                 # 返回成功
@@ -708,6 +708,11 @@ class SurveyStepAnswerController(SurveyAnswerController):
                 # 保存答题断点到sample对象
                 sample.nextQuestion = nextQuestion
                 sample.save()
+
+                # 关联鉴权信息
+                authController = self.controller.getAuthController()
+                authController.setSample(sample)
+
                 # 返回页面
                 return self.answerPage(data)
 
@@ -716,6 +721,9 @@ class SurveyStepAnswerController(SurveyAnswerController):
             # 返回成功
             returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
             return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
+
+        #
+        print 'hehe'
 
 
 class ResponseController(object):
@@ -870,10 +878,15 @@ class SurveyRenderController(SurveyResponseController):
 
         # 检查是否已经回答过了
         if self.authController.isAnswered():
-            if self.authController.resubmit and self.survey.resubmit:
-                self.loadLastAnswer()
+            if self.survey.paper.step:
+                # 如果是分步问卷其逻辑和批量调查不一样
+                # 之后在考虑怎么处理(#refactor)
+                pass
             else:
-                return self.answeredPage()
+                if self.authController.resubmit and self.survey.resubmit:
+                    self.loadLastAnswer()
+                else:
+                    return self.answeredPage()
 
         # 返回答题界面
         answerController = self.answerController
