@@ -3124,17 +3124,23 @@ class StepSurveyAnswerTest(TestCase):
         self.question3 = self.paper.getQuestionSetInOrder()[2]
         self.question4 = self.paper.getQuestionSetInOrder()[3]
 
-        # 构造一个数据提交问题1的第1个选项，该选项nextQuestion为空表示直接进入下一题
+        # 构造一个数据：提交问题1的第1个选项，该选项nextQuestion为空表示直接进入下一题
         self.dataNext = {}
         self.dataNext['surveyId'] = self.survey.getIdSigned()
         self.dataNext['questionIdList'] = [self.question1.getIdSigned()]
         self.dataNext[self.question1.getIdSigned()] = self.question1.branch_set.all()[0].getIdSigned()
 
-        # 构造一个数据交问题1的第2个选项,该选项nextQuestion为无效结束
+        # 构造一个数据：提交问题1的第2个选项,该选项nextQuestion为无效结束
         self.dataInValidEnd = {}
         self.dataInValidEnd['surveyId'] = self.survey.getIdSigned()
         self.dataInValidEnd['questionIdList'] = [self.question1.getIdSigned()]
         self.dataInValidEnd[self.question1.getIdSigned()] = self.question1.branch_set.all()[1].getIdSigned()
+
+        #  构造一个数据：提交问题2的第1个选项,该选项nextQuestion为有效结束
+        self.dataValidEnd = {}
+        self.dataValidEnd['surveyId'] = self.survey.getIdSigned()
+        self.dataValidEnd['questionIdList'] = [self.question2.getIdSigned()]
+        self.dataValidEnd[self.question2.getIdSigned()] = self.question2.branch_set.all()[0].getIdSigned()
 
     def test_enter_answer_page(self):
         '''
@@ -3198,7 +3204,31 @@ class StepSurveyAnswerTest(TestCase):
         '''
         测试问卷有效结束情况
         '''
-        pass
+        # 第1题的第1个选项，测试能够转向下一题
+        response = self.client.post(self.answerSubmitUrl, self.dataNext)
+        self.assertEqual(response.status_code, 200)
+
+        # 检查是否进入下一题页面
+        self.assertContains(response, self.question2.text)
+
+        # 第2题的第1个选项，测试有效结束的情况
+        response = self.client.post(self.answerSubmitUrl, self.dataValidEnd)
+        self.assertEqual(response.status_code, 200)
+
+        # 检查是否进入下一题页面
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 获取样本对象
+        sample = Sample.objects.get(session=self.client.session._session_key)
+        # 确定问卷时完成状态
+        self.assertTrue(sample.finished)
+        # 确定样本是一个有效样本
+        self.assertTrue(sample.isValid)
+
+        # 再次进入页面，提示已经回答过了
+        response = self.client.get(self.answerUrl)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, RESULT_MESSAGE.ANSWERED_ALREADY)
 
 
     def test_survey_end(self):

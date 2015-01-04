@@ -927,8 +927,11 @@ class SurveySubmitController(SurveyResponseController):
         if not authController.authCheck():
             return authController.authErrorPage()
 
+        # 获取sample对象信息
+        sample = authController.getSample()
+
         # 检查是否已经回答过了
-        if self.authController.isAnswered():
+        if self.authController.isAnswered() and sample and sample.finished:
             if not (self.authController.resubmit and self.survey.resubmit):
                 return self.answeredPage()
 
