@@ -3160,6 +3160,26 @@ class StepSurveyAnswerTest(TestCase):
         self.assertContains(response, self.question2.text)
 
 
+    def test_survey_invalid_end(self):
+        '''
+        测试问卷无效结束情况
+        '''
+        pass
+
+
+    def test_survey_valid_end(self):
+        '''
+        测试问卷有效结束情况
+        '''
+        pass
+
+
+    def test_survey_end(self):
+        '''
+        测试达到最后一题的情况
+        '''
+        pass
+
 
 
 class TargetLessSurveyExportTest(TestCase):
