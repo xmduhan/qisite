@@ -3186,6 +3186,16 @@ class StepSurveyAnswerTest(TestCase):
         sample = Sample.objects.get(session=self.client.session._session_key)
         # 确定调查是未完成状态
         self.assertFalse(sample.finished)
+        # 确认已存储了一条答题信息
+        self.assertEquals(sample.sampleitem_set.count(), 1)
+        # 确认提交的问题和答案都是正确的
+        sampleItem = sample.sampleitem_set.all()[0]
+        # 确认提交的是第1题
+        self.assertEquals(sampleItem.question,self.question1)
+        # 确定提交的选项是第1个选项
+        self.assertEquals(sampleItem.branch_set.count(),1)
+        self.assertEquals(sampleItem.branch_set.all()[0],self.question1.branch_set.all()[0])
+
 
     def test_survey_invalid_end(self):
         '''
@@ -3267,14 +3277,16 @@ class StepSurveyAnswerTest(TestCase):
         self.assertFalse(sample.finished)
 
 
-
     def test_survey_end(self):
         '''
         测试达到最后一题的情况
         '''
         # 第4题的第1个选项，没有下一个问题了
-        response = self.client.post(self.answerSubmitUrl, self.dataValidEnd)
+        response = self.client.post(self.answerSubmitUrl, self.dataSurveyEnd)
         self.assertEqual(response.status_code, 200)
+
+        # 检查返回问卷完成提示
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         # 获取样本对象
         sample = Sample.objects.get(session=self.client.session._session_key)
@@ -3282,6 +3294,8 @@ class StepSurveyAnswerTest(TestCase):
         # 确定问卷是完成状态
         self.assertTrue(sample.finished)
 
+        # 确定问题结束状态是有效结束
+        self.assertTrue(sample.isValid)
 
 
 class TargetLessSurveyExportTest(TestCase):
