@@ -3142,6 +3142,18 @@ class StepSurveyAnswerTest(TestCase):
         self.dataValidEnd['questionIdList'] = [self.question2.getIdSigned()]
         self.dataValidEnd[self.question2.getIdSigned()] = self.question2.branch_set.all()[0].getIdSigned()
 
+        #  构造一个数据：提交问题2的第3个选项,该选项nextQuestion是转向第4题
+        self.dataDesignationJump = {}
+        self.dataDesignationJump['surveyId'] = self.survey.getIdSigned()
+        self.dataDesignationJump['questionIdList'] = [self.question2.getIdSigned()]
+        self.dataDesignationJump[self.question2.getIdSigned()] = self.question2.branch_set.all()[2].getIdSigned()
+
+        #  构造一个数据：提交问题4的第1个选项,该选项nextQuestion是空，且后面没有问题了。
+        self.dataSurveyEnd = {}
+        self.dataSurveyEnd['surveyId'] = self.survey.getIdSigned()
+        self.dataSurveyEnd['questionIdList'] = [self.question4.getIdSigned()]
+        self.dataSurveyEnd[self.question4.getIdSigned()] = self.question4.branch_set.all()[0].getIdSigned()
+
     def test_enter_answer_page(self):
         '''
         测试是否能正常进入页面
@@ -3215,7 +3227,7 @@ class StepSurveyAnswerTest(TestCase):
         response = self.client.post(self.answerSubmitUrl, self.dataValidEnd)
         self.assertEqual(response.status_code, 200)
 
-        # 检查是否进入下一题页面
+        # 检查是否问卷结束
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         # 获取样本对象
@@ -3230,12 +3242,46 @@ class StepSurveyAnswerTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, RESULT_MESSAGE.ANSWERED_ALREADY)
 
+    def test_designation_jump(self):
+        '''
+        测试指定题目跳转的情况
+        '''
+        # 第1题的第1个选项，测试能够转向下一题
+        response = self.client.post(self.answerSubmitUrl, self.dataNext)
+        self.assertEqual(response.status_code, 200)
+
+        # 检查是否进入下一题页面
+        self.assertContains(response, self.question2.text)
+
+        # 第2题的第1个选项，测试有效结束的情况
+        response = self.client.post(self.answerSubmitUrl, self.dataDesignationJump)
+        self.assertEqual(response.status_code, 200)
+
+        # 检查是否进入下一题页面
+        self.assertContains(response, self.question4.text)
+
+        # 获取样本对象
+        sample = Sample.objects.get(session=self.client.session._session_key)
+
+        # 确定问卷是非完成状态
+        self.assertFalse(sample.finished)
+
+
 
     def test_survey_end(self):
         '''
         测试达到最后一题的情况
         '''
-        pass
+        # 第4题的第1个选项，没有下一个问题了
+        response = self.client.post(self.answerSubmitUrl, self.dataValidEnd)
+        self.assertEqual(response.status_code, 200)
+
+        # 获取样本对象
+        sample = Sample.objects.get(session=self.client.session._session_key)
+
+        # 确定问卷是完成状态
+        self.assertTrue(sample.finished)
+
 
 
 class TargetLessSurveyExportTest(TestCase):

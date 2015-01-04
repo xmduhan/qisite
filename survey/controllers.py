@@ -711,10 +711,10 @@ class SurveyStepAnswerController(SurveyAnswerController):
                 sample.nextQuestion = nextQuestion
                 sample.save()
 
-                # 返回页面
+                # 返回继续答题页面
                 return self.answerPage(data)
 
-        # 有效与无效结束
+        # 处理特殊的问题类型（有效与无效结束）
         if branch.nextQuestion.type in ( 'EndValid', 'EndInvalid'):
 
             # 设置样本为完成状态
@@ -732,6 +732,19 @@ class SurveyStepAnswerController(SurveyAnswerController):
             # 返回成功
             returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
             return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
+
+        else:
+            # 下一个问题设定为选项指定的下一题
+            nextQuestion = branch.nextQuestion
+
+            # 设置样本的nextQuestion
+            sample.nextQuestion = nextQuestion
+            sample.save()
+
+            # 返回继续答题页面
+            data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper,
+                    'question': nextQuestion}
+            return self.answerPage(data)
 
 
 class ResponseController(object):
