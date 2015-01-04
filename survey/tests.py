@@ -3124,12 +3124,35 @@ class StepSurveyAnswerTest(TestCase):
         self.question3 = self.paper.getQuestionSetInOrder()[2]
         self.question4 = self.paper.getQuestionSetInOrder()[3]
 
-        # 构造一个数据提交问题1的第1个选项，该选项nextQuestion为空表示直接进入下一题
-        self.data = {}
-        self.data['surveyId'] = self.survey.getIdSigned()
-        self.data['questionIdList'] = [self.question1.getIdSigned()]
-        self.data[self.question1.getIdSigned()] = self.question1.branch_set.all()[0].getIdSigned()
+        # 构造一个数据：提交问题1的第1个选项，该选项nextQuestion为空表示直接进入下一题
+        self.dataNext = {}
+        self.dataNext['surveyId'] = self.survey.getIdSigned()
+        self.dataNext['questionIdList'] = [self.question1.getIdSigned()]
+        self.dataNext[self.question1.getIdSigned()] = self.question1.branch_set.all()[0].getIdSigned()
 
+        # 构造一个数据：提交问题1的第2个选项,该选项nextQuestion为无效结束
+        self.dataInValidEnd = {}
+        self.dataInValidEnd['surveyId'] = self.survey.getIdSigned()
+        self.dataInValidEnd['questionIdList'] = [self.question1.getIdSigned()]
+        self.dataInValidEnd[self.question1.getIdSigned()] = self.question1.branch_set.all()[1].getIdSigned()
+
+        #  构造一个数据：提交问题2的第1个选项,该选项nextQuestion为有效结束
+        self.dataValidEnd = {}
+        self.dataValidEnd['surveyId'] = self.survey.getIdSigned()
+        self.dataValidEnd['questionIdList'] = [self.question2.getIdSigned()]
+        self.dataValidEnd[self.question2.getIdSigned()] = self.question2.branch_set.all()[0].getIdSigned()
+
+        #  构造一个数据：提交问题2的第3个选项,该选项nextQuestion是转向第4题
+        self.dataDesignationJump = {}
+        self.dataDesignationJump['surveyId'] = self.survey.getIdSigned()
+        self.dataDesignationJump['questionIdList'] = [self.question2.getIdSigned()]
+        self.dataDesignationJump[self.question2.getIdSigned()] = self.question2.branch_set.all()[2].getIdSigned()
+
+        #  构造一个数据：提交问题4的第1个选项,该选项nextQuestion是空，且后面没有问题了。
+        self.dataSurveyEnd = {}
+        self.dataSurveyEnd['surveyId'] = self.survey.getIdSigned()
+        self.dataSurveyEnd['questionIdList'] = [self.question4.getIdSigned()]
+        self.dataSurveyEnd[self.question4.getIdSigned()] = self.question4.branch_set.all()[0].getIdSigned()
 
     def test_enter_answer_page(self):
         '''
@@ -3143,12 +3166,12 @@ class StepSurveyAnswerTest(TestCase):
         self.assertContains(response, question.text)
 
 
-
     def test_submit_question(self):
         '''
-        测试提交一个问题
+        测试提交一个问题，并进入下一题
         '''
-        response = self.client.post(self.answerSubmitUrl, self.data)
+        # 第1题的第1个选项，测试能够转向下一题
+        response = self.client.post(self.answerSubmitUrl, self.dataNext)
         self.assertEqual(response.status_code, 200)
 
         # 检查是否进入下一题页面
@@ -3159,6 +3182,105 @@ class StepSurveyAnswerTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.question2.text)
 
+        # 获取样本对象
+        sample = Sample.objects.get(session=self.client.session._session_key)
+        # 确定调查是未完成状态
+        self.assertFalse(sample.finished)
+
+    def test_survey_invalid_end(self):
+        '''
+        测试问卷无效结束情况
+        '''
+        # 第1题的第2个选项，无效结束
+        response = self.client.post(self.answerSubmitUrl, self.dataInValidEnd)
+        self.assertEqual(response.status_code, 200)
+
+        # 确认返回的是完成界面
+        #print response
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 获取样本对象
+        sample = Sample.objects.get(session=self.client.session._session_key)
+        # 确定问卷时完成状态
+        self.assertTrue(sample.finished)
+        # 确定文本是一个无效样本
+        self.assertFalse(sample.isValid)
+
+        # 再次进入页面，提示已经回答过了
+        response = self.client.get(self.answerUrl)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, RESULT_MESSAGE.ANSWERED_ALREADY)
+
+
+    def test_survey_valid_end(self):
+        '''
+        测试问卷有效结束情况
+        '''
+        # 第1题的第1个选项，测试能够转向下一题
+        response = self.client.post(self.answerSubmitUrl, self.dataNext)
+        self.assertEqual(response.status_code, 200)
+
+        # 检查是否进入下一题页面
+        self.assertContains(response, self.question2.text)
+
+        # 第2题的第1个选项，测试有效结束的情况
+        response = self.client.post(self.answerSubmitUrl, self.dataValidEnd)
+        self.assertEqual(response.status_code, 200)
+
+        # 检查是否问卷结束
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 获取样本对象
+        sample = Sample.objects.get(session=self.client.session._session_key)
+        # 确定问卷时完成状态
+        self.assertTrue(sample.finished)
+        # 确定样本是一个有效样本
+        self.assertTrue(sample.isValid)
+
+        # 再次进入页面，提示已经回答过了
+        response = self.client.get(self.answerUrl)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, RESULT_MESSAGE.ANSWERED_ALREADY)
+
+    def test_designation_jump(self):
+        '''
+        测试指定题目跳转的情况
+        '''
+        # 第1题的第1个选项，测试能够转向下一题
+        response = self.client.post(self.answerSubmitUrl, self.dataNext)
+        self.assertEqual(response.status_code, 200)
+
+        # 检查是否进入下一题页面
+        self.assertContains(response, self.question2.text)
+
+        # 第2题的第1个选项，测试有效结束的情况
+        response = self.client.post(self.answerSubmitUrl, self.dataDesignationJump)
+        self.assertEqual(response.status_code, 200)
+
+        # 检查是否进入下一题页面
+        self.assertContains(response, self.question4.text)
+
+        # 获取样本对象
+        sample = Sample.objects.get(session=self.client.session._session_key)
+
+        # 确定问卷是非完成状态
+        self.assertFalse(sample.finished)
+
+
+
+    def test_survey_end(self):
+        '''
+        测试达到最后一题的情况
+        '''
+        # 第4题的第1个选项，没有下一个问题了
+        response = self.client.post(self.answerSubmitUrl, self.dataValidEnd)
+        self.assertEqual(response.status_code, 200)
+
+        # 获取样本对象
+        sample = Sample.objects.get(session=self.client.session._session_key)
+
+        # 确定问卷是完成状态
+        self.assertTrue(sample.finished)
 
 
 

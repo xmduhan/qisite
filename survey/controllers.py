@@ -216,7 +216,7 @@ class TargetlessSurveyAuthController(SurveyAuthController):
         非定向调查通过session_key来获得上一次提交的sample记录
         '''
         session_key = self.request.session._session_key
-        sampleList = self.survey.paper.sample_set.filter(session=session_key, finished=True)
+        sampleList = self.survey.paper.sample_set.filter(session=session_key)
         if sampleList:
             return sampleList[0]
         else:
@@ -685,8 +685,10 @@ class SurveyStepAnswerController(SurveyAnswerController):
         if sample == None:
             user = getAnonymousUser()
             ipAddress = self.controller.getClientIP()
-            sample = Sample(user=user, ipAddress=ipAddress, paper=paper, createBy=user, modifyBy=user)
+            sample = Sample(user=user, ipAddress=ipAddress, paper=paper, createBy=user, modifyBy=user, finished=False)
             sample.save()
+            # 关联鉴权信息
+            authController.setSample(sample)
 
 
         # 选项对应的nextQuestion为空(表示进入下一题)
@@ -709,21 +711,40 @@ class SurveyStepAnswerController(SurveyAnswerController):
                 sample.nextQuestion = nextQuestion
                 sample.save()
 
-                # 关联鉴权信息
-                authController = self.controller.getAuthController()
-                authController.setSample(sample)
-
-                # 返回页面
+                # 返回继续答题页面
                 return self.answerPage(data)
 
-        # 有效与无效结束
+        # 处理特殊的问题类型（有效与无效结束）
         if branch.nextQuestion.type in ( 'EndValid', 'EndInvalid'):
+
+            # 设置样本为完成状态
+            sample.finished = True
+
+            # 判断是有效完成还是无效完成
+            if branch.nextQuestion.type == 'EndValid':
+                sample.isValid = True
+            if branch.nextQuestion.type == 'EndInvalid':
+                sample.isValid = False
+
+            # 保存样本信息
+            sample.save()
+
             # 返回成功
             returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
             return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
 
-        #
-        print 'hehe'
+        else:
+            # 下一个问题设定为选项指定的下一题
+            nextQuestion = branch.nextQuestion
+
+            # 设置样本的nextQuestion
+            sample.nextQuestion = nextQuestion
+            sample.save()
+
+            # 返回继续答题页面
+            data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper,
+                    'question': nextQuestion}
+            return self.answerPage(data)
 
 
 class ResponseController(object):
@@ -876,17 +897,16 @@ class SurveyRenderController(SurveyResponseController):
         if not authController.authCheck():
             return authController.authErrorPage()
 
+        # 获取sample对象信息
+        sample = authController.getSample()
+
         # 检查是否已经回答过了
-        if self.authController.isAnswered():
-            if self.survey.paper.step:
-                # 如果是分步问卷其逻辑和批量调查不一样
-                # 之后在考虑怎么处理(#refactor)
-                pass
+        if self.authController.isAnswered() and sample and sample.finished:
+            if self.authController.resubmit and self.survey.resubmit:
+                self.loadLastAnswer()
             else:
-                if self.authController.resubmit and self.survey.resubmit:
-                    self.loadLastAnswer()
-                else:
-                    return self.answeredPage()
+                return self.answeredPage()
+
 
         # 返回答题界面
         answerController = self.answerController
@@ -920,8 +940,11 @@ class SurveySubmitController(SurveyResponseController):
         if not authController.authCheck():
             return authController.authErrorPage()
 
+        # 获取sample对象信息
+        sample = authController.getSample()
+
         # 检查是否已经回答过了
-        if self.authController.isAnswered():
+        if self.authController.isAnswered() and sample and sample.finished:
             if not (self.authController.resubmit and self.survey.resubmit):
                 return self.answeredPage()
 

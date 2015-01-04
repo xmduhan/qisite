@@ -221,7 +221,7 @@ class Migration(SchemaMigration):
             'createBy': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'surveyCreated_set'", 'to': u"orm['account.User']"}),
             'createTime': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'custList': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': u"orm['survey.CustList']", 'null': 'True', 'blank': 'True'}),
-            'endTime': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 12, 14, 0, 0)'}),
+            'endTime': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2016, 1, 4, 0, 0)'}),
             'fee': ('django.db.models.fields.FloatField', [], {'default': '0'}),
             'hardCost': ('django.db.models.fields.FloatField', [], {'default': '0'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
