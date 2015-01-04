@@ -716,10 +716,22 @@ class SurveyStepAnswerController(SurveyAnswerController):
 
         # 有效与无效结束
         if branch.nextQuestion.type in ( 'EndValid', 'EndInvalid'):
+
+            # 设置样本为完成状态
+            sample.finished = True
+
+            # 判断是有效完成还是无效完成
+            if branch.nextQuestion.type == 'EndValid':
+                sample.isValid = True
+            if branch.nextQuestion.type == 'EndInvalid':
+                sample.isValid = False
+
+            # 保存样本信息
+            sample.save()
+
             # 返回成功
             returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
             return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
-
 
 
 class ResponseController(object):
@@ -882,17 +894,6 @@ class SurveyRenderController(SurveyResponseController):
             else:
                 return self.answeredPage()
 
-
-        # if self.authController.isAnswered():
-        #     if self.survey.paper.step:
-        #         # 如果是分步问卷其逻辑和批量调查不一样
-        #         # 之后在考虑怎么处理(#refactor)
-        #         pass
-        #     else:
-        #         if self.authController.resubmit and self.survey.resubmit:
-        #             self.loadLastAnswer()
-        #         else:
-        #             return self.answeredPage()
 
         # 返回答题界面
         answerController = self.answerController
