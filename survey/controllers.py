@@ -686,6 +686,9 @@ class SurveyStepAnswerController(SurveyAnswerController):
         sampleItem.branch_set.add(branch)
         sampleItem.save()
 
+        # 读取鉴权信息
+        submitAuthInfo = authController.getAuthInfo()
+
         # 选项对应的nextQuestion为空(表示进入下一题)
         if branch.nextQuestion == None:
             if question.ord + 1 >= questionCount:
@@ -698,6 +701,10 @@ class SurveyStepAnswerController(SurveyAnswerController):
                 return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
             else:
                 nextQuestion = paper.getQuestionSetInOrder()[question.ord + 1]
+                # 保存答题断点到sample对象
+                sample.nextQuestion = nextQuestion
+                sample.save()
+
                 # 准备进入页面的数据信息
                 data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper,
                         'question': nextQuestion}
@@ -706,9 +713,6 @@ class SurveyStepAnswerController(SurveyAnswerController):
                 # 增加鉴权信息
                 submitAuthInfo = self.controller.authController.getAuthInfo()
                 data = dict(data.items() + submitAuthInfo.items())
-                # 保存答题断点到sample对象
-                sample.nextQuestion = nextQuestion
-                sample.save()
 
                 # 返回继续答题页面
                 return self.answerPage(data)

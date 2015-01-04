@@ -13,6 +13,10 @@
 
         <form id="answerSubmit" method="post" action="{% url 'survey:view.survey.answer.submit' %}">
             {% csrf_token %}
+            {# 传递重填标志 #}
+            {% if resubmit %}
+                <input name="resubmit" type="hidden" value="True"/>
+            {% endif %}
             <div class="col-md-12">
                 <div class="panel panel-primary ">
                     <div class="panel-heading" align="center">

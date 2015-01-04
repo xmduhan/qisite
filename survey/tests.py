@@ -3191,10 +3191,10 @@ class StepSurveyAnswerTest(TestCase):
         # 确认提交的问题和答案都是正确的
         sampleItem = sample.sampleitem_set.all()[0]
         # 确认提交的是第1题
-        self.assertEquals(sampleItem.question,self.question1)
+        self.assertEquals(sampleItem.question, self.question1)
         # 确定提交的选项是第1个选项
-        self.assertEquals(sampleItem.branch_set.count(),1)
-        self.assertEquals(sampleItem.branch_set.all()[0],self.question1.branch_set.all()[0])
+        self.assertEquals(sampleItem.branch_set.count(), 1)
+        self.assertEquals(sampleItem.branch_set.all()[0], self.question1.branch_set.all()[0])
 
 
     def test_survey_invalid_end(self):
@@ -3296,6 +3296,38 @@ class StepSurveyAnswerTest(TestCase):
 
         # 确定问题结束状态是有效结束
         self.assertTrue(sample.isValid)
+
+
+    def test_survey_resubmit(self):
+        '''
+        测试重新提交的情况
+        '''
+        # 第1题的第2个选项，无效结束
+        response = self.client.post(self.answerSubmitUrl, self.dataInValidEnd)
+        self.assertEqual(response.status_code, 200)
+
+        # 确认返回的是完成界面
+        #print response
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 再次进入页面，提示已经回答过了
+        response = self.client.get(self.answerUrl)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, RESULT_MESSAGE.ANSWERED_ALREADY)
+
+        # 使用重提交标志能重新进入页面
+        response = self.client.post(self.answerUrl, {'resubmit': True})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.question1.text)
+
+        # 尝试答第1题(并加上重提交标志)
+        data = copy.copy(self.dataNext)
+        data['resubmit'] = True
+        response = self.client.post(self.answerSubmitUrl, data)
+        self.assertEqual(response.status_code, 200)
+
+        # 检查是否进入第2题
+        self.assertContains(response, self.question2.text)
 
 
 class TargetLessSurveyExportTest(TestCase):
