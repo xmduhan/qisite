@@ -3085,9 +3085,9 @@ class TargetSurveyAnswerTest(TestCase):
         self.assertIsNone(input)
 
 
-class StepSurveyAnswerTest(TestCase):
+class StepSurveyTargetLessAnswerTest(TestCase):
     '''
-    分步调查的答题测试
+    分步调查的答题测试(无目标清单)
     '''
     fixtures = ['initial_data.json']
 
@@ -3095,8 +3095,6 @@ class StepSurveyAnswerTest(TestCase):
         setup_test_environment()
         # 登录
         self.client = Client()
-        self.user = User.objects.get(code='duhan')
-        loginForTest(self.client, self.user.phone, '123456')
 
         # 导入待测试的调查
         self.survey = Survey.objects.get(code='survey-targetless-step-01')  #网购客户满意度调查(非定向,分步)
@@ -3282,7 +3280,6 @@ class StepSurveyAnswerTest(TestCase):
         self.assertFalse(sample.finished)
 
 
-
     def test_survey_end(self):
         '''
         测试达到最后一题的情况
@@ -3348,8 +3345,119 @@ class StepSurveyAnswerTest(TestCase):
 
         # 检查提交样本的答题信息是否重复
         sample = Sample.objects.get(session=self.client.session._session_key)
-        self.assertEquals(sample.sampleitem_set.count(),1)
+        self.assertEquals(sample.sampleitem_set.count(), 1)
         self.assertFalse(sample.finished)
+
+
+class StepSurveyTargetAnswerTest(TestCase):
+    '''
+    分步调查的答题测试(有目标清单)
+    '''
+    fixtures = ['initial_data.json']
+
+    def setUp(self):
+        setup_test_environment()
+        # 登录
+        self.client = Client()
+
+        # 导入待测试的调查
+        self.survey = Survey.objects.get(code='survey-target-step-01')  #网购客户满意度调查(非定向,分步)
+        self.paper = self.survey.paper
+
+        # 确认该调查为非定向调查
+        self.assertIsNotNone(self.survey.custList)
+        # 确定允许重复填写答案
+        self.assertEqual(self.survey.resubmit, True)
+        # 确定没有设置调查密码
+        self.assertEqual(self.survey.password, '')
+        # 确定是非匿名调查
+        self.assertFalse(self.survey.anonymous)
+        # 确认是允许查看结果的
+        self.assertTrue(self.survey.viewResult)
+
+        # 答题页面的url链接
+        self.answerUrl = reverse('survey:view.survey.answer.render', args=[self.survey.id])
+        self.answerSubmitUrl = reverse('survey:view.survey.answer.submit')
+
+        # 导入问卷的4个问题
+        self.question1 = self.paper.getQuestionSetInOrder()[0]
+        self.question2 = self.paper.getQuestionSetInOrder()[1]
+        self.question3 = self.paper.getQuestionSetInOrder()[2]
+        self.question4 = self.paper.getQuestionSetInOrder()[3]
+
+        self.phone = '18906021980'
+        # 构造一个数据：提交问题1的第1个选项，该选项nextQuestion为空表示直接进入下一题
+        self.dataNext = {}
+        self.dataNext['surveyId'] = self.survey.getIdSigned()
+        self.dataNext['questionIdList'] = [self.question1.getIdSigned()]
+        self.dataNext[self.question1.getIdSigned()] = self.question1.branch_set.all()[0].getIdSigned()
+
+        # 构造一个数据：提交问题1的第2个选项,该选项nextQuestion为无效结束
+        self.dataInValidEnd = {}
+        self.dataInValidEnd['surveyId'] = self.survey.getIdSigned()
+        self.dataInValidEnd['questionIdList'] = [self.question1.getIdSigned()]
+        self.dataInValidEnd[self.question1.getIdSigned()] = self.question1.branch_set.all()[1].getIdSigned()
+
+        #  构造一个数据：提交问题2的第1个选项,该选项nextQuestion为有效结束
+        self.dataValidEnd = {}
+        self.dataValidEnd['surveyId'] = self.survey.getIdSigned()
+        self.dataValidEnd['questionIdList'] = [self.question2.getIdSigned()]
+        self.dataValidEnd[self.question2.getIdSigned()] = self.question2.branch_set.all()[0].getIdSigned()
+
+        #  构造一个数据：提交问题2的第3个选项,该选项nextQuestion是转向第4题
+        self.dataDesignationJump = {}
+        self.dataDesignationJump['surveyId'] = self.survey.getIdSigned()
+        self.dataDesignationJump['questionIdList'] = [self.question2.getIdSigned()]
+        self.dataDesignationJump[self.question2.getIdSigned()] = self.question2.branch_set.all()[2].getIdSigned()
+
+        #  构造一个数据：提交问题4的第1个选项,该选项nextQuestion是空，且后面没有问题了。
+        self.dataSurveyEnd = {}
+        self.dataSurveyEnd['surveyId'] = self.survey.getIdSigned()
+        self.dataSurveyEnd['questionIdList'] = [self.question4.getIdSigned()]
+        self.dataSurveyEnd[self.question4.getIdSigned()] = self.question4.branch_set.all()[0].getIdSigned()
+
+    def test_enter_page(self):
+        '''
+        测试进入页面
+        '''
+        #提交数据到服务器
+        response = self.client.get(self.answerUrl)
+        self.assertEqual(response.status_code, 200)
+
+        # 确认没有提供号码，会进入身份确认界面
+        self.assertContains(response, u'确认您的身份')
+
+        # 提交号码可以进入界面
+        phone = '18906021980'
+        response = self.client.post(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+
+        # 确认进入第1题
+        self.assertContains(response, self.question1.text)
+
+        # 检查targetCust记录是否生成
+        targetCustList = self.survey.targetCust_set.filter(phone=phone)
+        self.assertEqual(len(targetCustList), 1)
+
+        # 找到页面中的targetCustId
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"name": "targetCustId"})
+        targetCustId = input.get('value')
+        # 检查
+        self.assertEquals(targetCustId,targetCustList[0].getIdSigned())
+
+        # 尝试再次进入页面
+        response = self.client.post(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+
+        # 检查targetCustList2是否重复生成了
+        targetCustList2 = self.survey.targetCust_set.filter(phone=phone)
+        self.assertEqual(len(targetCustList), 1)
+        self.assertEquals(targetCustList2[0],targetCustList[0])
+
+
+
+
 
 
 class TargetLessSurveyExportTest(TestCase):
