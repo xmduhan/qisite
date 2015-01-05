@@ -388,7 +388,8 @@ class TargetSurveyAuthController(SurveyAuthController):
         '''
         获取鉴权信息对应的样本记录
         '''
-        sampleList = self.targetCust.sample_set.filter(finished=True)
+        #sampleList = self.targetCust.sample_set.filter(finished=True)
+        sampleList = self.targetCust.sample_set.filter()
         if len(sampleList) != 0:
             return sampleList[0]
         else:
@@ -712,17 +713,19 @@ class SurveyStepAnswerController(SurveyAnswerController):
                 sample.nextQuestion = nextQuestion
                 sample.save()
 
-                # 准备进入页面的数据信息
-                data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper,
-                        'question': nextQuestion}
-                # 增加上次答题结果信息
-                data['allBranchIdSelected'] = self.controller.getAllBranchSelected()
-                # 增加鉴权信息
-                submitAuthInfo = self.controller.authController.getAuthInfo()
-                data = dict(data.items() + submitAuthInfo.items())
+                # # 准备进入页面的数据信息
+                # data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper,
+                #         'question': nextQuestion}
+                # # 增加上次答题结果信息
+                # data['allBranchIdSelected'] = self.controller.getAllBranchSelected()
+                # # 增加鉴权信息
+                # submitAuthInfo = self.controller.authController.getAuthInfo()
+                # data = dict(data.items() + submitAuthInfo.items())
+                #
+                # # 返回继续答题页面
+                # return self.answerPage(data)
+                return self.render()
 
-                # 返回继续答题页面
-                return self.answerPage(data)
 
         # 处理特殊的问题类型（有效与无效结束）
         if branch.nextQuestion.type in ( 'EndValid', 'EndInvalid'):
@@ -755,9 +758,10 @@ class SurveyStepAnswerController(SurveyAnswerController):
             sample.save()
 
             # 返回继续答题页面
-            data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper,
-                    'question': nextQuestion}
-            return self.answerPage(data)
+            # data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper,
+            #         'question': nextQuestion}
+            # return self.answerPage(data)
+            return self.render()
 
 
 class ResponseController(object):

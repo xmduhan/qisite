@@ -3266,7 +3266,7 @@ class StepSurveyTargetLessAnswerTest(TestCase):
         # 检查是否进入下一题页面
         self.assertContains(response, self.question2.text)
 
-        # 第2题的第1个选项，测试有效结束的情况
+        # 提交问题2的第3个选项，测试按执行题号进行跳转
         response = self.client.post(self.answerSubmitUrl, self.dataDesignationJump)
         self.assertEqual(response.status_code, 200)
 
@@ -3385,7 +3385,9 @@ class StepSurveyTargetAnswerTest(TestCase):
         self.question3 = self.paper.getQuestionSetInOrder()[2]
         self.question4 = self.paper.getQuestionSetInOrder()[3]
 
-        self.phone = '18906021980'
+        # 提取清单中的一个合法号码
+        self.phone = self.survey.custList.custListItem_set.all()[0].phone
+
         # 构造一个数据：提交问题1的第1个选项，该选项nextQuestion为空表示直接进入下一题
         self.dataNext = {}
         self.dataNext['surveyId'] = self.survey.getIdSigned()
@@ -3428,7 +3430,7 @@ class StepSurveyTargetAnswerTest(TestCase):
         self.assertContains(response, u'确认您的身份')
 
         # 提交号码可以进入界面
-        phone = '18906021980'
+        phone = self.phone
         response = self.client.post(self.answerUrl, {'phone': phone})
         self.assertEqual(response.status_code, 200)
 
@@ -3456,6 +3458,51 @@ class StepSurveyTargetAnswerTest(TestCase):
         self.assertEquals(targetCustList2[0],targetCustList[0])
 
 
+    def test_designation_jump(self):
+        '''
+        检查跳转页面是否能正常传递鉴权信息
+        '''
+        #提交数据到服务器
+        response = self.client.get(self.answerUrl)
+        self.assertEqual(response.status_code, 200)
+
+        # 确认没有提供号码，会进入身份确认界面
+        self.assertContains(response, u'确认您的身份')
+
+        # 提交号码可以进入界面
+        phone = self.phone
+        response = self.client.post(self.answerUrl, {'phone': phone})
+        self.assertEqual(response.status_code, 200)
+
+        # 确认进入第1题
+        self.assertContains(response, self.question1.text)
+
+        # 检查targetCust记录是否生成
+        targetCustList = self.survey.targetCust_set.filter(phone=phone)
+        self.assertEqual(len(targetCustList), 1)
+
+        # 找到页面中的targetCustId
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"name": "targetCustId"})
+        targetCustId = input.get('value')
+        # 检查
+        self.assertEquals(targetCustId,targetCustList[0].getIdSigned())
+
+        # 在提交数据中加入
+        data = copy.copy(self.dataDesignationJump)
+        data['targetCustId'] = targetCustId
+
+        # 提交问题2的第3个选项，测试按执行题号进行跳转
+        response = self.client.post(self.answerSubmitUrl,data)
+        self.assertEqual(response.status_code, 200)
+
+        # 检查是否进入下一题页面
+        self.assertContains(response, self.question4.text)
+
+        # 确定在页面中能找到targetCustId
+        soup = BeautifulSoup(response.content)
+        input = soup.find(attrs={"name": "targetCustId"})
+        self.assertIsNotNone(input)
 
 
 
