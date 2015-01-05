@@ -679,6 +679,10 @@ class SurveyStepAnswerController(SurveyAnswerController):
             # 关联鉴权信息
             authController.setSample(sample)
 
+        # 如果回答第1题，需要清除之前的答题信息（应对重新答题的情况）
+        if question.ord == 0:
+            sample.sampleitem_set.all().delete()
+
         # 将数据写到样本项信息中去
         sampleItem = SampleItem(
             question=question, content=None, score=0, sample=sample, createBy=user, modifyBy=user)
@@ -695,6 +699,7 @@ class SurveyStepAnswerController(SurveyAnswerController):
                 # 如果当前问题是最后一题且没有设定nextQuestion信息，默认为有效结束
                 sample.finished = True
                 sample.isValid = True
+                sample.nextQuestion = None
                 sample.save()
                 # 返回成功
                 returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
@@ -728,6 +733,9 @@ class SurveyStepAnswerController(SurveyAnswerController):
                 sample.isValid = True
             if branch.nextQuestion.type == 'EndInvalid':
                 sample.isValid = False
+
+            # 设置下一步为空
+            sample.nextQuestion = None
 
             # 保存样本信息
             sample.save()

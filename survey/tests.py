@@ -3215,6 +3215,8 @@ class StepSurveyAnswerTest(TestCase):
         self.assertTrue(sample.finished)
         # 确定文本是一个无效样本
         self.assertFalse(sample.isValid)
+        # 确定问题回答完后会将nextQuestion置空
+        self.assertIsNone(sample.nextQuestion)
 
         # 再次进入页面，提示已经回答过了
         response = self.client.get(self.answerUrl)
@@ -3246,6 +3248,8 @@ class StepSurveyAnswerTest(TestCase):
         self.assertTrue(sample.finished)
         # 确定样本是一个有效样本
         self.assertTrue(sample.isValid)
+        # 确定问题回答完后会将nextQuestion置空
+        self.assertIsNone(sample.nextQuestion)
 
         # 再次进入页面，提示已经回答过了
         response = self.client.get(self.answerUrl)
@@ -3290,12 +3294,12 @@ class StepSurveyAnswerTest(TestCase):
 
         # 获取样本对象
         sample = Sample.objects.get(session=self.client.session._session_key)
-
         # 确定问卷是完成状态
         self.assertTrue(sample.finished)
-
         # 确定问题结束状态是有效结束
         self.assertTrue(sample.isValid)
+        # 确定问题回答完后会将nextQuestion置空
+        self.assertIsNone(sample.nextQuestion)
 
 
     def test_survey_resubmit(self):
@@ -3303,12 +3307,23 @@ class StepSurveyAnswerTest(TestCase):
         测试重新提交的情况
         '''
         # 第1题的第2个选项，无效结束
-        response = self.client.post(self.answerSubmitUrl, self.dataInValidEnd)
+        response = self.client.post(self.answerSubmitUrl, self.dataNext)
+        self.assertEqual(response.status_code, 200)
+
+        # 检查是否进入下一题页面
+        self.assertContains(response, self.question2.text)
+
+        # 第2题的第1个选项，测试有效结束的情况
+        response = self.client.post(self.answerSubmitUrl, self.dataValidEnd)
         self.assertEqual(response.status_code, 200)
 
         # 确认返回的是完成界面
-        #print response
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 获取样本对象
+        sample = Sample.objects.get(session=self.client.session._session_key)
+        # 确定问题回答完后会将nextQuestion置空
+        self.assertIsNone(sample.nextQuestion)
 
         # 再次进入页面，提示已经回答过了
         response = self.client.get(self.answerUrl)
@@ -3328,6 +3343,10 @@ class StepSurveyAnswerTest(TestCase):
 
         # 检查是否进入第2题
         self.assertContains(response, self.question2.text)
+
+        # 检查提交样本的答题信息是否重复
+        sample = Sample.objects.get(session=self.client.session._session_key)
+        self.assertEquals(sample.sampleitem_set.count(),1)
 
 
 class TargetLessSurveyExportTest(TestCase):
