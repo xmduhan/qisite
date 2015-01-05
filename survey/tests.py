@@ -3232,6 +3232,7 @@ class StepSurveyAnswerTest(TestCase):
         response = self.client.post(self.answerSubmitUrl, self.dataNext)
         self.assertEqual(response.status_code, 200)
 
+
         # 检查是否进入下一题页面
         self.assertContains(response, self.question2.text)
 
@@ -3279,6 +3280,7 @@ class StepSurveyAnswerTest(TestCase):
 
         # 确定问卷是非完成状态
         self.assertFalse(sample.finished)
+
 
 
     def test_survey_end(self):
@@ -3347,6 +3349,7 @@ class StepSurveyAnswerTest(TestCase):
         # 检查提交样本的答题信息是否重复
         sample = Sample.objects.get(session=self.client.session._session_key)
         self.assertEquals(sample.sampleitem_set.count(),1)
+        self.assertFalse(sample.finished)
 
 
 class TargetLessSurveyExportTest(TestCase):

@@ -682,6 +682,8 @@ class SurveyStepAnswerController(SurveyAnswerController):
         # 如果回答第1题，需要清除之前的答题信息（应对重新答题的情况）
         if question.ord == 0:
             sample.sampleitem_set.all().delete()
+            sample.finished = False
+            sample.save()
 
         # 将数据写到样本项信息中去
         sampleItem = SampleItem(
