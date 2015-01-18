@@ -171,7 +171,8 @@
             <div class="modal-body">
                 <div class="row" align="center">
                     <div class="col-md-3">
-                        <button id="addSingleButton"
+                        <button
+                                {# id="addSingleButton" #}
                                 class="btn btn-default btn-block btn-lg btn-paper-add-question"
                                 data-binding-action="{% url 'survey:service.question.addDefaultSingleQuestion' %}"
                                 data-binding-id="{{ paper.getIdSigned }}">
@@ -180,7 +181,11 @@
                         </button>
                     </div>
                     <div class="col-md-3">
-                        <button class="btn btn-default btn-block btn-lg btn-paper-add-question">
+                        <button
+                                {# id="addMultipleButton" #}
+                                class="btn btn-default btn-block btn-lg btn-paper-add-question"
+                                data-binding-action="{% url 'survey:service.question.addDefaultMultipleQuestion' %}"
+                                data-binding-id="{{ paper.getIdSigned }}">
                             <span class="glyphicon glyphicon-th-list"></span>
                             多选题
                         </button>

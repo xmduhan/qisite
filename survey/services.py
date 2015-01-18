@@ -866,6 +866,42 @@ def addDefaultSingleQuestion(request):
     return packageResponse(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'id': questionId})
 
 
+def addDefaultMultipleQuestion(request):
+    '''
+        增加一个默认结构的单选题，提供给前台的新增问题按钮使用。
+    '''
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        return packageResponse(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
+    user = request.session[USER_SESSION_NAME]
+
+    # 检查是否提供了paper
+    if 'paper' not in request.REQUEST.keys():
+        return packageResponse(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_ID)
+    paperId = request.REQUEST['paper']
+
+    # 调用问题新增处理过程
+    requestData = {'paper': paperId, 'text': u'新增问题', 'type': 'Multiple'}
+    result = _questionAdd(requestData, user)
+    if result['resultCode'] != 0:
+        return dictToJsonResponse(result)
+    questionId = result['questionId']
+
+    # 对id进行数字签名
+    signer = Signer()
+    questionId = signer.sign(questionId)
+
+    # 增加两个默认选项
+    for i in [1, 2, 3, 4]:
+        requestData = {'question': questionId, 'text': u'选项%d' % i}
+        result = _branchAdd(requestData, user)
+        if result['resultCode'] != 0:
+            return dictToJsonResponse(result)
+
+    # 返回成功
+    return packageResponse(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'id': questionId})
+
+
 def addDefaultBranch(request):
     '''
         增加一个默认选项的服务，提供给界面的新增选项按钮用

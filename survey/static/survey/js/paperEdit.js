@@ -160,7 +160,8 @@ function loadNewQuestionDocument(questionId) {
  *          绑定新增问题事件           *
  ***************************************/
 function initQuestionAddAction(scope) {
-    scope.find('#addSingleButton').on('click', function () {
+    //scope.find('#addSingleButton').on('click', function () {
+    scope.find('.btn-paper-add-question').on('click', function () {
         // 禁用所有新增按钮
         $(".btn-paper-add-question").attr('disabled', true);
         // 准备提交到服务器的数据
