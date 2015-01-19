@@ -845,7 +845,7 @@ def addDefaultSingleQuestion(request):
     paperId = request.REQUEST['paper']
 
     # 调用问题新增处理过程
-    requestData = {'paper': paperId, 'text': u'新增问题', 'type': 'Single'}
+    requestData = {'paper': paperId, 'text': u'新增单选题', 'type': 'Single'}
     result = _questionAdd(requestData, user)
     if result['resultCode'] != 0:
         return dictToJsonResponse(result)
@@ -868,7 +868,7 @@ def addDefaultSingleQuestion(request):
 
 def addDefaultMultipleQuestion(request):
     '''
-        增加一个默认结构的单选题，提供给前台的新增问题按钮使用。
+        增加一个默认结构的多选题，提供给前台的新增问题按钮使用。
     '''
     # 检查用户是否登录，并读取session中的用户信息
     if USER_SESSION_NAME not in request.session.keys():
@@ -881,7 +881,7 @@ def addDefaultMultipleQuestion(request):
     paperId = request.REQUEST['paper']
 
     # 调用问题新增处理过程
-    requestData = {'paper': paperId, 'text': u'新增问题', 'type': 'Multiple'}
+    requestData = {'paper': paperId, 'text': u'新增多选题', 'type': 'Multiple'}
     result = _questionAdd(requestData, user)
     if result['resultCode'] != 0:
         return dictToJsonResponse(result)
@@ -897,6 +897,64 @@ def addDefaultMultipleQuestion(request):
         result = _branchAdd(requestData, user)
         if result['resultCode'] != 0:
             return dictToJsonResponse(result)
+
+    # 返回成功
+    return packageResponse(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'id': questionId})
+
+def addDefaultTextQuestion(request):
+    '''
+        增加一个默认结构的问答题，提供给前台的新增问题按钮使用。
+    '''
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        return packageResponse(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
+    user = request.session[USER_SESSION_NAME]
+
+    # 检查是否提供了paper
+    if 'paper' not in request.REQUEST.keys():
+        return packageResponse(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_ID)
+    paperId = request.REQUEST['paper']
+
+    # 调用问题新增处理过程
+    requestData = {'paper': paperId, 'text': u'新增问答题', 'type': 'Text'}
+    result = _questionAdd(requestData, user)
+    if result['resultCode'] != 0:
+        return dictToJsonResponse(result)
+    questionId = result['questionId']
+
+    # 对id进行数字签名
+    signer = Signer()
+    questionId = signer.sign(questionId)
+
+    # 返回成功
+    return packageResponse(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'id': questionId})
+
+
+
+def addDefaultScoreQuestion(request):
+    '''
+        增加一个默认结构的问答题，提供给前台的新增问题按钮使用。
+    '''
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        return packageResponse(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
+    user = request.session[USER_SESSION_NAME]
+
+    # 检查是否提供了paper
+    if 'paper' not in request.REQUEST.keys():
+        return packageResponse(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_ID)
+    paperId = request.REQUEST['paper']
+
+    # 调用问题新增处理过程
+    requestData = {'paper': paperId, 'text': u'新增评分题', 'type': 'Score'}
+    result = _questionAdd(requestData, user)
+    if result['resultCode'] != 0:
+        return dictToJsonResponse(result)
+    questionId = result['questionId']
+
+    # 对id进行数字签名
+    signer = Signer()
+    questionId = signer.sign(questionId)
 
     # 返回成功
     return packageResponse(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'id': questionId})

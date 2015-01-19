@@ -150,10 +150,10 @@ class PaperCatalogPaper(TimeModel):
 
 class Question(TimeModel):
     QUESTION_TYPE = (
-        ('Single', '单选题'), ('Multiple', '多选题'), ('Fillblank', '填空题'), ('Score', '评分题'),
+        ('Single', '单选题'), ('Multiple', '多选题'), ('Text', '问答题'), ('Score', '评分题'),
         ('EndValid', '有效结束'), ('EndInvalid', '无效结束')
     )
-    QUESTION_TYPE_AVAILABLE = ('Single', 'Multiple', 'Fillblank', 'Score')
+    QUESTION_TYPE_AVAILABLE = ('Single', 'Multiple', 'Text', 'Score')
     BRANCH_NUM_STYLE = (('ABC', 'A.B.C.……'), ('abc.', 'a.b.c.……'), ('123.', '1.2.3……'))
     text = models.CharField('文字', max_length=300)
     type = models.CharField('题型', max_length=100, choices=QUESTION_TYPE)

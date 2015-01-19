@@ -191,13 +191,17 @@
                         </button>
                     </div>
                     <div class="col-md-3">
-                        <button class="btn btn-default btn-block btn-lg btn-paper-add-question">
+                        <button class="btn btn-default btn-block btn-lg btn-paper-add-question"
+                                data-binding-action="{% url 'survey:service.question.addDefaultTextQuestion' %}"
+                                data-binding-id="{{ paper.getIdSigned }}">
                             <span class="glyphicon glyphicon-pencil"></span>
-                            填空题
+                            问答题
                         </button>
                     </div>
                     <div class="col-md-3">
-                        <button class="btn btn-default btn-block btn-lg btn-paper-add-question">
+                        <button class="btn btn-default btn-block btn-lg btn-paper-add-question"
+                                data-binding-action="{% url 'survey:service.question.addDefaultScoreQuestion' %}"
+                                data-binding-id="{{ paper.getIdSigned }}">
                             <span class="glyphicon glyphicon-star"></span>
                             评分题
                         </button>

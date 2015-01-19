@@ -2,8 +2,8 @@
     {% include "survey/question/singleEdit.html" with question=question only %}
 {% elif question.type == 'Multiple' %}
     {% include "survey/question/multipleEdit.html" with question=question only %}
-{% elif question.type == 'Fillblank' %}
-    {% include "survey/question/fillblankEdit.html" with question=question only %}
+{% elif question.type == 'Text' %}
+    {% include "survey/question/textEdit.html" with question=question only %}
 {% elif question.type == 'Score' %}
     {% include "survey/question/scoreEdit.html" with question=question only %}
 {% else %}
