@@ -10,6 +10,9 @@ span.glyphicon-link {
     font-size: 1.2em;
 }
 
+textarea {
+   resize: none;
+}
 
 .width10 {
     width: 10%;

@@ -40,7 +40,7 @@
         {# 问题信息 #}
         <div class="row">
             {# 题干信息 #}
-            <div class="col-md-10">
+            <div class="col-md-12">
                 <div class="input-group input-group-sm">
                     <span class="input-group-addon">{{ question.getNum }}</span>
                     <input type="text" class="form-control data-binding-field question-text-editor"
@@ -52,76 +52,14 @@
                            data-binding-field-name="text">
                 </div>
             </div>
-            {# 是否乱序(switch控件) #}
-            <div class="col-md-2">
-                <div class="input-group input-group-sm">
-                    <input class="bootstrap-switch data-binding-field with-popover"
-                           type="checkbox" {% if question.confused %}checked{% endif %}
-                            {# 数据绑定信息 #}
-                           data-binding-action="{% url 'survey:service.question.modify' %}"
-                           data-binding-id="{{ question.getIdSigned }}"
-                           data-binding-field-name="confused"
-                            {# 开关控件的显示值 #}
-                           data-on-text="乱序"
-                           data-off-text="顺序"
-                            {# 弹出框提示信息 #}
-                           data-placement="top"
-                           data-content="该开关指定选项出现的顺序，当选择“正常”时用户答题时看到的和你设计时一样，当选择“乱序”时用户看见的选项出现的顺序是随机的"/>
-
-                </div>
-            </div>
         </div>
         <p></p>
 
-        {# 题支 #}
-        {% for  branch in question.getBranchSetInOrder %}
-            <div class="survey-branch row" id="branch-{{ branch.getIdSigned | cut:':' }}"
-                 data-id='{{ branch.getIdSigned }}'>
-                {# 题支的基本信息 #}
-                <div class="col-md-10">
-                    <div class="input-group">
-                        {# 题支id #}
-                        <span class="input-group-addon"><input type="checkbox" name="{{ question.id }}"></span>
-                        {# 题支的编号 #}
-                        <span class="input-group-addon">{{ branch.getNum }}</span>
-                        {# 题支的文字内容 #}
-                        <input type="text" class="form-control data-binding-field"
-                               value="{{ branch.text }}"
-                                {# 数据绑定信息 #}
-                               data-binding-action="{% url 'survey:service.branch.modify' %}"
-                               data-binding-id="{{ branch.getIdSigned }}"
-                               data-binding-field-name="text">
-                        {# 题支的删除按钮 #}
-                        <span class="input-group-addon ">
-                            <span class="glyphicon glyphicon-remove-sign pull-right btn-delete-branch with-popover"
-                                  style="color:#421410"
-                                    {# 数据绑定信息 #}
-                                  data-binding-action="{% url 'survey:service.branch.delete' %}"
-                                  data-binding-id="{{ branch.getIdSigned }}"
-                                    {# 弹出框提示信息 #}
-                                  data-placement="left"
-                                  data-content="删除这个选项">
-                            </span>
-                        </span>
-                    </div>
-                </div>
-
-                {# end <div class="col-md-2"> #}
-            </div><p></p>
-            {# <div class="row"> #}
-        {% endfor %}
-
-        {# 新增题支的按钮 #}
-        <button class="btn btn-primary btn-sm btn-question-add-branch with-popover"
-                {# 数据字段的绑定信息 #}
-                data-binding-action="{% url 'survey:service.branch.addDefaultBranch' %}"
-                data-binding-id="{{ question.getIdSigned }}"
-                {# 弹出框提示信息 #}
-                data-placement="right"
-                data-content="点击这个蓝色按钮可以新增一个选项">
-            <span class="glyphicon glyphicon-plus"></span>
-        </button>
-
+        <div class="row">
+            <div class="col-md-12">
+                <textarea class="form-control" rows="5" placeholder="... ..." required></textarea>
+            </div>
+        </div>
     </div>
     {# end <div class="panel-body"> #}
 </div>
