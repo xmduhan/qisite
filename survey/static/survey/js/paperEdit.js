@@ -647,6 +647,15 @@ function initSpinner(scope) {
     scope.find('.spinner').spinner();
 }
 
+
+/***************************************
+ *         初始化滑块控件              *
+ ***************************************/
+
+function initSlider(scope) {
+    scope.find('.slider').slider();
+}
+
 /***************************************
  *         初始日期选择控件            *
  ***************************************/
@@ -712,6 +721,8 @@ function initial(scope) {
     initDeleteButtonColorChange(scope);
     // 初始化数字编辑控件
     initSpinner(scope);
+    // 初始化滑块控件
+    initSlider(scope);
     // 初始化日期选择控件
     initDatetimepicker(scope);
     // 初始化表单提交按钮
@@ -729,6 +740,7 @@ $(document).ready(function () {
     initQuestionSortable();
     // 初始化分页控件
     initPageSwitcher();
+
 });
 
 

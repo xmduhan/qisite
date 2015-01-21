@@ -131,6 +131,10 @@ LOGGING = {
 }
 #"""
 
+if DEBUG:
+    import mimetypes
+    mimetypes.add_type("image/png", ".png", True)
+
 domain = 'http://127.0.01:8000'
 #domain = 'http://115.28.232.176'   # 阿里云服务器
 #domain = 'http://122.96.145.212:10000' # 斯坦德服务器
