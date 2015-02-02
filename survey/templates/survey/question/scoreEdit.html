@@ -64,11 +64,24 @@
             {# 题干信息 #}
             <div class="col-md-10">
                 <div class="row">
-                    <div class="col-md-3">
-                        <input class="spinner"/>
+                    <div class="col-md-1">
+                        最小值:
                     </div>
                     <div class="col-md-3">
-                        <input class="spinner"/>
+                        <input class="spinner data-binding-field" value="{{ question.valueMin }}"
+                                {# 数据绑定信息 #}
+                               data-binding-action="{% url 'survey:service.question.modify' %}"
+                               data-binding-id="{{ question.getIdSigned }}"
+                               data-binding-field-name="valueMin"/>
+                    </div>
+                    <div class="col-md-1">
+                        最大值:
+                    </div>
+                    <div class="col-md-3">
+                        <input class="spinner data-binding-field" value="{{ question.valueMax }}"
+                               data-binding-action="{% url 'survey:service.question.modify' %}"
+                               data-binding-id="{{ question.getIdSigned }}"
+                               data-binding-field-name="valueMax"/>
                     </div>
                 </div>
                 <p></p>
