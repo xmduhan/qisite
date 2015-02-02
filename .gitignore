@@ -3,3 +3,4 @@
 .settings
 .idea
 sql.log
+db.sqlite3
