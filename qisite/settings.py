@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 from interface import sms
+import config
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 import south
@@ -70,12 +71,7 @@ WSGI_APPLICATION = 'qisite.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
+DATABASES = config.DATABASES
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
@@ -95,7 +91,7 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/qi/static'
+STATIC_ROOT = config.smsSend
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
@@ -107,8 +103,7 @@ REST_FRAMEWORK = {
 
 URLS_JS_GENERATED_FILE = '/static/django/django-urls.js'
 
-#smsSend = sms.send
-smsSend = sms.sendTest
+smsSend = config.smsSend
 
 """ SQL日志开关
 LOGGING = {
@@ -133,8 +128,7 @@ LOGGING = {
 
 if DEBUG:
     import mimetypes
+
     mimetypes.add_type("image/png", ".png", True)
 
-domain = 'http://127.0.01:8000'
-#domain = 'http://115.28.232.176'   # 阿里云服务器
-#domain = 'http://122.96.145.212:10000' # 斯坦德服务器
+domain = config.domain
