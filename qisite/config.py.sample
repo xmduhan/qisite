@@ -1,0 +1,40 @@
+# -*- coding: utf-8 -*-
+
+from interface import sms
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+############################## 数据库配置 #############################
+
+# 使用sqlite3数据库
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
+# 配置postgresql数据库
+'''
+DATABASES = {
+    'default': {
+        'ENGINE':'django.db.backends.postgresql_psycopg2',
+        'NAME': 'qisite',
+        'USER': 'qisite',
+        #'PASSWORD': '',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
+    }
+}
+'''
+############################## 短信接口配置 #############################
+#smsSend = sms.send
+smsSend = sms.sendTest
+
+############################## 静态文件配置 #############################
+
+STATIC_ROOT = '/home/qi/static'
+
+################################ 域名配置 ###############################
+domain = 'http://127.0.01:8000'
+#domain = 'http://115.28.232.176'   # 阿里云服务器
+#domain = 'http://122.96.145.212:10000' # 斯坦德服务器

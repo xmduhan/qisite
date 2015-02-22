@@ -4,3 +4,4 @@
 .idea
 sql.log
 db.sqlite3
+qisite/config.py
