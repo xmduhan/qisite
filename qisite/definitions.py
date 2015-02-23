@@ -25,6 +25,7 @@ class RESULT_MESSAGE:
     TARGET_SURVEY_NEED_CUSTLIST = u'定向调查需要提供客户清单'
     CUSTLIST_OBJECT_NOT_EXIST = u'所指定的客户清单的对象不存在'
     ANSWER_COUNT_DIFF_WITH_QUESTION = u'提交问题的数量和问卷不一致'
+    ANSWER_WHEN_STEP_MORE_THAN_ONE = u'分步答题时一次提交了多于1个的问题'
     ANSWER_IS_MISSED_WHEN_REQUIRED = u'问题答案没有完整填写'
     QUESTION_NOT_IN_PAPER = u'提交问题的问题此问卷无关'
     BRANCH_NOT_IN_QUESTION = u'提交答案不在选项范围内'

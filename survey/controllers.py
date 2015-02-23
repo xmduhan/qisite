@@ -520,15 +520,10 @@ class SurveyBulkAnswerController(SurveyAnswerController):
         # 循环写入每一个选项的值
         for questionIdSigned in questionIdList:
 
-            branchIdSinged = self.request.REQUEST.get(questionIdSigned)
-            if not branchIdSinged:
-                raise Exception(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
-
             # 检查数字签名
             try:
                 signer = Signer()
                 questionId = signer.unsign(questionIdSigned)
-                branchId = signer.unsign(branchIdSinged)
             except:
                 raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 数字签名无效
 
@@ -538,26 +533,56 @@ class SurveyBulkAnswerController(SurveyAnswerController):
             except:
                 raise Exception(RESULT_MESSAGE.QUESTION_OBJECT_NO_EXIST)  # 问题对象不存在
 
-            # 选项对象不存在
-            try:
-                branch = Branch.objects.get(id=branchId)
-            except:
-                raise Exception(RESULT_MESSAGE.BRANCH_OBJECT_NO_EXIST)  # 选项对象不存在
-
-            #
+            # 检查问题是否和此问卷有关
             if question.paper != paper:
                 raise Exception(RESULT_MESSAGE.QUESTION_NOT_IN_PAPER)  #提交问题的问题此问卷无关
 
-            branch_set = list(question.branch_set.all())
-            if branch not in branch_set:
-                raise Exception(RESULT_MESSAGE.BRANCH_NOT_IN_QUESTION)  #提交答案不在选项范围内
-
-            # 将数据写到样本项信息中去
+            # 增加一个样本项来保存答题信息
             sampleItem = SampleItem(
                 question=question, content=None, score=0, sample=sample, createBy=user, modifyBy=user)
             sampleItem.save()
-            sampleItem.branch_set.add(branch)
-            sampleItem.save()
+
+            # 单选题
+            if question.type == 'Single':
+                # 读取选项Id并检查数字签名
+                branchIdSinged = self.request.REQUEST.get(questionIdSigned)
+                if not branchIdSinged:
+                    raise Exception(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
+                try:
+                    signer = Signer()
+                    branchId = signer.unsign(branchIdSinged)
+                except:
+                    raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 数字签名无效
+
+                # 读取选项
+                try:
+                    branch = Branch.objects.get(id=branchId)
+                except:
+                    # 选项对象不存在
+                    raise Exception(RESULT_MESSAGE.BRANCH_OBJECT_NO_EXIST)
+
+                # 读取问题的可选项
+                branch_set = list(question.branch_set.all())
+
+                # 检查选项是否在问得的可选范围内
+                if branch not in branch_set:
+                    raise Exception(RESULT_MESSAGE.BRANCH_NOT_IN_QUESTION)  #提交答案不在选项范围内
+
+                # 将选项保存到样本项信息中
+                sampleItem.branch_set.add(branch)
+                sampleItem.save()
+
+            # 多选题
+            if question.type == 'Multiple':
+                pass
+
+            # 问答题
+            if question.type == 'Text':
+                pass
+
+            # 评分题
+            if question.type == 'Score':
+                pass
 
     def submit(self):
         '''
@@ -638,31 +663,24 @@ class SurveyStepAnswerController(SurveyAnswerController):
         '''
         request = self.controller.request
         questionIdList = request.REQUEST.getlist('questionIdList')
+        if len(questionIdList) == 0:  # 没有提交答题信息
+            return self.controller.errorPage(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)
+        if len(questionIdList) != 1:  # 分布答题每次只会提交一个问题
+            return self.controller.errorPage(RESULT_MESSAGE.ANSWER_WHEN_STEP_MORE_THAN_ONE)
         _questionId = questionIdList[0]
-        _branchId = request.REQUEST[_questionId]
 
         # 验证对象的数字签名
         try:
             signer = Signer()
             questionId = signer.unsign(_questionId)
-            branchId = signer.unsign(_branchId)
         except Exception as e:
-            #return self.controller.errorPage(RESULT_MESSAGE.BAD_SAGNATURE)
             return self.controller.errorPage(RESULT_MESSAGE.BAD_SAGNATURE)
 
         # 读取问题对象
         try:
             question = Question.objects.get(id=questionId)
         except:
-            #raise Exception(RESULT_MESSAGE.QUESTION_OBJECT_NO_EXIST)  # 问题对象不存在
             return self.controller.errorPage(RESULT_MESSAGE.QUESTION_OBJECT_NO_EXIST)
-
-        # 读取选项对象
-        try:
-            branch = Branch.objects.get(id=branchId)
-        except:
-            #raise Exception(RESULT_MESSAGE.BRANCH_OBJECT_NO_EXIST)  # 选项对象不存在
-            return self.controller.errorPage(RESULT_MESSAGE.BRANCH_OBJECT_NO_EXIST)
 
         # 读取问题的数量
         paper = self.survey.paper
@@ -690,78 +708,79 @@ class SurveyStepAnswerController(SurveyAnswerController):
         sampleItem = SampleItem(
             question=question, content=None, score=0, sample=sample, createBy=user, modifyBy=user)
         sampleItem.save()
-        sampleItem.branch_set.add(branch)
-        sampleItem.save()
 
-        # 读取鉴权信息
-        submitAuthInfo = authController.getAuthInfo()
+        # 单选题
+        if question.type == 'Single':
+            _branchId = request.REQUEST[_questionId]
+            # 检验选项的数字签名
+            try:
+                branchId = signer.unsign(_branchId)
+            except Exception as e:
+                return self.controller.errorPage(RESULT_MESSAGE.BAD_SAGNATURE)
 
-        # 选项对应的nextQuestion为空(表示进入下一题)
-        if branch.nextQuestion == None:
-            if question.ord + 1 >= questionCount:
-                # 如果当前问题是最后一题且没有设定nextQuestion信息，默认为有效结束
+            # 读取选项对象
+            try:
+                branch = Branch.objects.get(id=branchId)
+            except:
+                return self.controller.errorPage(RESULT_MESSAGE.BRANCH_OBJECT_NO_EXIST)
+
+            # 保存选项到样本项
+            sampleItem.branch_set.add(branch)
+            sampleItem.save()
+
+            # 选项对应的nextQuestion为空(表示进入下一题)
+            if branch.nextQuestion == None:
+                if question.ord + 1 >= questionCount:
+                    # 如果当前问题是最后一题且没有设定nextQuestion信息，默认为有效结束
+                    sample.finished = True
+                    sample.isValid = True
+                    sample.nextQuestion = None
+                    sample.save()
+                    # 返回成功
+                    returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
+                    return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
+                else:
+                    nextQuestion = paper.getQuestionSetInOrder()[question.ord + 1]
+                    # 保存答题断点到sample对象
+                    sample.nextQuestion = nextQuestion
+                    sample.save()
+                    return self.render()
+
+            # 处理特殊的问题类型（有效与无效结束）
+            if branch.nextQuestion.type in ( 'EndValid', 'EndInvalid'):
+                # 设置样本为完成状态
                 sample.finished = True
-                sample.isValid = True
+                # 判断是有效完成还是无效完成
+                if branch.nextQuestion.type == 'EndValid':
+                    sample.isValid = True
+                if branch.nextQuestion.type == 'EndInvalid':
+                    sample.isValid = False
+                # 设置下一步为空
                 sample.nextQuestion = None
+                # 保存样本信息
                 sample.save()
                 # 返回成功
                 returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
                 return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
             else:
-                nextQuestion = paper.getQuestionSetInOrder()[question.ord + 1]
-                # 保存答题断点到sample对象
+                # 下一个问题设定为选项指定的下一题
+                nextQuestion = branch.nextQuestion
+                # 设置样本的nextQuestion
                 sample.nextQuestion = nextQuestion
                 sample.save()
-
-                # # 准备进入页面的数据信息
-                # data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper,
-                #         'question': nextQuestion}
-                # # 增加上次答题结果信息
-                # data['allBranchIdSelected'] = self.controller.getAllBranchSelected()
-                # # 增加鉴权信息
-                # submitAuthInfo = self.controller.authController.getAuthInfo()
-                # data = dict(data.items() + submitAuthInfo.items())
-                #
-                # # 返回继续答题页面
-                # return self.answerPage(data)
                 return self.render()
 
+        # 多选题
+        if question.type == 'Multiple':
+            pass
 
-        # 处理特殊的问题类型（有效与无效结束）
-        if branch.nextQuestion.type in ( 'EndValid', 'EndInvalid'):
+        # 问答题
+        if question.type == 'Text':
+            pass
 
-            # 设置样本为完成状态
-            sample.finished = True
-
-            # 判断是有效完成还是无效完成
-            if branch.nextQuestion.type == 'EndValid':
-                sample.isValid = True
-            if branch.nextQuestion.type == 'EndInvalid':
-                sample.isValid = False
-
-            # 设置下一步为空
-            sample.nextQuestion = None
-
-            # 保存样本信息
-            sample.save()
-
-            # 返回成功
-            returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
-            return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
-
-        else:
-            # 下一个问题设定为选项指定的下一题
-            nextQuestion = branch.nextQuestion
-
-            # 设置样本的nextQuestion
-            sample.nextQuestion = nextQuestion
-            sample.save()
-
-            # 返回继续答题页面
-            # data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper,
-            #         'question': nextQuestion}
-            # return self.answerPage(data)
-            return self.render()
+        # 评分题
+        if question.type == 'Score':
+            pass
 
 
 class ResponseController(object):
