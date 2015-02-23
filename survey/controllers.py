@@ -656,6 +656,32 @@ class SurveyStepAnswerController(SurveyAnswerController):
     #     '''
     #     # 读取http请求中的信息
 
+    def __moveToNextQuestion(self, question, sample):
+        '''
+        分布答题中设置断点转向下一个问题
+        严格来讲这个不是一个方法，只是这个是一个“宏”，
+        因为在各种类型的答题中都用到类型代码片段，这里抽出来避免代码重复
+        question 当前回答的问题
+        sample   当前的样本对象
+        '''
+        paper = question.paper
+        questionCount = paper.question_set.count()
+        if question.ord + 1 >= questionCount:
+            # 如果当前问题是最后一题且没有设定nextQuestion信息，默认为有效结束
+            sample.finished = True
+            sample.isValid = True
+            sample.nextQuestion = None
+            sample.save()
+            # 返回成功
+            returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
+            return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
+        else:
+            nextQuestion = paper.getQuestionSetInOrder()[question.ord + 1]
+            # 保存答题断点到sample对象
+            sample.nextQuestion = nextQuestion
+            sample.save()
+            return self.render()
+
     @transaction.atomic()
     def submit(self):
         '''
@@ -730,21 +756,7 @@ class SurveyStepAnswerController(SurveyAnswerController):
 
             # 选项对应的nextQuestion为空(表示进入下一题)
             if branch.nextQuestion == None:
-                if question.ord + 1 >= questionCount:
-                    # 如果当前问题是最后一题且没有设定nextQuestion信息，默认为有效结束
-                    sample.finished = True
-                    sample.isValid = True
-                    sample.nextQuestion = None
-                    sample.save()
-                    # 返回成功
-                    returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
-                    return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
-                else:
-                    nextQuestion = paper.getQuestionSetInOrder()[question.ord + 1]
-                    # 保存答题断点到sample对象
-                    sample.nextQuestion = nextQuestion
-                    sample.save()
-                    return self.render()
+                return self.__moveToNextQuestion(question, sample)
 
             # 处理特殊的问题类型（有效与无效结束）
             if branch.nextQuestion.type in ( 'EndValid', 'EndInvalid'):
@@ -772,15 +784,15 @@ class SurveyStepAnswerController(SurveyAnswerController):
 
         # 多选题
         if question.type == 'Multiple':
-            pass
+            return self.__moveToNextQuestion(question, sample)
 
         # 问答题
         if question.type == 'Text':
-            pass
+            return self.__moveToNextQuestion(question, sample)
 
         # 评分题
         if question.type == 'Score':
-            pass
+            return self.__moveToNextQuestion(question, sample)
 
 
 class ResponseController(object):
