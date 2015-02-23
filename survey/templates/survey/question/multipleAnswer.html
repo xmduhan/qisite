@@ -6,8 +6,8 @@
         </div>
         <div class="panel-body">
             {% for branch in question.getBranchSetInOrder %}
-                <div class="radio">
-                    <input type="radio"
+                <div class="input-group">
+                    <input type="checkbox"
                            name="{{ question.getIdSigned }}"
                            value="{{ branch.getIdSigned }}"
                             {% comment %}  {% if forloop.first %}  required {% endif %}{% endcomment %}

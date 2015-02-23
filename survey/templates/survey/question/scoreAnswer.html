@@ -5,20 +5,24 @@
             {{ question.getNum }} {{ question.text }} <br>
         </div>
         <div class="panel-body">
-            {% for branch in question.getBranchSetInOrder %}
-                <div class="radio">
-                    <input type="radio"
-                           name="{{ question.getIdSigned }}"
-                           value="{{ branch.getIdSigned }}"
-                            {% comment %}  {% if forloop.first %}  required {% endif %}{% endcomment %}
-                            {% if branch.id in allBranchIdSelected %}
-                           checked="checked"
-                            {% endif %}
-                            />
-                    {{ branch.getNum }} {{ branch.text }}
+            <div class="row">
+                <div class="col-md-6" align="right">
+                    <label for="amount">分数 :</label>
                 </div>
-                <br>
-            {% endfor %}
+                <div class="col-md-6" align="left">
+                    <input id="question-{{ question.getIdSigned | cut:':' }}"
+                           type="text" name="{{ question.getIdSigned }}"
+                           readonly style="border:0; color:#f6931f; font-weight:bold;"/>
+                </div>
+            </div>
+            <br><br>
+
+            <div class="slider-input"
+                 data-input-id="question-{{ question.getIdSigned | cut:':' }}"
+                 data-min="{{ question.valueMin | floatformat:"0" }}"
+                 data-max="{{ question.valueMax | floatformat:"0" }}"
+                 data-value="5">
+            </div>
         </div>
     </div>
 </div>

@@ -10,12 +10,51 @@ function initFormSubmitButton(scope) {
         form.submit();
     });
 }
+
+/***************************************
+ *         滑动控件的初始化            *
+ ***************************************/
+function initSlider(scope) {
+    // 遍历所有.slider-input并设置其最大最小值以及当前值
+    scope.find('.slider-input').each(function () {
+        $(this).slider({
+            min: $(this).data("min"), max: $(this).data("max"), value: value = $(this).data("value")
+        });
+        inputId = $(this).data("input-id");
+        $("#" + inputId).val($(this).data("value"));
+        //console.log("inputId=" + inputId);
+    });
+
+    // 绑定.slider-input事件
+    scope.find('.slider-input').slider({
+        slide: function (event, ui) {
+            //inputId = $(this).data("input-id");
+            //console.log("inputId=" + inputId);
+            $("#" + inputId).val(ui.value);
+        }
+    });
+}
+
+/*
+
+ $( "#slider-range-min" ).slider({
+ range: "min",
+ value: 37,
+ min: 1,
+ max: 700,
+ slide: function( event, ui ) {
+ $( "#amount" ).val( "$" + ui.value );
+ }
+ });
+ */
 /***************************************
  *        所有控件初始化操作工作       *
  ***************************************/
 function initial(scope) {
+    initSlider(scope);
     initFormSubmitButton(scope);
 }
+
 /***************************************
  *          全局初始化加载操作         *
  ***************************************/

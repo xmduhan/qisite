@@ -5,20 +5,9 @@
             {{ question.getNum }} {{ question.text }} <br>
         </div>
         <div class="panel-body">
-            {% for branch in question.getBranchSetInOrder %}
-                <div class="radio">
-                    <input type="radio"
-                           name="{{ question.getIdSigned }}"
-                           value="{{ branch.getIdSigned }}"
-                            {% comment %}  {% if forloop.first %}  required {% endif %}{% endcomment %}
-                            {% if branch.id in allBranchIdSelected %}
-                           checked="checked"
-                            {% endif %}
-                            />
-                    {{ branch.getNum }} {{ branch.text }}
-                </div>
-                <br>
-            {% endfor %}
+            <textarea rows="5" type="text" class="form-control"
+                      name="{{ question.getIdSigned }}" style="resize: none;"></textarea>
+            <br>
         </div>
     </div>
 </div>

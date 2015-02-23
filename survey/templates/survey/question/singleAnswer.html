@@ -6,7 +6,7 @@
         </div>
         <div class="panel-body">
             {% for branch in question.getBranchSetInOrder %}
-                <div class="radio">
+                <div class="input-group">
                     <input type="radio"
                            name="{{ question.getIdSigned }}"
                            value="{{ branch.getIdSigned }}"
