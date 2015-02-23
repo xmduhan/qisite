@@ -6,7 +6,7 @@ from models import *
 
 class PaperAdmin(admin.ModelAdmin):
     fields = [
-        'code', 'title', 'description', 'inOrder', 'questionNumStyle', 'lookBack', 'paging',
+        'code', 'title', 'description', 'inOrder', 'questionNumStyle', 'lookBack', 'step',
         'createBy', 'modifyBy', 'createTime', 'modifyTime'
     ]
     list_display = ('title', 'description', 'type', 'lookBack', 'createBy', 'createTime')
