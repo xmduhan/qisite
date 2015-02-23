@@ -1,0 +1,13 @@
+{% if question.type == 'Single' %}
+    {% include "survey/question/singleAnswer.html" with question=question allBranchIdSelected=allBranchIdSelected only %}
+{% elif question.type == 'Multiple' %}
+    {% include "survey/question/multipleAnswer.html" with question=question allBranchIdSelected=allBranchIdSelected only %}
+{% elif question.type == 'Text' %}
+    {% include "survey/question/textAnswer.html" with question=question allBranchIdSelected=allBranchIdSelected only %}
+{% elif question.type == 'Score' %}
+    {% include "survey/question/scoreAnswer.html" with question=question allBranchIdSelected=allBranchIdSelected only %}
+{% else %}
+    <div class="well">
+        未知的题目类型
+    </div>>
+{% endif %}

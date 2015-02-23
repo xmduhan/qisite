@@ -1,0 +1,24 @@
+<input type="hidden" name="questionIdList" value="{{ question.getIdSigned }}"/>
+<div class="col-md-12">
+    <div class="panel panel-info ">
+        <div class="panel-heading">
+            {{ question.getNum }} {{ question.text }} <br>
+        </div>
+        <div class="panel-body">
+            {% for branch in question.getBranchSetInOrder %}
+                <div class="radio">
+                    <input type="radio"
+                           name="{{ question.getIdSigned }}"
+                           value="{{ branch.getIdSigned }}"
+                            {% comment %}  {% if forloop.first %}  required {% endif %}{% endcomment %}
+                            {% if branch.id in allBranchIdSelected %}
+                           checked="checked"
+                            {% endif %}
+                            />
+                    {{ branch.getNum }} {{ branch.text }}
+                </div>
+                <br>
+            {% endfor %}
+        </div>
+    </div>
+</div>
