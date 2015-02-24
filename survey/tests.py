@@ -3941,8 +3941,151 @@ class MultipleQuestionTypeBulkTest(TestCase):
         self.assertEquals(self.survey.paper.sample_set.count(), sampleCount)
 
 
+class MultipleQuestionTypeStepTest(TestCase):
+    '''
+    各种类型问题的答题测试
+    '''
+    fixtures = ['initial_data.json']
+
+    def setUp(self):
+        setup_test_environment()
+        self.client = Client()
+        # 问题类型测试（分步）
+        self.survey = Survey.objects.get(code='survey-question-type-test-step')
+        self.custList = self.survey.custList
+        self.paper = self.survey.paper
+
+        # 确认该调查为非定向调查
+        self.assertIsNone(self.survey.custList)
+        # 确定允许重复填写答案
+        self.assertEqual(self.survey.resubmit, True)
+        # 确定没有设置调查密码
+        self.assertEqual(self.survey.password, '')
+        # 确认是允许查看结果的
+        self.assertTrue(self.survey.viewResult)
+
+        # 相关的url链接
+        self.answerUrl = reverse('survey:view.survey.answer.render', args=[self.survey.id])
+        self.answerSubmitUrl = reverse('survey:view.survey.answer.submit')
+        self.exportUrl = reverse('survey:view.survey.export', args=[self.survey.id])
+        self.coverUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
+        self.viewUrl = reverse('survey:view.survey.viewResult', args=[self.survey.id])
+
+        # 相关模板
+        self.answerTemplate = 'survey/surveyAnswerAll.html'
+        self.surveyLoginTemplate = 'survey/surveyLogin.html'
+        self.messageTemplate = 'www/message.html'
+        self.answeredTemplate = 'survey/surveyAnswered.html'
+        self.viewRusultTemplate = 'survey/surveyViewResult.html'
+
+        questionList = list(self.paper.getQuestionSetInOrder())
+        # 增加第1题的答案
+        question1 = questionList[0]
+        self.assertEqual(question1.type, 'Single')
+        branchList1 = question1.getBranchSetInOrder()
+        self.question1 = question1
+        self.branchList1 = branchList1
+        data1 = {}
+        data1['surveyId'] = self.survey.getIdSigned()
+        data1['questionIdList'] = [question1.getIdSigned()]
+        data1[question1.getIdSigned()] = branchList1[0].getIdSigned()
+        self.data1 = data1
+        # 增加第2题的答案
+        question2 = questionList[1]
+        self.assertEqual(question2.type, 'Multiple')
+        branchList2 = question2.getBranchSetInOrder()
+        self.question2 = question2
+        self.branchList2 = branchList2
+        data2 = {}
+        data2['surveyId'] = self.survey.getIdSigned()
+        data2['questionIdList'] = [question2.getIdSigned()]
+        data2[question2.getIdSigned()] = [branchList2[0].getIdSigned(), branchList2[1].getIdSigned()]
+        self.data2 = data2
+        # 增加第3题的答案
+        question3 = questionList[2]
+        self.assertEqual(question3.type, 'Text')
+        self.question3 = question3
+        data3 = {}
+        data3['surveyId'] = self.survey.getIdSigned()
+        data3['questionIdList'] = [question3.getIdSigned()]
+        data3[question3.getIdSigned()] = u'测试'
+        self.data3 = data3
+        # 增加第4题的答案
+        question4 = questionList[3]
+        self.assertEqual(question4.type, 'Score')
+        self.assertEqual(question4.valueMin, 0)
+        self.assertEqual(question4.valueMax, 10)
+        self.question4 = question4
+        data4 = {}
+        data4['surveyId'] = self.survey.getIdSigned()
+        data4['questionIdList'] = [question4.getIdSigned()]
+        data4[question4.getIdSigned()] = 7
+        self.data4 = data4
 
 
+    def test_answer_submit_success(self):
+        '''
+        测试提交问卷信息
+        '''
+        client = self.client
+        sampleCount = self.survey.paper.sample_set.count()
+
+        # 提交第1题
+        response = self.client.post(self.answerSubmitUrl, self.data1)
+        self.assertEqual(response.status_code, 200)
+        # 检查是否进入第2题页面
+        self.assertContains(response, self.question2.text)
+        # 检查样本是否增加一个
+        self.assertEqual(self.survey.paper.sample_set.count(), sampleCount + 1)
+        # 读取样本信息
+        sample = self.survey.paper.sample_set.order_by('-createTime')[0]
+        sampleItemDict = {item.question.id: item for item in sample.sampleitem_set.all()}
+        # 检查第1题提交结果是否正确
+        sampleItem1 = sampleItemDict[self.question1.id]
+        self.assertEqual(sampleItem1.branch_set.all()[0], self.branchList1[0])
+
+        # 提交第2题
+        response = self.client.post(self.answerSubmitUrl, self.data2)
+        self.assertEqual(response.status_code, 200)
+        # 检查是否进入第3题页面
+        self.assertContains(response, self.question3.text)
+        self.assertEqual(self.survey.paper.sample_set.count(), sampleCount + 1)
+        # 读取样本信息
+        sample = self.survey.paper.sample_set.order_by('-createTime')[0]
+        sampleItemDict = {item.question.id: item for item in sample.sampleitem_set.all()}
+        # 检查第2题提交结果是否正确
+        sampleItem2 = sampleItemDict[self.question2.id]
+        branch_set_selected = set(sampleItem2.branch_set.all())
+        branch_set_submit = set(self.branchList2[:2])
+        self.assertEqual(branch_set_selected, branch_set_submit)
+
+        # 提交第3题
+        response = self.client.post(self.answerSubmitUrl, self.data3)
+        self.assertEqual(response.status_code, 200)
+        # 检查是否进入第4题页面
+        self.assertContains(response, self.question4.text)
+        self.assertEqual(self.survey.paper.sample_set.count(), sampleCount + 1)
+        # 读取样本信息
+        sample = self.survey.paper.sample_set.order_by('-createTime')[0]
+        sampleItemDict = {item.question.id: item for item in sample.sampleitem_set.all()}
+
+        # 检查提交的结果是否正确
+        sampleItem3 = sampleItemDict[self.question3.id]
+        self.assertEquals(sampleItem3.branch_set.count(), 0)
+        self.assertEqual(sampleItem3.content, u'测试')
+
+        # 提交第4题
+        response = self.client.post(self.answerSubmitUrl, self.data4)
+        self.assertEqual(response.status_code, 200)
+        # 检查是否问卷正常结束
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+        # 读取样本信息
+        sample = self.survey.paper.sample_set.order_by('-createTime')[0]
+        sampleItemDict = {item.question.id: item for item in sample.sampleitem_set.all()}
+        # 检查第4题的答案是否正确
+        sampleItem4 = sampleItemDict[self.question4.id]
+        self.assertEquals(sampleItem4.branch_set.count(), 0)
+        self.assertEqual(sampleItem4.score, 7)
 
 
 

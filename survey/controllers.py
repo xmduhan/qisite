@@ -614,7 +614,7 @@ class SurveyBulkAnswerController(SurveyAnswerController):
             # 问答题
             if question.type == 'Text':
                 content = self.request.REQUEST.get(questionIdSigned)
-                sampleItem.content =content
+                sampleItem.content = content
                 sampleItem.save()
 
             # 评分题
@@ -622,11 +622,11 @@ class SurveyBulkAnswerController(SurveyAnswerController):
                 score = int(self.request.REQUEST.get(questionIdSigned))
 
                 # 检查评分是否在允许范围内
-                if (score <  question.valueMin) or (score >  question.valueMax):
+                if (score < question.valueMin) or (score > question.valueMax):
                     raise Exception(RESULT_MESSAGE.SCORE_OUT_OF_RANGE)  #评分超出范围
 
                 # 保存数据到样本
-                sampleItem.score =score
+                sampleItem.score = score
                 sampleItem.save()
 
     def submit(self):
@@ -829,14 +829,59 @@ class SurveyStepAnswerController(SurveyAnswerController):
 
         # 多选题
         if question.type == 'Multiple':
+            branchIdSingedList = dict(self.request.POST)[_questionId]
+            # 没有提交数据
+            if not branchIdSingedList:
+                raise Exception(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
+
+            branchIdList = []
+            # 对所有选项检查数据签名
+            try:
+                signer = Signer()
+                for branchIdSinged in branchIdSingedList:
+                    branchId = signer.unsign(branchIdSinged)
+                    branchIdList.append(branchId)
+            except:
+                raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 数字签名无效
+
+            # 读取选项对象数据
+            branchList = []
+            try:
+                for branchId in branchIdList:
+                    branch = Branch.objects.get(id=branchId)
+                    branchList.append(branch)
+            except:
+                # 选项对象不存在
+                raise Exception(RESULT_MESSAGE.BRANCH_OBJECT_NO_EXIST)
+
+            # 检查所有选是否在可选范围内
+            branch_set_available = set(question.branch_set.all())
+            branch_set_selected = set(branchList)
+            if (branch_set_selected - branch_set_available):
+                raise Exception(RESULT_MESSAGE.BRANCH_NOT_IN_QUESTION)  #提交答案不在选项范围内
+
+            # 将选项保存到样本项信息中
+            for branch in branchList:
+                sampleItem.branch_set.add(branch)
+            sampleItem.save()
             return self.__moveToNextQuestion(question, sample)
 
         # 问答题
         if question.type == 'Text':
+            content = self.request.REQUEST.get(_questionId)
+            sampleItem.content = content
+            sampleItem.save()
             return self.__moveToNextQuestion(question, sample)
 
         # 评分题
         if question.type == 'Score':
+            score = int(self.request.REQUEST.get(_questionId))
+            # 检查评分是否在允许范围内
+            if (score < question.valueMin) or (score > question.valueMax):
+                raise Exception(RESULT_MESSAGE.SCORE_OUT_OF_RANGE)  #评分超出范围
+            # 保存数据到样本
+            sampleItem.score = score
+            sampleItem.save()
             return self.__moveToNextQuestion(question, sample)
 
 
