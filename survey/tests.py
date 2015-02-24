@@ -3786,7 +3786,11 @@ class SurveyAddTest(TestCase):
         survey = surveyList[0]
         self.assertFalse(survey.viewResult)
 
-
+class MultipleQuestionTypeTest(TestCase):
+    '''
+    新增调查测试用例
+    '''
+    fixtures = ['initial_data.json']
 
 
 
