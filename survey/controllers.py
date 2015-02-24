@@ -782,6 +782,7 @@ class SurveyStepAnswerController(SurveyAnswerController):
 
         # 单选题
         if question.type == 'Single':
+            # TODO:这里处理分布答题的逻辑和批量处理的实际重复，需要进行抽象重构
             _branchId = request.REQUEST[_questionId]
             # 检验选项的数字签名
             try:
