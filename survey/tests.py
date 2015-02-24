@@ -3446,7 +3446,7 @@ class StepSurveyTargetAnswerTest(TestCase):
         input = soup.find(attrs={"name": "targetCustId"})
         targetCustId = input.get('value')
         # 检查
-        self.assertEquals(targetCustId,targetCustList[0].getIdSigned())
+        self.assertEquals(targetCustId, targetCustList[0].getIdSigned())
 
         # 尝试再次进入页面
         response = self.client.post(self.answerUrl, {'phone': phone})
@@ -3455,7 +3455,7 @@ class StepSurveyTargetAnswerTest(TestCase):
         # 检查targetCustList2是否重复生成了
         targetCustList2 = self.survey.targetCust_set.filter(phone=phone)
         self.assertEqual(len(targetCustList), 1)
-        self.assertEquals(targetCustList2[0],targetCustList[0])
+        self.assertEquals(targetCustList2[0], targetCustList[0])
 
 
     def test_designation_jump(self):
@@ -3486,14 +3486,14 @@ class StepSurveyTargetAnswerTest(TestCase):
         input = soup.find(attrs={"name": "targetCustId"})
         targetCustId = input.get('value')
         # 检查
-        self.assertEquals(targetCustId,targetCustList[0].getIdSigned())
+        self.assertEquals(targetCustId, targetCustList[0].getIdSigned())
 
         # 在提交数据中加入
         data = copy.copy(self.dataDesignationJump)
         data['targetCustId'] = targetCustId
 
         # 提交问题2的第3个选项，测试按执行题号进行跳转
-        response = self.client.post(self.answerSubmitUrl,data)
+        response = self.client.post(self.answerSubmitUrl, data)
         self.assertEqual(response.status_code, 200)
 
         # 检查是否进入下一题页面
@@ -3503,8 +3503,6 @@ class StepSurveyTargetAnswerTest(TestCase):
         soup = BeautifulSoup(response.content)
         input = soup.find(attrs={"name": "targetCustId"})
         self.assertIsNotNone(input)
-
-
 
 
 class TargetLessSurveyExportTest(TestCase):
@@ -3786,7 +3784,8 @@ class SurveyAddTest(TestCase):
         survey = surveyList[0]
         self.assertFalse(survey.viewResult)
 
-class MultipleQuestionTypeTest(TestCase):
+
+class MultipleQuestionTypeBulkTest(TestCase):
     '''
     各种类型问题的答题测试
     '''
@@ -3795,12 +3794,13 @@ class MultipleQuestionTypeTest(TestCase):
     def setUp(self):
         setup_test_environment()
         self.client = Client()
-        self.survey = Survey.objects.get(code='survey-target-01')  #网购客户满意度调查(定向)
+        # 问题类型测试（批量）
+        self.survey = Survey.objects.get(code='survey-question-type-test-bulk')
         self.custList = self.survey.custList
         self.paper = self.survey.paper
 
         # 确认该调查为非定向调查
-        self.assertIsNotNone(self.survey.custList)
+        self.assertIsNone(self.survey.custList)
         # 确定允许重复填写答案
         self.assertEqual(self.survey.resubmit, True)
         # 确定没有设置调查密码
@@ -3822,16 +3822,128 @@ class MultipleQuestionTypeTest(TestCase):
         self.answeredTemplate = 'survey/surveyAnswered.html'
         self.viewRusultTemplate = 'survey/surveyViewResult.html'
 
-
         # 生成一个合法的答卷数据，供后面的过程提交使用
+        # 该问卷一共4个题目:
+        # 第1题单选题        # 第2题多选题        # 第3题问答题        # 第4题评分题
         data_valid = {}
-        questionIdList = []
+        # 加入surveyId
         data_valid['surveyId'] = self.survey.getIdSigned()
-        for question in self.paper.question_set.all():
+        # 加入问题列表
+        questionList = list(self.paper.getQuestionSetInOrder())
+        questionIdList = []
+        for question in questionList:
             questionIdList.append(question.getIdSigned())
-            data_valid[question.getIdSigned()] = question.branch_set.all()[0].getIdSigned()
         data_valid['questionIdList'] = questionIdList
+        # 增加第1题的答案
+        question1 = questionList[0]
+        self.assertEqual(question1.type, 'Single')
+        branchList1 = question1.getBranchSetInOrder()
+        data_valid[question1.getIdSigned()] = branchList1[0].getIdSigned()
+        self.question1 = question1
+        self.branchList1 = branchList1
+        # 增加第2题的答案
+        question2 = questionList[1]
+        self.assertEqual(question2.type, 'Multiple')
+        branchList2 = question2.getBranchSetInOrder()
+        data_valid[question2.getIdSigned()] = [branchList2[0].getIdSigned(), branchList2[1].getIdSigned()]
+        self.question2 = question2
+        self.branchList2 = branchList2
+        # 增加第3题的答案
+        question3 = questionList[2]
+        self.assertEqual(question3.type, 'Text')
+        data_valid[question3.getIdSigned()] = u'测试'
+        self.question3 = question3
+        # 增加第4题的答案
+        question4 = questionList[3]
+        self.assertEqual(question4.type, 'Score')
+        self.assertEqual(question4.valueMin, 0)
+        self.assertEqual(question4.valueMax, 10)
+        data_valid[question4.getIdSigned()] = 7
+        self.question4 = question4
+        #
         self.data_valid = data_valid
+
+    def test_answer_submit_success(self):
+        '''
+        测试提交问卷信息
+        '''
+        client = self.client
+        sampleCount = self.survey.paper.sample_set.count()
+
+        # 提交到服务器
+        response = client.post(self.answerSubmitUrl, self.data_valid)
+        self.assertEqual(response.status_code, 200)
+
+        # 检查提交的页面是否成功
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+
+        # 检查是否返回成功信息
+        self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
+
+        # 确认样本数量增加了一个
+        self.assertEqual(self.survey.paper.sample_set.count(), sampleCount + 1)
+
+        # 确认question数量和sample相同
+        ## 获取最新添加的一个sample
+        sample = self.survey.paper.sample_set.order_by('-createTime')[0]
+        self.assertEqual(sample.sampleitem_set.count(), self.survey.paper.question_set.count())
+
+        sampleItemDict = {item.question.id: item for item in sample.sampleitem_set.all()}
+
+        # 检查第1题的答案是否正确
+        sampleItem1 = sampleItemDict[self.question1.id]
+        self.assertEquals(sampleItem1.branch_set.count(), 1)
+        self.assertEquals(sampleItem1.branch_set.all()[0].id, self.branchList1[0].id)
+
+        # 检查第2题的答案是否正确
+        sampleItem2 = sampleItemDict[self.question2.id]
+        self.assertEquals(sampleItem2.branch_set.count(), 2)
+        # 检查保存的数据和提交的是否一致(实际提交的就是前2个选项)
+        branch_set_selected = set(sampleItem2.branch_set.all())
+        branch_set_submit = set(self.branchList2[:2])
+        self.assertEqual(branch_set_selected, branch_set_submit)
+
+        # 检查第3题的答案是否正确
+        sampleItem3 = sampleItemDict[self.question3.id]
+        self.assertEquals(sampleItem3.branch_set.count(), 0)
+        self.assertEqual(sampleItem3.content, u'测试')
+
+        # 检查第4题的答案是否正确
+        sampleItem4 = sampleItemDict[self.question4.id]
+        self.assertEquals(sampleItem4.branch_set.count(), 0)
+        self.assertEqual(sampleItem4.score, 7)
+
+    def test_answer_submit_with_score_out_of_range(self):
+        '''
+        提交一个评分题的答案不在指定范围内
+        '''
+
+        # 构造一个有问题的数据
+        # 第4题评分题的范围为0-10
+        dataOutOfRange = copy.copy(self.data_valid)
+        dataOutOfRange[self.question4.getIdSigned()] = 15
+
+        #
+        client = self.client
+        sampleCount = self.survey.paper.sample_set.count()
+
+        # 提交到服务器
+        response = client.post(self.answerSubmitUrl, dataOutOfRange)
+        self.assertEqual(response.status_code, 200)
+
+        # 检查提交的页面是否成功
+        self.assertEqual(response.templates[0].name, self.messageTemplate)
+
+        # 检查是否返回成功信息
+        self.assertContains(response, RESULT_MESSAGE.SCORE_OUT_OF_RANGE)
+
+        # 样本量不会增加
+        self.assertEquals(self.survey.paper.sample_set.count(), sampleCount)
+
+
+
+
+
 
 
 

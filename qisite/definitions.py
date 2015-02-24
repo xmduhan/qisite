@@ -29,6 +29,7 @@ class RESULT_MESSAGE:
     ANSWER_IS_MISSED_WHEN_REQUIRED = u'问题答案没有完整填写'
     QUESTION_NOT_IN_PAPER = u'提交问题的问题此问卷无关'
     BRANCH_NOT_IN_QUESTION = u'提交答案不在选项范围内'
+    SCORE_OUT_OF_RANGE = u'评分超出允许的范围'
     THANKS_FOR_ANSWER_SURVEY = u'提交完成，感谢您的参与!'
     ANSWERED_ALREADY = u'您已经回答过这份问卷'
     NO_PHONE = u'没有提供手机号码'
