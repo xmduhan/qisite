@@ -3788,11 +3788,50 @@ class SurveyAddTest(TestCase):
 
 class MultipleQuestionTypeTest(TestCase):
     '''
-    新增调查测试用例
+    各种类型问题的答题测试
     '''
     fixtures = ['initial_data.json']
 
+    def setUp(self):
+        setup_test_environment()
+        self.client = Client()
+        self.survey = Survey.objects.get(code='survey-target-01')  #网购客户满意度调查(定向)
+        self.custList = self.survey.custList
+        self.paper = self.survey.paper
 
+        # 确认该调查为非定向调查
+        self.assertIsNotNone(self.survey.custList)
+        # 确定允许重复填写答案
+        self.assertEqual(self.survey.resubmit, True)
+        # 确定没有设置调查密码
+        self.assertEqual(self.survey.password, '')
+        # 确认是允许查看结果的
+        self.assertTrue(self.survey.viewResult)
+
+        # 相关的url链接
+        self.answerUrl = reverse('survey:view.survey.answer.render', args=[self.survey.id])
+        self.answerSubmitUrl = reverse('survey:view.survey.answer.submit')
+        self.exportUrl = reverse('survey:view.survey.export', args=[self.survey.id])
+        self.coverUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
+        self.viewUrl = reverse('survey:view.survey.viewResult', args=[self.survey.id])
+
+        # 相关模板
+        self.answerTemplate = 'survey/surveyAnswerAll.html'
+        self.surveyLoginTemplate = 'survey/surveyLogin.html'
+        self.messageTemplate = 'www/message.html'
+        self.answeredTemplate = 'survey/surveyAnswered.html'
+        self.viewRusultTemplate = 'survey/surveyViewResult.html'
+
+
+        # 生成一个合法的答卷数据，供后面的过程提交使用
+        data_valid = {}
+        questionIdList = []
+        data_valid['surveyId'] = self.survey.getIdSigned()
+        for question in self.paper.question_set.all():
+            questionIdList.append(question.getIdSigned())
+            data_valid[question.getIdSigned()] = question.branch_set.all()[0].getIdSigned()
+        data_valid['questionIdList'] = questionIdList
+        self.data_valid = data_valid
 
 
 
