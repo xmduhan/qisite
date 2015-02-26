@@ -374,9 +374,33 @@ def surveyExport(request, surveyId):
 
     # 打印每一个问题
     for question in questionList:
-        questionText = ''.join([question.getNum(), question.text])
-        questionTextEncoded = unicode(questionText).encode(encoding)
-        header.append(questionTextEncoded)
+        # 处理单选题
+        if question.type == 'Single':
+            questionText = ''.join([question.getNum(), question.text])
+            questionTextEncoded = unicode(questionText).encode(encoding)
+            header.append(questionTextEncoded)
+
+        # 处理多选题
+        if question.type == 'Multiple':
+            questionText = ''.join([question.getNum(), question.text])
+            for branch in question.getBranchSetInOrder():
+                branchText = ''.join([branch.getNum(), branch.text])
+                fullBranchText = '%s:%s' % ( questionText, branchText)
+                fullBranchTextEncoded = unicode(fullBranchText).encode(encoding)
+                header.append(fullBranchTextEncoded)
+
+        # 处理问答题
+        if question.type == 'Text':
+            questionText = ''.join([question.getNum(), question.text])
+            questionTextEncoded = unicode(questionText).encode(encoding)
+            header.append(questionTextEncoded)
+
+        # 处理评分题
+        if question.type == 'Score':
+            questionText = ''.join([question.getNum(), question.text])
+            questionTextEncoded = unicode(questionText).encode(encoding)
+            header.append(questionTextEncoded)
+
     writer.writerow(header)
 
     # 逐行打印数据
@@ -392,16 +416,43 @@ def surveyExport(request, surveyId):
         sampleItemDict = {sampleItem.question: sampleItem for sampleItem in sample.sampleitem_set.all()}
         for question in questionList:
             sampleItem = sampleItemDict.get(question)
-            if sampleItem:
-                branchTextList = []
-                for branch in sampleItem.branch_set.all():
-                    branchText = ''.join([branch.getNum(), branch.text, ''])
-                    branchTextList.append(branchText)
-                allBranchText = ' '.join(branchTextList)
-                allBranchTextEncoded = unicode(allBranchText).encode(encoding)
-                row.append(allBranchTextEncoded)
-            else:
-                row.append('')
+            # 处理单选题
+            if question.type == 'Single':
+                if sampleItem:
+                    branchTextList = []
+                    for branch in sampleItem.branch_set.all():
+                        branchText = ''.join([branch.getNum(), branch.text, ''])
+                        branchTextList.append(branchText)
+                    allBranchText = ' '.join(branchTextList)
+                    allBranchTextEncoded = unicode(allBranchText).encode(encoding)
+                    row.append(allBranchTextEncoded)
+                else:
+                    row.append('')
+            # 处理多选题
+            if question.type == 'Multiple':
+                if sampleItem:
+                    branchSelected = set(sampleItem.branch_set.all())
+                else:
+                    branchSelected = set()
+                for branch in question.getBranchSetInOrder():
+                    if branch in branchSelected:
+                        row.append('1')
+                    else:
+                        row.append('0')
+            # 处理问答题
+            if question.type == 'Text':
+                if sampleItem:
+                    row.append(sampleItem.content)
+                else:
+                    row.append('')
+
+            # 处理评分题
+            if question.type == 'Score':
+                if sampleItem:
+                    row.append(str(int(sampleItem.score)))
+                else:
+                    row.append('')
+
         writer.writerow(row)
     response = StreamingHttpResponse(buffer.getvalue(), content_type="text/csv")
     response['Content-Disposition'] = 'attachment; filename="samples.csv"'
