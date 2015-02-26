@@ -442,7 +442,8 @@ def surveyExport(request, surveyId):
             # 处理问答题
             if question.type == 'Text':
                 if sampleItem:
-                    row.append(sampleItem.content)
+                    content = unicode(sampleItem.content).encode(encoding)
+                    row.append(content)
                 else:
                     row.append('')
 
