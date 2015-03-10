@@ -6,16 +6,19 @@
         </div>
         <div class="panel-body">
             <div class="row">
-                <div class="col-md-6" align="right">
-                    <label for="amount">分数 :</label>
-                </div>
-                <div class="col-md-6" align="left">
+                <div class="col-md-12" align="left">
+                    <label for="amount"> 分数 :</label>
                     <input id="question-{{ question.getIdSigned | cut:':' }}"
                            type="text" name="{{ question.getIdSigned }}"
                            readonly style="border:0; color:#f6931f; font-weight:bold;"/>
                 </div>
             </div>
             <br><br>
+
+            <div class="row">
+                <div class="col-md-2" align="left">{{ question.valueMin | floatformat:"0" }} </div>
+                <div class="col-md-2 col-md-offset-8" align="right"> {{ question.valueMax | floatformat:"0" }}</div>
+            </div>
 
             <div class="slider-input"
                  data-input-id="question-{{ question.getIdSigned | cut:':' }}"
