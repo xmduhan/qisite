@@ -19,7 +19,17 @@
                         <h4>确认您的身份</h4>
                     </div>
                     <div class="panel-body">
-                        手机号码{{ survey.createBy.phone }}的用户邀请您填写一个问卷({{ paper.title }})，填写该问卷需要确认您的身份，请输入手机号码做为确认身份的依据。
+                            手机号码{{ survey.createBy.phone }}的用户邀请您填写一个问卷({{ paper.title }})，填写该问卷需要确认您的身份，请输入
+                            {% if survey.custList %}
+                                手机号码
+                            {% endif %}
+                            {% if survey.custList and survey.password %}
+                                和
+                            {% endif %}
+                            {% if survey.password %}
+                                参与密码
+                            {% endif %}
+                            做为确认身份的依据。
                         <p></p>
                         {% if survey.custList %}
                             <div class="row">
