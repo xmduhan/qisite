@@ -323,7 +323,7 @@ def surveyAnswerSubmit(request):
     surveyIdSigned = request.REQUEST.get('surveyId')
     if not surveyIdSigned:
         #raise Exception(RESULT_MESSAGE.NO_SURVEY_ID)  # 没有提供调查对象
-        template = loader.get_template('www/message.html')
+        template = loader.get_template('www/answerFinished.html')
         context = RequestContext(request, {'title': u'出错', 'message': RESULT_MESSAGE.NO_SURVEY_ID, 'returnUrl': '/'})
         return HttpResponse(template.render(context))
 
@@ -333,7 +333,7 @@ def surveyAnswerSubmit(request):
         surveyId = signer.unsign(surveyIdSigned)
     except:
         #raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 无效的数字签名
-        template = loader.get_template('www/message.html')
+        template = loader.get_template('www/answerFinished.html')
         context = RequestContext(request, {'title': u'出错', 'message': RESULT_MESSAGE.BAD_SAGNATURE, 'returnUrl': '/'})
         return HttpResponse(template.render(context))
 

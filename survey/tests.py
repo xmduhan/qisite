@@ -2188,6 +2188,7 @@ class TargetLessSurveyAnswerTest(TestCase):
         self.messageTemplate = 'www/message.html'
         self.answeredTemplate = 'survey/surveyAnswered.html'
         self.surveyLoginTemplate = 'survey/surveyLogin.html'
+        self.answerFinishedTemplate = 'survey/answerFinished.html'
 
         # 生成一个合法的答卷数据，供后面的过程提交使用
         data_valid = {}
@@ -2229,7 +2230,7 @@ class TargetLessSurveyAnswerTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # 检查提交的页面是否成功
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
 
         # 检查是否返回成功信息
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
@@ -2252,7 +2253,7 @@ class TargetLessSurveyAnswerTest(TestCase):
         # 第1次提交页面返回成功
         response = client.post(self.answerSubmitUrl, self.data_valid)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         # 第2次提交页面返回失败
@@ -2281,7 +2282,7 @@ class TargetLessSurveyAnswerTest(TestCase):
         # 第1次提交页面返回成功
         response = client.post(self.answerSubmitUrl, self.data_valid)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         # 填写完问卷以后样本数量加1
@@ -2291,7 +2292,7 @@ class TargetLessSurveyAnswerTest(TestCase):
         # 第2次仍然可以成功
         response = client.post(self.answerSubmitUrl, self.data_valid_resubmit)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         # 重填样本数量不能增加
@@ -2333,7 +2334,7 @@ class TargetLessSurveyAnswerTest(TestCase):
         # 第1次提交页面返回成功
         response = client.post(self.answerSubmitUrl, self.data_valid)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         # 第2次提交是不能成功的
@@ -2424,7 +2425,7 @@ class TargetLessSurveyAnswerTest(TestCase):
         data_valid['passwordEncoded'] = passwordEncoded
         response = client.post(self.answerSubmitUrl, data_valid)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         # 再次提交检查重填提交页面是否包含隐藏密码
@@ -2474,7 +2475,7 @@ class TargetLessSurveyAnswerTest(TestCase):
         data_valid['passwordEncoded'] = passwordEncoded
         response = client.post(self.answerSubmitUrl, data_valid)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         ############################## 第2次提交 #############################
@@ -2506,7 +2507,7 @@ class TargetLessSurveyAnswerTest(TestCase):
         data_valid['resubmit'] = True
         response = client.post(self.answerSubmitUrl, data_valid)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
 
@@ -2569,6 +2570,7 @@ class TargetSurveyAnswerTest(TestCase):
         self.messageTemplate = 'www/message.html'
         self.answeredTemplate = 'survey/surveyAnswered.html'
         self.viewRusultTemplate = 'survey/surveyViewResult.html'
+        self.answerFinishedTemplate = 'survey/answerFinished.html'
 
 
         # 生成一个合法的答卷数据，供后面的过程提交使用
@@ -2658,7 +2660,7 @@ class TargetSurveyAnswerTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # 检查提交的页面是否返回的是message页面
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
 
         # 检查是否返回成功信息
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
@@ -2691,7 +2693,7 @@ class TargetSurveyAnswerTest(TestCase):
         # 第1此提交成功
         response = client.post(self.answerSubmitUrl, data_valid)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         # 第2次提交失败
@@ -2733,13 +2735,13 @@ class TargetSurveyAnswerTest(TestCase):
         # 第1此提交成功
         response = client.post(self.answerSubmitUrl, data_valid1)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         # 第2次提交也要成功
         response = client.post(self.answerSubmitUrl, data_valid2)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
 
@@ -2767,7 +2769,7 @@ class TargetSurveyAnswerTest(TestCase):
         # 第1此提交成功
         response = client.post(self.answerSubmitUrl, data_valid)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         # 填写完问卷以后样本数量加1
@@ -2777,7 +2779,7 @@ class TargetSurveyAnswerTest(TestCase):
         # 增加了resubmit标识应该能提交成功
         response = client.post(self.answerSubmitUrl, data_valid)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         # 重填样本数量不能增加
@@ -2839,7 +2841,7 @@ class TargetSurveyAnswerTest(TestCase):
         # 第1次提交成功
         response = client.post(self.answerSubmitUrl, data_valid)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         # 第2次提交即使增加了resubmit标志也无法成功
@@ -2937,7 +2939,7 @@ class TargetSurveyAnswerTest(TestCase):
         # 提交数据并返回成功
         response = client.post(self.answerSubmitUrl, data_valid)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         # 再次提交返回重复提交页面，检查是否包含隐藏密码
@@ -2988,6 +2990,7 @@ class TargetSurveyAnswerTest(TestCase):
         self.survey.endTime = datetime.now()
         self.survey.save()
         # 尝试进入调查封面
+        print self.coverUrl
         response = self.client.get(self.coverUrl)
         self.assertEqual(response.status_code, 200)
         # 返回调查已过期了
@@ -3015,7 +3018,7 @@ class TargetSurveyAnswerTest(TestCase):
         # 第1此提交成功
         response = client.post(self.answerSubmitUrl, data_valid)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         # 可以成功进入页面
@@ -3053,7 +3056,7 @@ class TargetSurveyAnswerTest(TestCase):
         # 第1此提交成功
         response = client.post(self.answerSubmitUrl, data_valid)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         # 进入answered界面
@@ -3819,6 +3822,7 @@ class MultipleQuestionTypeBulkTest(TestCase):
         self.answerTemplate = 'survey/surveyAnswerAll.html'
         self.surveyLoginTemplate = 'survey/surveyLogin.html'
         self.messageTemplate = 'www/message.html'
+        self.answerFinishedTemplate = 'survey/answerFinished.html'
         self.answeredTemplate = 'survey/surveyAnswered.html'
         self.viewRusultTemplate = 'survey/surveyViewResult.html'
 
@@ -3875,7 +3879,7 @@ class MultipleQuestionTypeBulkTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # 检查提交的页面是否成功
-        self.assertEqual(response.templates[0].name, self.messageTemplate)
+        self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
 
         # 检查是否返回成功信息
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
