@@ -37,6 +37,23 @@
         <form id='viewResult' method="post" action="{% url 'survey:view.survey.viewResult' survey.id %}">
             {% csrf_token %}
         </form>
+
+        {% if survey.resubmit %}
+            <form id='resubmit' method="post" action="{% url 'survey:view.survey.answer.render' survey.id %}">
+                {% csrf_token %}
+                {# 重填标志 #}
+                <input name="resubmit" type="hidden" value="True"/>
+                {# 号码信息 #}
+                {% if survey.custList %}
+                    <input name="phone" type="hidden" value="{{ phone }}"/>
+                {% endif %}
+                {# 密码信息 #}
+                {% if survey.password %}
+                    <input name="passwordEncoded" type="hidden" value="{{ passwordEncoded }}"/>
+                {% endif %}
+            </form>
+        {% endif %}
+
         <div class="col-md-4 col-md-offset-4" align="center">
             {# 返回 #}
             <a href="{% url 'survey:view.survey.answer' survey.id %}"
@@ -52,6 +69,16 @@
                     查看
                 </button>
             {% endif %}
+
+            {# 重填 #}
+            {% if survey.resubmit %}
+                <button id='resubmitButton' type='submit' class="btn btn-danger form-submit-button"
+                        data-form-id="resubmit">
+                    <span class="glyphicon glyphicon-ok"></span>
+                    重填
+                </button>
+            {% endif %}
+
         </div>
     </div>
 

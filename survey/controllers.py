@@ -985,9 +985,10 @@ class SurveyResponseController(ResponseController):
         答题完成界面
         '''
         template = loader.get_template(self.answerFinishedTemplate)
-        context = RequestContext(
-            self.request, {'title': title, 'message': message, 'returnUrl': returnUrl,'survey':self.survey}
-        )
+        data = {'title': title, 'message': message, 'returnUrl': returnUrl,'survey':self.survey}
+        submitAuthInfo = self.authController.getAuthInfo()
+        data = dict(data.items() + submitAuthInfo.items())
+        context = RequestContext(self.request,data)
         return HttpResponse(template.render(context))
 
 
