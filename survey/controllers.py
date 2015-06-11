@@ -986,7 +986,8 @@ class SurveyResponseController(ResponseController):
         '''
         template = loader.get_template(self.answerFinishedTemplate)
         context = RequestContext(
-            self.request, {'title': title, 'message': message, 'returnUrl': returnUrl})
+            self.request, {'title': title, 'message': message, 'returnUrl': returnUrl,'survey':self.survey}
+        )
         return HttpResponse(template.render(context))
 
 
