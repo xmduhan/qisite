@@ -99,7 +99,10 @@ def service(request):
             if len(result) == 0:
                 return HttpResponse('')
             else:
-                return dictToXmlResponse(result)
+                if result == 'userid' :
+                    return HttpResponse(data.get('FromUserName', ''))
+                else:
+                    return dictToXmlResponse(result)
 
     # 对于所有不处理的类型返回空字符串
     return HttpResponse('')
