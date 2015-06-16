@@ -644,8 +644,8 @@ class SurveyBulkAnswerController(SurveyAnswerController):
 
         # 返回成功
         returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
-        return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
-
+        #return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
+        return self.controller.answerFinished(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
     pass
 
 
@@ -719,7 +719,8 @@ class SurveyStepAnswerController(SurveyAnswerController):
             sample.save()
             # 返回成功
             returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
-            return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
+            #return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
+            return self.controller.answerFinished(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
         else:
             nextQuestion = paper.getQuestionSetInOrder()[question.ord + 1]
             # 保存答题断点到sample对象
@@ -819,7 +820,8 @@ class SurveyStepAnswerController(SurveyAnswerController):
                 sample.save()
                 # 返回成功
                 returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
-                return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
+                #return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
+                return self.controller.answerFinished(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
             else:
                 # 下一个问题设定为选项指定的下一题
                 nextQuestion = branch.nextQuestion
@@ -922,6 +924,8 @@ class SurveyResponseController(ResponseController):
         '''
         self.answeredTemplate = 'survey/surveyAnswered.html'
         self.messageTemplate = 'www/message.html'
+        #self.answerFinishedTemplate = 'www/message.html'
+        self.answerFinishedTemplate = 'survey/answerFinished.html'
         self.url = reverse('survey:view.survey.answer.render', args=[self.survey.id])
 
     def __init__AuthController(self):
@@ -974,6 +978,18 @@ class SurveyResponseController(ResponseController):
 
     def getAllBranchSelected(self):
         return self.allBranchIdSelected
+
+
+    def answerFinished(self,title, message, returnUrl):
+        '''
+        答题完成界面
+        '''
+        template = loader.get_template(self.answerFinishedTemplate)
+        data = {'title': title, 'message': message, 'returnUrl': returnUrl,'survey':self.survey}
+        submitAuthInfo = self.authController.getAuthInfo()
+        data = dict(data.items() + submitAuthInfo.items())
+        context = RequestContext(self.request,data)
+        return HttpResponse(template.render(context))
 
 
     def messagePage(self, title, message, returnUrl):
