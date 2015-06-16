@@ -62,13 +62,22 @@ def processTextMessage(data):
     msgId = data.get('MsgId', '')  #消息id，64位整型
 
     # 打包返回信息
-    result = {
-        'ToUserName': fromUserName,
-        'FromUserName': toUserName,
-        'CreateTime': datetimeToInt(datetime.now()),
-        'MsgType': msgType,
-        'Content': content
-    }
+    if content == 'userid' :
+        result = {
+            'ToUserName': fromUserName,
+            'FromUserName': toUserName,
+            'CreateTime': datetimeToInt(datetime.now()),
+            'MsgType': msgType,
+            'Content': fromUserName
+        }
+    else:
+        result = {
+            'ToUserName': fromUserName,
+            'FromUserName': toUserName,
+            'CreateTime': datetimeToInt(datetime.now()),
+            'MsgType': msgType,
+            'Content': content
+        }
     return result
 
 
@@ -99,10 +108,7 @@ def service(request):
             if len(result) == 0:
                 return HttpResponse('')
             else:
-                if result == 'userid' :
-                    return dictToXmlResponse(data.get('FromUserName', ''))
-                else:
-                    return dictToXmlResponse(result)
+                return dictToXmlResponse(result)
 
     # 对于所有不处理的类型返回空字符串
     return HttpResponse('')
