@@ -100,7 +100,7 @@ def service(request):
                 return HttpResponse('')
             else:
                 if result == 'userid' :
-                    return HttpResponse(data.get('FromUserName', ''))
+                    return dictToXmlResponse(data.get('FromUserName', ''))
                 else:
                     return dictToXmlResponse(result)
 
