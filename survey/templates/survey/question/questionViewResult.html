@@ -1,0 +1,14 @@
+
+{% if question.type == 'Single' %}
+    {% include "survey/question/singleViewResult.html" with question=question branchSelCount=branchSelCount branchSelPct=branchSelPct only %}
+{% elif question.type == 'Multiple' %}
+    {% include "survey/question/multipleViewResult.html" with question=question branchSelCount=branchSelCount branchSelPct=branchSelPct only %}
+{% elif question.type == 'Text' %}
+    {% include "survey/question/textViewResult.html" with question=question branchSelCount=branchSelCount branchSelPct=branchSelPct only %}
+{% elif question.type == 'Score' %}
+    {% include "survey/question/scoreViewResult.html" with question=question branchSelCount=branchSelCount branchSelPct=branchSelPct only %}
+{% else %}
+    <div class="well">
+        未知的题目类型
+    </div>
+{% endif %}
