@@ -25,37 +25,8 @@
         <br>
 
         {% for question in paper.getQuestionSetInOrder %}
-            <div class="col-md-12">
-                <div class="panel panel-info ">
-                    <div class="panel-heading">
-                        {{ question.getNum }} {{ question.text }} <br>
-                    </div>
-                    <div class="panel-body">
-                        {# 打印出每个选项的选择数量和 #}
-                        {% for branch in question.getBranchSetInOrder %}
-                            <div>
-                                {{ branch.getNum }} {{ branch.text }}-------
-                                {{ branchSelCount|get_item:branch.id }}
-                                ({{ branchSelPct|get_item:branch.id|floatformat:"-2" }}%)
-                            </div>
-                            <br>
-                        {% endfor %}
-                        {# 显示数据对应的图表 #}
-                        <div id="chart{{ question.ord }}" style="height: 300px; width:100%;
-                             position: relative;"
-                             class="jqplot-target"
-                             data-chart-data="[
-                                {% for branch in question.getBranchSetInOrder %}
-                                 ['{{ branch.getNum }}',{{ branchSelCount|get_item:branch.id }}],
-                                {% endfor %}
-                             ]">
-                        </div>
-
-                    </div>
-                </div>
-            </div>
+            {% include "survey/question/questionViewResult.html" with question=question branchSelCount=branchSelCount branchSelPct=branchSelPct only %}
         {% endfor %}
-
 
         {#  底部按钮 #}
         <div class="row">
@@ -73,7 +44,6 @@
     <p></p>
 
     <br><br><br><br><br><br><br><br><br><br>
-
 
 </div>
 
