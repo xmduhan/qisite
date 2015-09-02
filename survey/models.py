@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import division
 from django.db import models
 import account.models
 from datetime import datetime
@@ -42,8 +43,8 @@ class Paper(TimeModel):
     questionNumStyle = models.CharField(
         '问题标号样式', max_length=50, choices=QUESTION_NUM_STYLE, default=defaultQuestionNumStyle)
     lookBack = models.BooleanField('返回修改', default=False)
-    #style = models.CharField('展现方式', max_length=5, choices=PAPER_STYLE) #使用paging字段取代
-    #paging = models.BooleanField('分页答题', default=True)  # 正在考虑用step字段取代
+    # style = models.CharField('展现方式', max_length=5, choices=PAPER_STYLE) #使用paging字段取代
+    # paging = models.BooleanField('分页答题', default=True)  # 正在考虑用step字段取代
     step = models.BooleanField('分步答题', default=False)
     type = models.CharField('问题类型', choices=PAPER_TYPE, max_length=10, default='T')
     survey = models.ForeignKey('Survey', related_name='paperReversed_set', verbose_name="调查", null=True,
@@ -53,6 +54,7 @@ class Paper(TimeModel):
     modifyBy = models.ForeignKey(
         account.models.User, verbose_name="修改者", related_name='paperModified_set', blank=True, null=True)
     # 样本集 sample_set (ok) (已在sample中设置外键引用)
+
     def clean(self):
         '''
             说明：
@@ -109,6 +111,12 @@ class Paper(TimeModel):
                     branch.save()
 
         return newPaper
+
+    def getSampleCount(self):
+        """
+        获取文件采集到的样本数量
+        """
+        return self.sample_set.count()
 
     def createPaperInstance(self, user):
         '''
@@ -329,6 +337,24 @@ class Branch(TimeModel):
         newBranch.save()
 
         return newBranch
+
+    def getSelectedCount(self):
+        """
+        获取选择该选项的样本项的数量,实际就是统计该选项被用户选了几次
+
+        """
+        return self.sampleitem_set.count()
+
+    def getSelectedPct(self):
+        """
+        获得当前选项的选择比例
+        其值为0-100之间
+        """
+        sampleCount = self.question.paper.sample_set.count()
+        if sampleCount == 0:
+            return None
+        else:
+            return self.getSelectedCount() / sampleCount * 100
 
 
 def oneYearLater():

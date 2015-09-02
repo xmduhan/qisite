@@ -1,4 +1,35 @@
-<div class="well">
-   文字题的查看结果没有实现
+<div class="col-md-12">
+    <div class="panel panel-info ">
+        <div class="panel-heading">
+            {{ question.getNum }} {{ question.text }} <br>
+        </div>
+        <div class="panel-body">
+            {# 打印出每个选项的选择数量和 #}
+            {% for branch in question.getBranchSetInOrder %}
+                {% with branch.getSelectedCount as selectedCount %}
+                {% with branch.getSelectedPct as selectedPct %}
+                    <div>
+                        {{ branch.getNum }} {{ branch.text }}-------
+                        {{ selectedCount }}
+                        ({{ selectedPct|floatformat:"-2" }}%)
+                    </div>
+                    <br>
+                {% endwith %}
+                {% endwith %}
+            {% endfor %}
+            {# 显示数据对应的图表 #}
+            <div id="chart{{ question.ord }}" style="height: 300px; width:100%;
+                    position: relative;"
+                    class="jqplot-target"
+                    data-chart-data="[
+                    {% for branch in question.getBranchSetInOrder %}
+                        {% with branch.getSelectedCount as selectedCount %}
+                            ['{{ branch.getNum }}',{{ selectedCount }}],
+                        {% endwith %}
+                    {% endfor %}
+                    ]">
+            </div>
+        </div>
+    </div>
 </div>
 

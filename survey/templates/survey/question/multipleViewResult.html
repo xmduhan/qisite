@@ -6,12 +6,16 @@
         <div class="panel-body">
             {# 打印出每个选项的选择数量和 #}
             {% for branch in question.getBranchSetInOrder %}
-                <div>
-                    {{ branch.getNum }} {{ branch.text }}-------
-                    {{ branchSelCount|get_item:branch.id }}
-                    ({{ branchSelPct|get_item:branch.id|floatformat:"-2" }}%)
-                </div>
-                <br>
+                {% with branch.getSelectedCount as selectedCount %}
+                {% with branch.getSelectedPct as selectedPct %}
+                    <div>
+                        {{ branch.getNum }} {{ branch.text }}-------
+                        {{ selectedCount }}
+                        ({{ selectedPct|floatformat:"-2" }}%)
+                    </div>
+                    <br>
+                {% endwith %}
+                {% endwith %}
             {% endfor %}
             {# 显示数据对应的图表 #}
             <div id="chart{{ question.ord }}" style="height: 300px; width:100%;
@@ -19,11 +23,12 @@
                     class="jqplot-target"
                     data-chart-data="[
                     {% for branch in question.getBranchSetInOrder %}
-                        ['{{ branch.getNum }}',{{ branchSelCount|get_item:branch.id }}],
+                        {% with branch.getSelectedCount as selectedCount %}
+                            ['{{ branch.getNum }}',{{ selectedCount }}],
+                        {% endwith %}
                     {% endfor %}
                     ]">
             </div>
-
         </div>
     </div>
 </div>

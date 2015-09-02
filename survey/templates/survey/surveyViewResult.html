@@ -25,7 +25,7 @@
         <br>
 
         {% for question in paper.getQuestionSetInOrder %}
-            {% include "survey/question/questionViewResult.html" with question=question branchSelCount=branchSelCount branchSelPct=branchSelPct only %}
+            {% include "survey/question/questionViewResult.html" with question=question paper=paper only %}
         {% endfor %}
 
         {#  底部按钮 #}
