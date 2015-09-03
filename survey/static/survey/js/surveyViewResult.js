@@ -21,7 +21,24 @@ pieOpition = {
 
 function renderPieChart(chartId) {
     data = eval($("#" + chartId).data('chart-data'));
-    jQuery.jqplot(chartId, [data], pieOpition);
+    //jQuery.jqplot(chartId, [data], pieOpition);
+    $.jqplot(chartId, [data], {
+        grid: {shadow: false, borderWidth: 0},
+        seriesDefaults:{
+            renderer:$.jqplot.PieRenderer,
+            trendline:{ show:false },
+            rendererOptions: { padding: 8, showDataLabels: true }
+        },
+        legend:{
+            show:true,
+            placement: 'outside',
+            rendererOptions: {
+                numberRows: 1
+            },
+            location:'s',
+            marginTop: '15px'
+        }
+    });
 }
 
 /***************************************
@@ -35,7 +52,7 @@ function renderBarChart(chartId) {
     var ticks = data[0]
     var s1 = data[1]
 
-    plot1 = $.jqplot(chartId, [s1], {
+    $.jqplot(chartId, [s1], {
         animate: false,
         seriesDefaults:{
             renderer:$.jqplot.BarRenderer,
@@ -44,10 +61,15 @@ function renderBarChart(chartId) {
         axes: {
             xaxis: {
                 renderer: $.jqplot.CategoryAxisRenderer,
-                ticks: ticks
+                ticks: ticks,
+                tickOptions:{showGridline: false}
+            },
+            yaxis: {
+              tickOptions:{showGridline: false}
             }
         },
-        highlighter: { show: false }
+        highlighter: { show: false },
+        grid: {shadow: false, borderWidth: 0}
     });
 }
 
@@ -57,9 +79,9 @@ function renderBarChart(chartId) {
 
 function renderAllChart() {
 
-    //$(".jqplot-pie-chart").each(function () {
-    //    renderPieChart($(this).attr('id'));
-    //})
+    $(".jqplot-pie-chart").each(function () {
+        renderPieChart($(this).attr('id'));
+    })
 
     $(".jqplot-bar-chart").each(function () {
         renderBarChart($(this).attr('id'));
@@ -70,6 +92,7 @@ function renderAllChart() {
 /***************************************
  *          全局初始化函数             *
  ***************************************/
+
 $(document).ready(function () {
     $.jqplot.config.enablePlugins = true;
     renderAllChart();

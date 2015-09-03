@@ -1,3 +1,4 @@
+{% load survey %}
 <div class="col-md-12">
     <div class="panel panel-info ">
         <div class="panel-heading">
@@ -21,14 +22,9 @@
             <div id="chart{{ question.ord }}" style="height: 300px; width:100%;
                     position: relative;"
                     class="jqplot-bar-chart"
-                    data-chart-data="[
-                    {% for branch in question.getBranchSetInOrder %}
-                        {% with branch.getSelectedCount as selectedCount %}
-                            ['{{ branch.getNum }}',{{ selectedCount }}],
-                        {% endwith %}
-                    {% endfor %}
-                    ['a','b','c'],[1,2,3]
-                    ]">
+                    data-chart-data="
+                    {{question.getScoreStat|toJsonString}}
+                    ">
             </div>
         </div>
     </div>

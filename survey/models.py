@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.signing import Signer
 import copy
 from dateutil.relativedelta import relativedelta
-
+import operator
 import re
 
 
@@ -221,6 +221,18 @@ class Question(TimeModel):
     def getIdSigned(self):
         signer = Signer()
         return signer.sign(self.id)
+
+    def getScoreStat(self,max=10):
+        """
+        获取评分分布统计信息
+        """
+        querySet = SampleItem.objects.filter(question=self)
+        r1 = querySet.values('score').annotate(count=models.Count('score'))
+        r2 = {i['score']:i['count']for i in r1}
+        r3 = sorted(r2.items(), key=operator.itemgetter(0),reverse=True)[:10]
+        r4 = zip(*r3)
+        return r4
+
 
     def copy(self, user=None):
         '''
