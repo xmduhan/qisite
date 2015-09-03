@@ -47,16 +47,25 @@
 
 </div>
 
+<div id="chart1" style="margin-top:20px; margin-left:20px; width:300px; height:300px;"></div>
+
+
 {% include "www/commonjs.html" %}
 
 
 {# jquery 的兼容包jqplot基于jquery1.6为与之兼容必须加上migrate #}
 <script src="/static/jquery/jquery-migrate-1.2.1.min.js"></script>
 {# 图表显示相关的js引用 #}
-<script src="/static/jqplot/jquery.jqplot.min.js"></script>
+<script src="/static/jqplot/jquery.jqplot.js"></script>
 <script src="/static/jqplot/plugins/jqplot.pieRenderer.min.js"></script>
+<script src="/static/jqplot/plugins/jqplot.barRenderer.js"></script>
+<script src="/static/jqplot/plugins/jqplot.categoryAxisRenderer.min.js"></script>
 
 <script src="/static/survey/js/surveyViewResult.js"></script>
+
+
+
+
 
 </body>
 </html>

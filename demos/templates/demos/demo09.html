@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    
+    {% include "www/commoncss.html" %}
+    <link rel="stylesheet" href="/static/jqplot/jquery.jqplot.min.css">
+</head>
+<body>
+     
+       
+ <div id="chart1" style="margin-top:20px; margin-left:20px; width:300px; height:300px;"></div>
+    
+  {% include "www/commonjs.html" %}
+  <script class="include" type="text/javascript" src="/static/jquery/jquery.min.js"></script>
+  <script src="/static/jquery/jquery-migrate-1.2.1.min.js"></script>
+  <script class="include" type="text/javascript" src="/static/jqplot/jquery.jqplot.min.js"></script>
+  <script class="include" type="text/javascript" src="/static/jqplot/plugins/jqplot.barRenderer.min.js"></script>
+  <script class="include" type="text/javascript" src="/static/jqplot/plugins/jqplot.categoryAxisRenderer.min.js"></script>
+
+  <script class="code" type="text/javascript">$(document).ready(function(){
+        $.jqplot.config.enablePlugins = true;
+        var s1 = [2, 6, 7, 10];
+        var ticks = ['a', 'b', 'c', 'd'];
+        
+        plot1 = $.jqplot('chart1', [s1], {
+            animate: false,
+            seriesDefaults:{
+                renderer:$.jqplot.BarRenderer,
+                pointLabels: { show: true }
+            },
+            axes: {
+                xaxis: {
+                    renderer: $.jqplot.CategoryAxisRenderer,
+                    ticks: ticks
+                }
+            },
+            highlighter: { show: false }
+        });    
+        
+    });</script>
+
+
+</body>
+
+
+</html>

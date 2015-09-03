@@ -51,3 +51,9 @@ class demo08(View):
     def get(self, request):
         # <view logic>
         return HttpResponse('result')
+
+
+def demo09(request):
+    template = loader.get_template('demos/demo09.html')
+    context = Context({})
+    return HttpResponse(template.render(context))

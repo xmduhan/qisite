@@ -59,15 +59,41 @@ function renderAllChart() {
         renderPieChart($(this).attr('id'));
     })
 
-    $(".jqplot-bar-chart").each(function () {
-        renderBarChart($(this).attr('id'));
-    })
+    //$(".jqplot-bar-chart").each(function () {
+    //    renderBarChart($(this).attr('id'));
+    //})
 
 }
 
 /***************************************
  *          全局初始化函数             *
  ***************************************/
+
+function test01(){
+    $.jqplot.config.enablePlugins = true;
+    var s1 = [2, 6, 7, 10];
+    var ticks = ['a', 'b', 'c', 'd'];
+
+    plot1 = $.jqplot('chart3', [s1], {
+        animate: false,
+        seriesDefaults:{
+            renderer:$.jqplot.BarRenderer,
+            pointLabels: { show: true }
+        },
+        axes: {
+            xaxis: {
+                renderer: $.jqplot.CategoryAxisRenderer,
+                ticks: ticks
+            }
+        },
+        highlighter: { show: false }
+    });
+
+}
+
+
+
 $(document).ready(function () {
     renderAllChart();
+    //test01();
 });

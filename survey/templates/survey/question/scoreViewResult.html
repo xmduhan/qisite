@@ -20,7 +20,7 @@
             {# 显示数据对应的图表 #}
             <div id="chart{{ question.ord }}" style="height: 300px; width:100%;
                     position: relative;"
-                    class="jqplot-pie-chart"
+                    class="jqplot-bar-chart"
                     data-chart-data="[
                     {% for branch in question.getBranchSetInOrder %}
                         {% with branch.getSelectedCount as selectedCount %}
