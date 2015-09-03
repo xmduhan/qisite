@@ -229,7 +229,7 @@ class Question(TimeModel):
         querySet = SampleItem.objects.filter(question=self)
         r1 = querySet.values('score').annotate(count=models.Count('score'))
         r2 = {i['score']:i['count']for i in r1}
-        r3 = sorted(r2.items(), key=operator.itemgetter(0),reverse=True)[:10]
+        r3 = sorted(r2.items(), key=operator.itemgetter(1),reverse=True)[:10]
         r4 = zip(*r3)
         return r4
 
