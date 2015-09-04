@@ -85,8 +85,10 @@ function renderBubbleChart(chartId){
 
     attr = []
     for(i=0; i<data.length; i++) {
-        x = Math.floor((Math.random() * 10 * (i+1)) + 1);
-        y = Math.floor((Math.random() * 10 * (i+1)) + 1);
+        min = -50;
+        max = 50;
+        x = i * 3 + Math.floor(Math.random() * (max - min + 1) + min);
+        y = i * 3 + Math.floor(Math.random() * (max - min + 1) + min);
         attr[i] = [x,y,11-i,data[i]]
     }
 
