@@ -10,7 +10,7 @@ import copy
 from dateutil.relativedelta import relativedelta
 import operator
 import re
-
+from jieba.analyse import extract_tags
 
 phonePattern = re.compile(r'^((13[0-9])|(15[^4,\D])|(14[57])|(17[0])|(18[0,0-9]))\d{8}$')
 
@@ -233,6 +233,14 @@ class Question(TimeModel):
         r4 = zip(*r3)
         return r4
 
+    def getTextKeywords(self, n=10):
+        """
+        从文字题中提取关键字
+        """
+        querySet = SampleItem.objects.filter(question=self)
+        text = ' '.join([rec['content'] for rec in querySet.values('content')])
+        tags = extract_tags(text, topK=n)
+        return tags
 
     def copy(self, user=None):
         '''

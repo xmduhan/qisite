@@ -73,6 +73,47 @@ function renderBarChart(chartId) {
     });
 }
 
+
+/***************************************
+ *          展现一个泡泡图             *
+ ***************************************/
+
+function renderBubbleChart(chartId){
+
+    data = eval($("#" + chartId).data('chart-data'));
+    console.log($("#" + chartId).data('chart-data'));
+
+    attr = []
+    for(i=0; i<data.length; i++) {
+        x = Math.floor((Math.random() * 10 * (i+1)) + 1);
+        y = Math.floor((Math.random() * 10 * (i+1)) + 1);
+        attr[i] = [x,y,11-i,data[i]]
+    }
+
+    $.jqplot(chartId,[attr],{
+        //title: 'Transparent Bubbles',
+        seriesDefaults:{
+            renderer: $.jqplot.BubbleRenderer,
+            rendererOptions: {
+                bubbleAlpha: 0.6,
+                highlightAlpha: 0.8
+            },
+            shadow: true,
+            shadowAlpha: 0.05
+        },
+        axes: {
+            xaxis: {
+                tickOptions:{showGridline: false, show: false}
+            },
+            yaxis: {
+                tickOptions:{showGridline: false, show: false}
+            }
+        },
+        grid: {shadow: false, borderWidth: 0}
+    });
+}
+
+
 /***************************************
  *          展现所有的图表             *
  ***************************************/
@@ -85,6 +126,10 @@ function renderAllChart() {
 
     $(".jqplot-bar-chart").each(function () {
         renderBarChart($(this).attr('id'));
+    })
+
+    $(".jqplot-bubble-chart").each(function () {
+        renderBubbleChart($(this).attr('id'));
     })
 
 }

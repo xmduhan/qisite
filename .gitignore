@@ -5,3 +5,5 @@
 sql.log
 db.sqlite3
 qisite/config.py
+*.ipynb
+.ipynb_checkpoints/

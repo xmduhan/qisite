@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'south',
+    'django_extensions',
     #'rest_framework',
     'www',
     'home',
@@ -100,6 +101,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAdminUser',),
     'PAGINATE_BY': 10
 }
+
+NOTEBOOK_ARGUMENTS = ['--profile=nbserver']
 
 URLS_JS_GENERATED_FILE = '/static/django/django-urls.js'
 

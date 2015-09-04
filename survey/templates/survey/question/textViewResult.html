@@ -1,3 +1,4 @@
+{% load survey %}
 <div class="col-md-12">
     <div class="panel panel-info ">
         <div class="panel-heading">
@@ -20,14 +21,10 @@
             {# 显示数据对应的图表 #}
             <div id="chart{{ question.ord }}" style="height: 300px; width:100%;
                     position: relative;"
-                    class="jqplot-unknown-chart"
-                    data-chart-data="[
-                    {% for branch in question.getBranchSetInOrder %}
-                        {% with branch.getSelectedCount as selectedCount %}
-                            ['{{ branch.getNum }}',{{ selectedCount }}],
-                        {% endwith %}
-                    {% endfor %}
-                    ]">
+                    class="jqplot-bubble-chart"
+                    data-chart-data="
+                        {{question.getTextKeywords|toJsonString}}
+                    ">
             </div>
         </div>
     </div>
