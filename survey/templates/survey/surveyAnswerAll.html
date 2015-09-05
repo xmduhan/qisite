@@ -37,7 +37,7 @@
             </div>
             <br>
             {% for question in paper.getQuestionSetInOrder %}
-                {% include "survey/question/questionAnswer.html" with question=question allBranchIdSelected=allBranchIdSelected only %}
+                {% include "survey/question/questionAnswer.html" with question=question allBranchIdSelected=allBranchIdSelected allQuestionText=allQuestionText allQuestionScore=allQuestionScore only %}
             {% endfor %}
         </form>
 

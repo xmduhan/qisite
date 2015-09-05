@@ -482,6 +482,8 @@ class SurveyBulkAnswerController(SurveyAnswerController):
         data = {'session': self.request.session, 'survey': self.survey, 'paper': self.survey.paper}
         # 增加上次答题结果信息
         data['allBranchIdSelected'] = self.controller.getAllBranchSelected()
+        data['allQuestionText'] = self.controller.getAllQuestionText()
+        data['allQuestionScore'] = self.controller.getAllQuestionScore()
         # 增加鉴权信息
         submitAuthInfo = self.controller.authController.getAuthInfo()
         data = dict(data.items() + submitAuthInfo.items())
@@ -687,6 +689,8 @@ class SurveyStepAnswerController(SurveyAnswerController):
                 'question': nextQuestion}
         # 增加上次答题结果信息
         data['allBranchIdSelected'] = self.controller.getAllBranchSelected()
+        data['allQuestionText'] = self.controller.getAllQuestionText()
+        data['allQuestionScore'] = self.controller.getAllQuestionScore()
         # 增加鉴权信息
         submitAuthInfo = self.controller.authController.getAuthInfo()
         data = dict(data.items() + submitAuthInfo.items())
@@ -914,6 +918,8 @@ class SurveyResponseController(ResponseController):
         ResponseController.__init__(self, request)
         self.survey = Survey.objects.get(id=surveyId)
         self.allBranchIdSelected = []
+        self.allQuestionText = {}
+        self.allQuestionScore = {}
         self.__init__url()
         self.__init__AuthController()
         self.__init__AnswerController()
@@ -972,13 +978,24 @@ class SurveyResponseController(ResponseController):
         读取上次答题的结果
         '''
         sample = self.authController.getSample()
+        # 获取所有单选和多选题的已选选项
         for sampleItem in sample.sampleitem_set.all():
             self.allBranchIdSelected.extend([branch.id for branch in sampleItem.branch_set.all()])
-
+        # 获取所有文字题的填写内容
+        for sampleItem in SampleItem.objects.filter(sample = sample,question__type = 'Text'):
+            self.allQuestionText[sampleItem.question] = sampleItem.content
+        # 获取所有评分题的评分结果
+        for sampleItem in SampleItem.objects.filter(sample = sample,question__type = 'Score'):
+            self.allQuestionScore[sampleItem.question] = sampleItem.score
 
     def getAllBranchSelected(self):
         return self.allBranchIdSelected
 
+    def getAllQuestionText(self):
+        return self.allQuestionText
+
+    def getAllQuestionScore(self):
+        return self.allQuestionScore
 
     def answerFinished(self,title, message, returnUrl):
         '''

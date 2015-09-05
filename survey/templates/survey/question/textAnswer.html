@@ -1,3 +1,4 @@
+{% load survey %}
 <input type="hidden" name="questionIdList" value="{{ question.getIdSigned }}"/>
 <div class="col-md-12">
     <div class="panel panel-info ">
@@ -6,7 +7,8 @@
         </div>
         <div class="panel-body">
             <textarea rows="5" type="text" class="form-control"
-                      name="{{ question.getIdSigned }}" style="resize: none;"></textarea>
+                name="{{ question.getIdSigned }}" style="resize: none;"
+                >{% if allQuestionText|get_item:question %}{{ allQuestionText|get_item:question }}{% endif %}</textarea>
             <br>
         </div>
     </div>
