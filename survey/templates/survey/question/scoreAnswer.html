@@ -1,3 +1,4 @@
+{% load survey %}
 <input type="hidden" name="questionIdList" value="{{ question.getIdSigned }}"/>
 <div class="col-md-12">
     <div class="panel panel-info ">
@@ -24,7 +25,12 @@
                  data-input-id="question-{{ question.getIdSigned | cut:':' }}"
                  data-min="{{ question.valueMin | floatformat:"0" }}"
                  data-max="{{ question.valueMax | floatformat:"0" }}"
-                 data-value="5">
+                 {% if allQuestionScore|get_item:question %}
+                    data-value="{{ allQuestionScore|get_item:question|floatformat:"0" }}"
+                 {% else %}
+                    data-value="5"
+                 {% endif %}
+                 >
             </div>
         </div>
     </div>
