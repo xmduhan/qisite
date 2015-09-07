@@ -81,7 +81,6 @@ function renderBarChart(chartId) {
 function renderBubbleChart(chartId){
 
     data = eval($("#" + chartId).data('chart-data'));
-    console.log($("#" + chartId).data('chart-data'));
 
     attr = []
     for(i=0; i<data.length; i++) {
