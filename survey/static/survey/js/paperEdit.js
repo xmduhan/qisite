@@ -235,6 +235,14 @@ function refreshQuestionDocument(questionId) {
     });
 }
 
+function refreshAllQuestionDocument(){
+    $('.survey-question').each(function(){
+        //console.log($(this).attr('id'));
+        questionId = $(this).data('id');
+        refreshQuestionDocument(questionId);
+    });
+}
+
 /***************************************
  *          绑定新增选项事件           *
  ***************************************/
@@ -309,6 +317,7 @@ function initQuestionDeleteAction(scope) {
                         // 删除问题对应的DOM对象
                         getQuestionDocument(id).animate({'opacity': 0}, 1500, callback = function () {
                             $(this).remove();
+                            refreshAllQuestionDocument();
                         });
                     } else {
                         // 出错处理(暂缺)
