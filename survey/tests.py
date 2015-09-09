@@ -965,11 +965,85 @@ class QuestionModifyTest(TestCase):
         question = Question.objects.filter(id=self.question.id)[0]
         self.assertEquals(question.createBy, self.question.createBy)
 
+class QuestionSetOrdTest(TestCase):
+    """
+    问题重设置顺序测试
+    """
+
+    fixtures = ['initial_data.json']
+
+    def setUp(self):
+        setup_test_environment()
+        # 创建用户并且用其登陆
+        self.user = User(phone=phoneForTest, password=make_password(passwordForTest))
+        self.user.save()
+        self.client = Client()
+        loginForTest(self.client, phoneForTest, passwordForTest)
+        # 创建一个用于测试的Paper
+        self.paper = Paper.objects.get(code='paper-template-01')
+        questionList = self.paper.getQuestionSetInOrder()
+        self.question0 = questionList[0]
+        self.question1 = questionList[1]
+        self.question2 = questionList[2]
+        self.question3 = questionList[3]
+
+        # 确认选项的指向
+        self.branch_Q1_1 = self.question1.getBranchSetInOrder()[1]
+        self.branch_Q1_2 = self.question1.getBranchSetInOrder()[2]
+        self.assertEquals(self.branch_Q1_1.nextQuestion,self.question2)
+        self.assertEquals(self.branch_Q1_2.nextQuestion,self.question3)
+
+        # 设置对应的url地址
+        self.serviceUrl = reverse('survey:service.question.setOrd')
+        # 准备提交的测试数据
+        signer = Signer()
+        self.data_valid = {'id': signer.sign(self.question2.id), 'newOrd':1}
+        self.data_bad_signature = {'id': self.question2.id, 'newOrd':1}
+
+    def test_no_login(self):
+        '''
+            测试没有登陆的情况
+        '''
+        # 使用新创建的client(未登录)，而不是self.client（已登录)
+        client = Client()
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)
+
+    def test_success(self):
+        '''
+            测试修改成功的情况
+        '''
+        client = self.client
+        response = client.post(self.serviceUrl, self.data_valid)
+        result = json.loads(response.content)
+        self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
+        self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
+        # 确认数据已经被修改
+        question0 = Question.objects.get(id=self.question0.id)
+        question1 = Question.objects.get(id=self.question1.id)
+        question2 = Question.objects.get(id=self.question2.id)
+        question3 = Question.objects.get(id=self.question3.id)
+        self.assertEquals(question0.ord,0)
+        self.assertEquals(question1.ord,2)
+        self.assertEquals(question2.ord,1)
+        self.assertEquals(question3.ord,3)
+
+        # 确定问题2(question1)原指向问题3(question2)跳转已经删除
+        self.branch_Q1_1 = self.question1.getBranchSetInOrder()[1]
+        self.branch_Q1_2 = self.question1.getBranchSetInOrder()[2]
+        self.assertEquals(self.branch_Q1_1.nextQuestion,None)
+        self.assertEquals(self.branch_Q1_2.nextQuestion,self.question3)
+
+
+
 
 class QuestionDeleteTest(TestCase):
     '''
         问题删除服务的测试用例
     '''
+
 
     def setUp(self):
         setup_test_environment()
