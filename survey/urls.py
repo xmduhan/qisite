@@ -58,6 +58,7 @@ urlpatterns = patterns(
     ## question
     url(r'^service/question/add$', services.questionAdd, name='service.question.add'),
     url(r'^service/question/modify$', services.questionModify, name='service.question.modify'),
+    url(r'^service/question/setOrd$', services.questionSetOrd, name='service.question.setOrd'),
     url(r'^service/question/delete$', services.questionDelete, name='service.question.delete'),
     url(r'^service/question/addDefaultSingleQuestion$', services.addDefaultSingleQuestion,
         name='service.question.addDefaultSingleQuestion'),

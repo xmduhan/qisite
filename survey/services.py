@@ -538,6 +538,68 @@ def questionModify(request):
     return dictToJsonResponse(result)
 
 
+def _questionSetOrd(requestData, user):
+    """
+    """
+    # 检查是否提供了id
+    keys = requestData.keys()
+    if 'id' not in keys:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_ID)
+    idSigned = requestData['id']
+
+    # 对id进行数字签名的检查
+    try:
+        signer = Signer()
+        id = signer.unsign(idSigned)
+    except BadSignature:
+        # 篡改发现处理
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.BAD_SAGNATURE)
+
+    # 检查是否提供了有效的Ord号
+    if 'newOrd' not in keys:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.INVALID_ORD)
+
+    try:
+        newOrd = int(requestData['newOrd'])
+    except:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.INVALID_ORD)
+
+    # 检查对象是否还存在
+    questionList = Question.objects.filter(id=id).select_for_update()
+    if len(questionList) == 0:
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.OBJECT_NOT_EXIST)
+    question = questionList[0]
+
+    # 检查提供的排序号是否在有效范围内
+    paper = question.paper
+    questionCount = paper.question_set.count()
+    if ( newOrd < 0 ) or ( newOrd >= questionCount ):
+        return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.INVALID_ORD)
+
+    # 调用问题的ord设置方法
+    question.setOrd(newOrd)
+
+    # 返回成功
+    return packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS)
+
+
+def questionSetOrd(request):
+    """
+    重新设置一个问题在问卷中的顺序
+    request参数:
+    id 对应的问题id,已通过数字签名进行加密
+    newOrd 问题的新排序号
+    """
+    # 检查用户是否登录，并读取session中的用户信息
+    if USER_SESSION_NAME not in request.session.keys():
+        result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_LOGIN)
+        return dictToJsonResponse(result)
+    user = request.session[USER_SESSION_NAME]
+    requestData = request.REQUEST
+    result = _questionSetOrd(requestData, user)
+    return dictToJsonResponse(result)
+
+
 def _questionDelete(requestData, user):
     '''
         问题删除的具体处理过程

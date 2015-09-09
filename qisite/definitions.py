@@ -42,5 +42,6 @@ class RESULT_MESSAGE:
     SURVEY_PASSWORD_INVALID = u'您没有正确填写调查密码'
     SURVEY_EXPIRED = u'该调查已过期'
     VIEW_RESULT_IS_NOT_ALLOWED = u'该调查不允许查看结果'
+    INVALID_ORD = u'无效的排序号'
 
     SUCCESS = u'成功'
