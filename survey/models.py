@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 from django.db import models
+from django.db.models import F
 import account.models
 from datetime import datetime
 from numstyle import NumStyle, defaultQuestionNumStyle, defaultBranchNumStyle
@@ -65,6 +66,11 @@ class Paper(TimeModel):
             raise ValidationError(u'创建者信息不能为空')
         if self.modifyBy is None:
             raise ValidationError(u'修改者信息不能为空')
+        # 处理那些向前跳转的选项
+        invalidBranchSet = Branch.objects.filter(
+            question__paper=self, question__ord__gte=F('nextQuestion__ord'))
+        invalidBranchSet.update(nextQuestion=None)
+
 
     class Meta:
         verbose_name = "问卷"
@@ -178,17 +184,39 @@ class Question(TimeModel):
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='questionCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='questionModified_set')
 
-
     def clean(self):
         '''
             问题模型校验
         '''
         if self.type not in Question.QUESTION_TYPE_AVAILABLE:
             raise ValidationError(u'无效的问题类型')
-        if self.type in ( 'Single', 'Multiple') and self.contentLength != 0:
+        if self.type in ('Single', 'Multiple') and self.contentLength != 0:
             raise ValidationError(u'选择题不能有填写值长度')
-        if self.type not in ( 'Single', 'Multiple') and self.confused:
+        if self.type not in ('Single', 'Multiple') and self.confused:
             raise ValidationError(u'非选择题不能指定乱序选项')
+
+    def setOrd(self, newOrd):
+        """
+        修改当前问题的顺序,其他问题将自动响应调整顺序,并且讲删除无效的选项跳转引用
+        参数:
+        newOrd 问题的新排序号
+        """
+        paper = Paper.objects.select_for_update().get(id=self.paper.id)
+        ord = self.ord
+        # 锁定所有的问题
+        questionList = list(paper.question_set.select_for_update().order_by('ord'))
+        questionCount = len(questionList)
+        if newOrd == ord:
+            return
+        if (newOrd > questionCount - 1) or (newOrd < 0):
+            # TODO : 这里需要设置合适的异常类型
+            raise Exception()
+        questionList.insert(newOrd, questionList.pop(ord))
+        for i,q in enumerate(questionList):
+            if q.ord != i:
+                q.ord = i
+                q.save()
+        paper.clean()
 
 
     def getStemText(self):
