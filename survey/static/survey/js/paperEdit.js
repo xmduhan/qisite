@@ -236,6 +236,10 @@ function refreshQuestionDocument(questionId) {
             // 替换question的document内容
             questionDocument = getQuestionDocument(questionId);
             questionDocument.replaceWith(result);
+            //如果问题原来是折叠状态需要保留其折叠状态
+            if (collapse){
+                getQuestionDocument(questionId).find('.question-body').collapse('hide');
+            }
             // 重新绑定初始化的操作(注意：这里需要重新查询jQuery对象，因为replaceWith后原来jQuery对象失效了)
             initial(getQuestionDocument(questionId));
         },
