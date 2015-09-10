@@ -597,10 +597,34 @@ function initQuestionSortable() {
     $("#questionBox").sortable({
         update: function (event, ui) {
             logger.debug('sortupdate() is called');
-            id = ui.item.attr('id');
+            //id = ui.item.attr('id');
+            id = ui.item.data('id');
             index = ui.item.index();
             logger.debug('quetionId=' + id);
             logger.debug('newIndex=' + index);
+            // 调用修改问题顺序的服务
+            action = django.reverse('survey:service.question.setOrd');
+            logger.debug(action);
+            data = {'id':id,'newOrd':index}
+            $.ajax({
+                url: action, data: data, type: "post", dataType: "json", async: true,
+                // 通讯成功，解析返回结果做进一步处理
+                success: function (result) {
+                    if (result['resultCode'] == 0) {
+                        // 删除问题对应的DOM对象
+                        refreshAllQuestionDocument();
+                    } else {
+                        // 出错处理(暂缺)
+                        logger.debug('调用设置问题顺序服务出错');
+                        logger.debug(result['resultMessage']);
+                    }
+                },
+                // 失败说明网络有问题或者服务器有问题
+                error: function (xhr, status, errorThrown) {
+                    logger.debug('network error!');
+                    // 出错处理(暂缺)
+                }
+            });
         },
         handle: '.panel-heading'
     });
