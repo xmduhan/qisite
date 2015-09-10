@@ -9,6 +9,13 @@ function getBranchDocument(branchId) {
     return $('#branch-' + branchId.replace(':', ''));
 }
 
+/***************************************
+ *  通过问题id读取问题是否处于折叠状态 *
+ ***************************************/
+function isQuestionCollapse(questionId) {
+    return getQuestionDocument(questionId).find('.question-body').is( ":hidden" );
+}
+
 /***************************************************
  *      给定branchId通过dom结构找到questionId      *
  ***************************************************/
@@ -209,6 +216,10 @@ function initQuestionAddAction(scope) {
  *         更新修改问题的DOM信息       *
  ***************************************/
 function refreshQuestionDocument(questionId) {
+    // 保存问题是否处于折叠状态
+    collapse = isQuestionCollapse(questionId);
+
+    // 生成请求的url
     //action = "/survey/view/question/edit/" + encodeURIComponent(questionId);
     // 这里是使用reverse还是存在不必要的性能损耗
     action = django.reverse('survey:view.question.edit', [questionId]);
