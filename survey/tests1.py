@@ -4,7 +4,7 @@
 from django.test import TestCase
 from django.test.utils import setup_test_environment
 from django.test import Client
-from models import Paper
+from models import Paper, Survey
 from account.models import User
 from django.core.urlresolvers import reverse
 from account.tests import loginForTest
@@ -32,8 +32,23 @@ class PaperPreviewTest(TestCase):
         """
         测试是否能正常生成预览页面
         """
+        # 测试是否能够正常进入预览界面
         response = self.client.get(self.previewUrl)
         self.assertEqual(response.status_code, 302)
         redirectUrl = response._headers['location'][1]
         response = self.client.get(redirectUrl)
         self.assertEqual(response.status_code, 200)
+
+        # 检查是否对预览对象进行清理
+        paper = Paper.objects.get(id=self.paper.id)
+        previewSurvey = paper.previewSurvey
+        count = Survey.objects.filter(id=previewSurvey.id).count()
+        self.assertEqual(count, 1)
+        response = self.client.get(self.previewUrl)
+        self.assertEqual(response.status_code, 302)
+        redirectUrl = response._headers['location'][1]
+        response = self.client.get(redirectUrl)
+        self.assertEqual(response.status_code, 200)
+        count = Survey.objects.filter(id=previewSurvey.id).count()
+        self.assertEqual(count, 0)
+

@@ -135,6 +135,12 @@ def paperPreview(request, paperId):
     survey.modifyBy = admin
     survey.save()
 
+    # 清理之前的预览对象, 关联当前预览对象
+    if paper.previewSurvey :
+        paper.previewSurvey.delete()
+    paper.previewSurvey = survey
+    paper.save()
+
     # 返回答题界面
     return HttpResponseRedirect(reverse('survey:view.survey.answer', args=[survey.id]))
 

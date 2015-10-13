@@ -73,7 +73,6 @@ class Paper(TimeModel):
             question__paper=self, question__ord__gte=F('nextQuestion__ord'))
         invalidBranchSet.update(nextQuestion=None)
 
-
     class Meta:
         verbose_name = "问卷"
         verbose_name_plural = "[01].问卷"
