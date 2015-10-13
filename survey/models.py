@@ -55,6 +55,8 @@ class Paper(TimeModel):
     modifyBy = models.ForeignKey(
         account.models.User, verbose_name="修改者", related_name='paperModified_set', blank=True, null=True)
     # 样本集 sample_set (ok) (已在sample中设置外键引用)
+    previewSurvey = models.ForeignKey(
+        'Survey', related_name='paperPreview_set', verbose_name="预览对象", null=True, blank=True, on_delete=models.SET_NULL)
 
     def clean(self):
         '''

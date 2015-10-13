@@ -18,6 +18,7 @@ class PaperPreviewTest(TestCase):
 
     def setUp(self):
         """
+        准备数据
         """
         setup_test_environment()
         self.client = Client()
@@ -29,11 +30,10 @@ class PaperPreviewTest(TestCase):
 
     def test_preview_simple_paper(self):
         """
+        测试是否能正常生成预览页面
         """
         response = self.client.get(self.previewUrl)
         self.assertEqual(response.status_code, 302)
         redirectUrl = response._headers['location'][1]
         response = self.client.get(redirectUrl)
         self.assertEqual(response.status_code, 200)
-
-
