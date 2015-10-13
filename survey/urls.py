@@ -21,6 +21,7 @@ urlpatterns = patterns(
     ## 编辑页面
     url(r'^view/survey/edit/(?P<surveyId>\d+)$', views.surveyEdit, name='view.survey.edit'),
     url(r'^view/paper/edit/(?P<paperId>\d+)$', views.paperEdit, name='view.paper.edit'),
+    url(r'^view/paper/preview/(?P<paperId>\d+)$', views.paperPreview, name='view.paper.preview'),
     url(r'^view/custList/edit/(?P<custListId>\d+)$', views.custListEdit, name='view.custList.edit'),
     url(r'^view/custList/edit/(?P<custListId>\d+)/(?P<page>\d+)$', views.custListEdit, name='view.custList.edit'),
     ## 获取问题编辑

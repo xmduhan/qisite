@@ -114,12 +114,6 @@ def paperPreview(request, paperId):
     '''
     问卷预览
     '''
-    # 读取问卷标识
-    paperIdSigned = request.REQUEST['paperId']
-    # 验证问卷的数字签名
-    sign = Signer()
-    paperId = sign.unsign(paperIdSigned)
-
     # 检查用户的登录状态
     user = getCurrentUser(request)
     if user == None:
@@ -127,19 +121,22 @@ def paperPreview(request, paperId):
 
     # 读取问卷并创建实例
     paper = Paper.objects.get(id=paperId)
-    paperInstance = paper.createPaperInstance(user)
-    paperInstance.survey
+    if paper.createBy != user:
+        raise Exception(u'没有权限预览该问卷')
+
+    # 在系统系统管理源的名下创建一个调查
+    admin = User.objects.get(code='admin')
+    paperInstance = paper.createPaperInstance(admin)
 
     # 创建survey对象
     survey = Survey()
-    updateModelInstance(survey, request.REQUEST, tryUnsigned=True)
     survey.paper = paperInstance
-    survey.createBy = user
-    survey.modifyBy = user
+    survey.createBy = admin
+    survey.modifyBy = admin
     survey.save()
 
     # 返回答题界面
-    return HttpResponse(reverse('survey:view.survey.answer', args=[survey.id]))
+    return HttpResponseRedirect(reverse('survey:view.survey.answer', args=[survey.id]))
 
 
 def surveyAdd(request, paperId):

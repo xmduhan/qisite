@@ -37,7 +37,7 @@
                     帮助
                 </button>
                 {# 预览按钮 #}
-                <a class="btn btn-default " href="{% url 'survey:view.paper.list' %}" target="_blank">
+                <a class="btn btn-default " href="{% url 'survey:view.paper.preview' paper.id %}" target="_blank">
                     <span class="glyphicon glyphicon-eye-open"></span>
                     预览
                 </a>
