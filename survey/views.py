@@ -110,6 +110,38 @@ def paperEdit(request, paperId):
         raise Http404
 
 
+def paperPreview(request, paperId):
+    '''
+    问卷预览
+    '''
+    # 读取问卷标识
+    paperIdSigned = request.REQUEST['paperId']
+    # 验证问卷的数字签名
+    sign = Signer()
+    paperId = sign.unsign(paperIdSigned)
+
+    # 检查用户的登录状态
+    user = getCurrentUser(request)
+    if user == None:
+        raise Exception(u'没有登录')
+
+    # 读取问卷并创建实例
+    paper = Paper.objects.get(id=paperId)
+    paperInstance = paper.createPaperInstance(user)
+    paperInstance.survey
+
+    # 创建survey对象
+    survey = Survey()
+    updateModelInstance(survey, request.REQUEST, tryUnsigned=True)
+    survey.paper = paperInstance
+    survey.createBy = user
+    survey.modifyBy = user
+    survey.save()
+
+    # 返回答题界面
+    return HttpResponse(reverse('survey:view.survey.answer', args=[survey.id]))
+
+
 def surveyAdd(request, paperId):
     '''
         通过一个问卷发起一次调查
@@ -142,7 +174,7 @@ def surveyAdd(request, paperId):
 
 @transaction.atomic
 def surveyAddAction(request):
-    print request.REQUEST
+    #print request.REQUEST
     # 读取问卷标识
     paperIdSigned = request.REQUEST['paperId']
 

@@ -37,10 +37,10 @@
                     帮助
                 </button>
                 {# 预览按钮 #}
-                <button class="btn btn-default ">
+                <a class="btn btn-default " href="{% url 'survey:view.paper.list' %}" target="_blank">
                     <span class="glyphicon glyphicon-eye-open"></span>
                     预览
-                </button>
+                </a>
                 {# 折叠按钮 #}
                 <button id='collapse-all-question-hide' class="btn btn-default">
                     <span class="glyphicon glyphicon-collapse-up"></span>
