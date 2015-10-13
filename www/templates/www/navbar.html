@@ -9,11 +9,11 @@
             <li {% if position == 'paper' %} class="active" {% endif %} >
                 {% if session.user %}<a href="{% url 'survey:view.paper.list' %}">问卷</a>{% endif %}
             </li>
-            <li {% if position == 'list' %} class="active" {% endif %} >
-                {% if session.user %}<a href="{% url 'survey:view.custList.list' %}">清单</a>{% endif %}
-            </li>
             <li {% if position == 'survey' %} class="active" {% endif %} >
                 {% if session.user %}<a href="{% url 'survey:view.survey.list' %}">调查</a>{% endif %}
+            </li>
+            <li {% if position == 'list' %} class="active" {% endif %} >
+                {% if session.user %}<a href="{% url 'survey:view.custList.list' %}">清单</a>{% endif %}
             </li>
             <li {% if position == 'help' %} class="active" {% endif %} >
                 <a href="{% url 'www:help' %}">帮助</a>
