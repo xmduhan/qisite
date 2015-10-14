@@ -136,6 +136,13 @@ class Paper(TimeModel):
         newPaper.save()
         return newPaper
 
+    def isStepNeed(self):
+        """
+        检查文件是否需要分步
+        """
+        count = Branch.objects.filter(question__paper=self, nextQuestion__isnull=False).count()
+        return count != 0
+
 
 class PaperCatalog(TimeModel):
     name = models.CharField("目录名称", max_length=100)

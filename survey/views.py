@@ -128,6 +128,11 @@ def paperPreview(request, paperId):
     # 在系统系统管理源的名下创建一个调查
     admin = User.objects.get(code='admin')
     paperInstance = paper.createPaperInstance(admin)
+    # 如果文件设置了跳转,但其step却设置为False，这样很容易造成困扰
+    # 这里对问卷在发布的时候强行修改step为True
+    if paperInstance.isStepNeed():
+        paperInstance.step = True
+        paperInstance.save()
 
     # 创建survey对象
     survey = Survey()
@@ -195,7 +200,11 @@ def surveyAddAction(request):
     # 读取问卷并创建实例
     paper = Paper.objects.get(id=paperId)
     paperInstance = paper.createPaperInstance(user)
-    #paperInstance.survey
+    # 如果文件设置了跳转,但其step却设置为False，这样很容易造成困扰
+    # 这里对问卷在发布的时候强行修改step为True
+    if paperInstance.isStepNeed():
+        paperInstance.step = True
+        paperInstance.save()
 
     # 创建survey对象
     survey = Survey()
