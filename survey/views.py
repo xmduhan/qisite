@@ -110,6 +110,7 @@ def paperEdit(request, paperId):
         raise Http404
 
 
+@transaction.atomic
 def paperPreview(request, paperId):
     '''
     问卷预览
@@ -194,7 +195,7 @@ def surveyAddAction(request):
     # 读取问卷并创建实例
     paper = Paper.objects.get(id=paperId)
     paperInstance = paper.createPaperInstance(user)
-    paperInstance.survey
+    #paperInstance.survey
 
     # 创建survey对象
     survey = Survey()
