@@ -600,7 +600,7 @@ function initBindingDropdown(scope) {
 function initQuestionTitleSynchronization(scope) {
     scope.find(".question-text-editor").on("change", function (event) {
         logger.debug('question title need change');
-        titlePanel = $(this).parents('.panel').find('.question-title-panel-text');
+        titlePanel = $(this).parents('.survey-question').find('.question-title-panel-text');
         titlePanel.html($(this).val());
     });
 }
