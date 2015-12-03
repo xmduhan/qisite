@@ -7,14 +7,19 @@ Replace this with more appropriate tests for your application.
 """
 from __future__ import division
 from django.test import TestCase
-from models import *
+from models import Paper, Survey, Question, Resource, Branch, TargetCust, DefineInfo, Sample, SampleItem
+from models import PaperCatalog, PaperCatalogPaper, QuestionCatalog, QuestionCatalogQuestion
+from models import CustList, CustListItem
+from datetime import datetime
 import account.models
 from django.test.utils import setup_test_environment
 from django.test import Client
 from django.core.urlresolvers import reverse
 from dateutil import parser
 from account.models import User
-import json, random, string
+import json
+import random
+import string
 from django.contrib.auth.hashers import make_password, check_password
 from account.tests import loginForTest, phoneForTest, passwordForTest
 from django.core.signing import Signer
@@ -38,8 +43,8 @@ class TransactionTest(TestCase):
         except:
             pass
         paperList = Paper.objects.filter(title=title)
-        self.assertEqual(step, 1)  #  确认执行到了raise
-        self.assertEqual(len(paperList), 1)  #  确认数据已经提交了
+        self.assertEqual(step, 1)  # 确认执行到了raise
+        self.assertEqual(len(paperList), 1)  # 确认数据已经提交了
 
     def test_transaction_atomic(self):
         step = 0
@@ -49,8 +54,8 @@ class TransactionTest(TestCase):
                 Paper(title=title).save()
                 step = 1
                 raise Exception()
-        except Exception as e:
-            print e
+        except Exception:
+            # print e
             pass
         paperList = Paper.objects.filter(title=title)
         self.assertEqual(step, 1)  # 确认执行到了raise
@@ -81,7 +86,7 @@ class SurveyModelTest(TestCase):
             paper=self.tsPaper,  # 在没有问卷的情况下，是无法创建调查的
             targetOnly=True, state='?', shared=False, viewResult=False, resubmit=False, password='',
             hardCost=0, bonus=0, fee=0, validSampleLimit=0, createBy=self.tsUser, modifyBy=self.tsUser
-            #survey.ipLimit = 5  #survey.ipLimit = 5  # 用来测试默认值
+            # survey.ipLimit = 5  #survey.ipLimit = 5  # 用来测试默认值
         )
         survey.save()
         self.tsSurvey = survey
@@ -104,25 +109,25 @@ class SurveyModelTest(TestCase):
         singleResource.save()
         self.singleResource = singleResource
         # 增加题支
-        ## 1
+        # # 1
         singleBranch1 = Branch(
             text='选项1', ord=1, nextQuestion=None, question=singleQuestion, createBy=self.tsUser, modifyBy=self.tsUser
         )
         singleBranch1.save()
         self.tsSingleBranch1 = singleBranch1
-        ## 2
+        # # 2
         singleBranch2 = Branch(
             text='选项2', ord=2, nextQuestion=None, question=singleQuestion, createBy=self.tsUser, modifyBy=self.tsUser
         )
         singleBranch2.save()
         self.tsSingleBranch2 = singleBranch2
-        ## 3
+        # # 3
         singleBranch3 = Branch(
             text='选项3', ord=3, nextQuestion=None, question=singleQuestion, createBy=self.tsUser, modifyBy=self.tsUser
         )
         singleBranch3.save()
         self.tsSingleBranch3 = singleBranch3
-        ## 4
+        # # 4
         singleBranch4 = Branch(
             text='选项4', ord=4, nextQuestion=None, question=singleQuestion, createBy=self.tsUser, modifyBy=self.tsUser
         )
@@ -140,9 +145,9 @@ class SurveyModelTest(TestCase):
         fillblankQuestion.save()
         self.tsFillblankQuestion = fillblankQuestion
         # 增加单选题的题干
-        #fillblankStem = Stem(text='填空题', question=fillblankQuestion, createBy=self.tsUser, modifyBy=self.tsUser)
-        #fillblankStem.save()
-        #self.tsFillblankStem = fillblankStem
+        # fillblankStem = Stem(text='填空题', question=fillblankQuestion, createBy=self.tsUser, modifyBy=self.tsUser)
+        # fillblankStem.save()
+        # self.tsFillblankStem = fillblankStem
 
     def addQuestions(self):
         self.addSingleQuestion()
@@ -201,7 +206,6 @@ class SurveyModelTest(TestCase):
         paperCatalogPaper.save()
         self.tsPaperCatalogPaper = paperCatalogPaper
 
-
     def addQuestionCatalog(self):
         questionCatalog = QuestionCatalog(
             name='测试问题目录', code='TestQestionCatalog', parent=None, ord=0, createBy=self.tsUser,
@@ -238,7 +242,7 @@ class SurveyModelTest(TestCase):
         )
         custListItem1.save()
         self.tsCustListItem1 = custListItem1
-        ## 增加附件信息 1
+        # # 增加附件信息 1
         custListItemInfo1 = DefineInfo(
             name='购买产品类型', value='型号1', ord=0, createBy=self.tsUser, modifyBy=self.tsUser
         )
@@ -253,7 +257,7 @@ class SurveyModelTest(TestCase):
         )
         custListItem2.save()
         self.tsCustListItem2 = custListItem2
-        ## 增加附件信息 2
+        # # 增加附件信息 2
         custListItemInfo2 = DefineInfo(
             name='购买产品类型', value='型号2', ord=0, createBy=self.tsUser, modifyBy=self.tsUser
         )
@@ -322,7 +326,7 @@ class SurveyModelTest(TestCase):
         self.assertEqual(branchCount, 4)
         branches = question.branch_set.all()
         branchIds = [i.id for i in branches]
-        #branchIds = branchIds[:3]
+        # branchIds = branchIds[:3]
         self.assertIn(self.tsSingleBranch1.id, branchIds)
         self.assertIn(self.tsSingleBranch2.id, branchIds)
         self.assertIn(self.tsSingleBranch3.id, branchIds)
@@ -355,7 +359,6 @@ class SurveyModelTest(TestCase):
         question = questionCatalog.question_set.order_by('ord')[0]
         self.assertEqual(question.id, self.tsSingleQuestion.id)
 
-
     def test_branch_getSystemPredefined(self):
         '''
         测试通过选项获取系统预定义出口（特殊问题）
@@ -377,20 +380,19 @@ class SurveyDeleteTest(TestCase):
         # 创建用户并且用其登陆
         self.client = Client()
         self.user = User.objects.get(code='duhan')
-        self.paper = self.user.paperCreated_set.get(code='paper-instance-test01')  #网购客户满意度调查(非定向)
+        self.paper = self.user.paperCreated_set.get(code='paper-instance-test01')  # 网购客户满意度调查(非定向)
         self.survey = Survey.objects.get(paper=self.paper)
         self.user_other = User.objects.get(code='zhangjianhua')
-        self.paper_other = self.user_other.paperCreated_set.get(code='paper-instance-test02')  #净推介值调查
+        self.paper_other = self.user_other.paperCreated_set.get(code='paper-instance-test02')  # 净推介值调查
         self.survey_other = Survey.objects.get(paper=self.paper_other)
         loginForTest(self.client, self.user.phone, '123456')
         # 准备提交的测试数据
-        signer = Signer()
+        # signer = Signer()
         self.data_valid = {'id': self.survey.getIdSigned()}
         self.data_bad_signature = {'id': self.survey.id}
         self.data_no_privilege = {'id': self.survey_other.getIdSigned()}
         #
         self.serviceUrl = reverse('survey:service.survey.delete')
-
 
     def test_no_login(self):
         '''
@@ -485,7 +487,6 @@ class PaperAddTest(TestCase):
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
         self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)  # 没有登录错误
-
 
     def test_add_paper_no_title(self):
         '''
@@ -759,7 +760,6 @@ class QuestionAddTest(TestCase):
         self.data_invalid_length = {
             'paper': signer.sign(self.paper.id), 'text': questionText, 'type': questionType, 'contentLength': 100}
 
-
     def test_no_login(self):
         '''
             测试没有登录的情况
@@ -965,6 +965,7 @@ class QuestionModifyTest(TestCase):
         question = Question.objects.filter(id=self.question.id)[0]
         self.assertEquals(question.createBy, self.question.createBy)
 
+
 class QuestionSetOrdTest(TestCase):
     """
     问题重设置顺序测试
@@ -990,15 +991,15 @@ class QuestionSetOrdTest(TestCase):
         # 确认选项的指向
         self.branch_Q1_1 = self.question1.getBranchSetInOrder()[1]
         self.branch_Q1_2 = self.question1.getBranchSetInOrder()[2]
-        self.assertEquals(self.branch_Q1_1.nextQuestion,self.question2)
-        self.assertEquals(self.branch_Q1_2.nextQuestion,self.question3)
+        self.assertEquals(self.branch_Q1_1.nextQuestion, self.question2)
+        self.assertEquals(self.branch_Q1_2.nextQuestion, self.question3)
 
         # 设置对应的url地址
         self.serviceUrl = reverse('survey:service.question.setOrd')
         # 准备提交的测试数据
         signer = Signer()
-        self.data_valid = {'id': signer.sign(self.question2.id), 'newOrd':1}
-        self.data_bad_signature = {'id': self.question2.id, 'newOrd':1}
+        self.data_valid = {'id': signer.sign(self.question2.id), 'newOrd': 1}
+        self.data_bad_signature = {'id': self.question2.id, 'newOrd': 1}
 
     def test_no_login(self):
         '''
@@ -1025,25 +1026,22 @@ class QuestionSetOrdTest(TestCase):
         question1 = Question.objects.get(id=self.question1.id)
         question2 = Question.objects.get(id=self.question2.id)
         question3 = Question.objects.get(id=self.question3.id)
-        self.assertEquals(question0.ord,0)
-        self.assertEquals(question1.ord,2)
-        self.assertEquals(question2.ord,1)
-        self.assertEquals(question3.ord,3)
+        self.assertEquals(question0.ord, 0)
+        self.assertEquals(question1.ord, 2)
+        self.assertEquals(question2.ord, 1)
+        self.assertEquals(question3.ord, 3)
 
         # 确定问题2(question1)原指向问题3(question2)跳转已经删除
         self.branch_Q1_1 = self.question1.getBranchSetInOrder()[1]
         self.branch_Q1_2 = self.question1.getBranchSetInOrder()[2]
-        self.assertEquals(self.branch_Q1_1.nextQuestion,None)
-        self.assertEquals(self.branch_Q1_2.nextQuestion,self.question3)
-
-
+        self.assertEquals(self.branch_Q1_1.nextQuestion, None)
+        self.assertEquals(self.branch_Q1_2.nextQuestion, self.question3)
 
 
 class QuestionDeleteTest(TestCase):
     '''
         问题删除服务的测试用例
     '''
-
 
     def setUp(self):
         setup_test_environment()
@@ -1184,7 +1182,6 @@ class BranchAddTest(TestCase):
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
         self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)
-
 
     def test_no_question(self):
         '''
@@ -1942,7 +1939,7 @@ class CustListDeleteTest(TestCase):
         # 登录
         loginForTest(self.client, self.user.phone, '123456')
         # 准备提交的测试数据
-        signer = Signer()
+        # signer = Signer()
         self.data_valid = {'id': self.custList.getIdSigned()}
         self.data_bad_signature = {'id': self.custList.id}
         self.data_no_privilege = {'id': self.custList_other.getIdSigned()}
@@ -2158,7 +2155,7 @@ class CustListItemDeleteTest(TestCase):
         # 登录
         loginForTest(self.client, self.user.phone, '123456')
         # 准备提交的测试数据
-        signer = Signer()
+        # signer = Signer()
         self.data_valid = {'id': self.custListItem.getIdSigned()}
         self.data_bad_signature = {'id': self.custListItem.id}
         self.data_no_privilege = {'id': self.custListItem_other.getIdSigned()}
@@ -2435,7 +2432,7 @@ class TargetLessSurveyAnswerTest(TestCase):
         '''
         测试有设置密码的情况下，进入页面需要提供密码。
         '''
-        client = self.client
+        # client = self.client
         # 为调查设置密码
         self.survey.password = '123456'
         self.survey.save()
@@ -2939,7 +2936,7 @@ class TargetSurveyAnswerTest(TestCase):
         '''
         测试进入页面时设置密码却没有提供的情况。
         '''
-        client = self.client
+        # client = self.client
         # 为调查设置密码
         self.survey.password = '123456'
         self.survey.save()
@@ -3064,7 +3061,7 @@ class TargetSurveyAnswerTest(TestCase):
         self.survey.endTime = datetime.now()
         self.survey.save()
         # 尝试进入调查封面
-        print self.coverUrl
+        # print self.coverUrl
         response = self.client.get(self.coverUrl)
         self.assertEqual(response.status_code, 200)
         # 返回调查已过期了
@@ -4105,7 +4102,7 @@ class MultipleQuestionTypeStepTest(TestCase):
         '''
         测试提交问卷信息
         '''
-        client = self.client
+        # client = self.client
         sampleCount = self.survey.paper.sample_set.count()
 
         # 提交第1题

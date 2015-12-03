@@ -1,4 +1,4 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 '''
     设计原则：
     1、最小管辖范围原则，
@@ -14,8 +14,6 @@
     2、数字前签名的检查部分
 
 '''
-import json
-from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from django.forms import ValidationError
 from django.core.signing import Signer, BadSignature
@@ -26,7 +24,7 @@ from qisite.utils import updateModelInstance
 from datetime import datetime
 from django.db.models.fields import BooleanField
 from django.db.models.fields.related import ForeignKey
-#from django.db import transaction
+# from django.db import transaction
 from www.utils import packageResult, dictToJsonResponse, packageResponse
 from qisite.settings import smsSend
 from qisite.settings import domain
@@ -71,7 +69,7 @@ def _surveyModify(requestData, user):
     if 'id' not in keys:
         return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_ID)
     idSigned = requestData['id']
-    print idSigned
+    # print idSigned
 
     # 对id进行数字签名的检查
     try:
@@ -198,7 +196,7 @@ def _paperAdd(requestData, user):
     # 获取Paper模型中的所有属性
     keys = requestData.keys()
     data = {}
-    #fields = zip(*Paper._meta.get_fields_with_model())[0]
+    # fields = zip(*Paper._meta.get_fields_with_model())[0]
     for field in getModelFields(Paper):
         # 跳过系统自动增加的字段
         if field.auto_created:
@@ -573,7 +571,7 @@ def _questionSetOrd(requestData, user):
     # 检查提供的排序号是否在有效范围内
     paper = question.paper
     questionCount = paper.question_set.count()
-    if ( newOrd < 0 ) or ( newOrd >= questionCount ):
+    if (newOrd < 0) or (newOrd >= questionCount):
         return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.INVALID_ORD)
 
     # 调用问题的ord设置方法
@@ -816,7 +814,6 @@ def _branchModify(requestData, user):
         return packageResult(
             RESULT_CODE.ERROR, RESULT_MESSAGE.VALIDATION_ERROR, {'validationMessage': exception.message_dict})
 
-
     # 写到数据库
     branch.save()
     # 返回成功
@@ -963,6 +960,7 @@ def addDefaultMultipleQuestion(request):
     # 返回成功
     return packageResponse(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'id': questionId})
 
+
 def addDefaultTextQuestion(request):
     '''
         增加一个默认结构的问答题，提供给前台的新增问题按钮使用。
@@ -990,7 +988,6 @@ def addDefaultTextQuestion(request):
 
     # 返回成功
     return packageResponse(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'id': questionId})
-
 
 
 def addDefaultScoreQuestion(request):
@@ -1108,7 +1105,7 @@ def _custListAdd(requestData, user):
     # 获取custList模型中的所有属性
     keys = requestData.keys()
     data = {}
-    #fields = zip(*CustList._meta.get_fields_with_model())[0]
+    # fields = zip(*CustList._meta.get_fields_with_model())[0]
     for field in getModelFields(CustList):
         # 跳过系统自动增加的字段
         if field.auto_created:
@@ -1215,7 +1212,7 @@ def _custListModify(requestData, user):
     if 'id' not in keys:
         return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_ID)
     idSigned = requestData['id']
-    print idSigned
+    # print idSigned
 
     # 对id进行数字签名的检查
     try:
@@ -1309,7 +1306,6 @@ def _custListItemAdd(requestData, user):
     # 检查用户是否有权限
     if custList.createBy != user:
         return packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.NO_PRIVILEGE)
-
 
     # 通过request提供的数据创建custListItem对象
     custListItem = CustListItem()
@@ -1469,16 +1465,9 @@ def sendSurveyToPhone(request):
         if smsSendResult['resultCode'] != 0:
             result = packageResult(RESULT_CODE.ERROR, RESULT_MESSAGE.FAIL_TO_SEND_SMS)
             return dictToJsonResponse(result)
-    except Exception as e:
-        print e
+    except Exception:
+        # print e
         raise
     # 返回成功
     result = packageResult(RESULT_CODE.SUCCESS, RESULT_MESSAGE.SUCCESS, {'secondsRemain': timeDelaySeconds})
     return dictToJsonResponse(result)
-
-
-
-
-
-
-

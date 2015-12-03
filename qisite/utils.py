@@ -1,5 +1,4 @@
-#-*- coding: utf-8 -*-
-
+# -*- coding: utf-8 -*-
 from django.db.models.fields import BooleanField
 from django.db.models.fields import DateTimeField
 from django.db.models.fields.related import ForeignKey
@@ -7,6 +6,8 @@ from django.core.signing import Signer, BadSignature
 from definitions import USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME, CREATE_TIME_FIELD_NAME, \
     MODIFY_TIME_FIELD_NAME
 from dateutil import parser
+import warnings
+warnings.simplefilter('ignore', UnicodeWarning)
 
 defaultExcludeFields = ['id', USER_CREATE_BY_FIELD_NAME, USER_MODIFY_BY_FIELD_NAME, CREATE_TIME_FIELD_NAME,
                         MODIFY_TIME_FIELD_NAME]

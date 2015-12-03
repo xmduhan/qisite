@@ -33,9 +33,9 @@ class Paper(TimeModel):
     def __unicode__(self):
         return self.title
 
-    #PAPER_STYLE = ( ('F', '平展'), ('P', '分页'))
+    # PAPER_STYLE = ( ('F', '平展'), ('P', '分页'))
     QUESTION_NUM_STYLE = (('123', '1.2.3.……'), ('(1)(2)(3)', '(1).(2).(3).……'), ('Q1Q2Q3', 'Q1.Q2.Q3.……'))
-    PAPER_TYPE = ( ('T', '模板'), ('I', '实例'))
+    PAPER_TYPE = (('T', '模板'), ('I', '实例'))
     code = models.CharField('编码', max_length=100, blank=True, null=True, default=None)  # 用于在测试中找到对象
     title = models.CharField('问卷标题', max_length=500)
     description = models.CharField('问卷说明', max_length=500, blank=True)
@@ -220,12 +220,11 @@ class Question(TimeModel):
             # TODO : 这里需要设置合适的异常类型
             raise Exception()
         questionList.insert(newOrd, questionList.pop(ord))
-        for i,q in enumerate(questionList):
+        for i, q in enumerate(questionList):
             if q.ord != i:
                 q.ord = i
                 q.save()
         paper.clean()
-
 
     def getStemText(self):
         '''
@@ -258,14 +257,14 @@ class Question(TimeModel):
         signer = Signer()
         return signer.sign(self.id)
 
-    def getScoreStat(self,max=10):
+    def getScoreStat(self, max=10):
         """
         获取评分分布统计信息
         """
         querySet = SampleItem.objects.filter(question=self)
         r1 = querySet.values('score').annotate(count=models.Count('score'))
-        r2 = {i['score']:i['count']for i in r1}
-        r3 = sorted(r2.items(), key=operator.itemgetter(1),reverse=True)[:10]
+        r2 = {i['score']: i['count']for i in r1}
+        r3 = sorted(r2.items(), key=operator.itemgetter(1), reverse=True)[:10]
         r4 = zip(*r3)
         return r4
 
@@ -434,7 +433,7 @@ class Survey(TimeModel):
     macLimit = models.IntegerField("MAC限制", default=5)
     publishTime = models.DateTimeField("发布时间", default=datetime.now)
     endTime = models.DateTimeField("结束时间", default=oneYearLater)
-    #参与者约束	constraints	对象集 (hold)
+    # 参与者约束	constraints	对象集 (hold)
     pay = models.BooleanField('查看结果', default=True)
     hardCost = models.FloatField('调查费', default=0)
     bonus = models.FloatField('奖金', default=0)
@@ -465,7 +464,7 @@ class TargetCust(TimeModel):
     phone = models.CharField('手机号码', max_length=50)
     email = models.CharField('电子邮件', max_length=100)
     defineInfo_set = models.ManyToManyField('DefineInfo', verbose_name='附件信息', blank=True, null=True)
-    #sample = models.ForeignKey('Sample', verbose_name='样本') 在样本中已设定了一对一关系 (ok)
+    # sample = models.ForeignKey('Sample', verbose_name='样本') 在样本中已设定了一对一关系 (ok)
     token = models.CharField('访问令牌', max_length=50)
     survey = models.ForeignKey(Survey, verbose_name="所属调查", related_name='targetCust_set')
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='targetCustCreated_set')
@@ -484,14 +483,14 @@ class TargetCust(TimeModel):
 
 
 class Sample(TimeModel):
-    #样本项集	sampleItems	对象集 (ok) (已在样本中设置对应外键)
+    # 样本项集	sampleItems	对象集 (ok) (已在样本中设置对应外键)
     targetCust = models.ForeignKey('TargetCust', verbose_name='清单项', null=True, blank=True)
     # session字段用户保存无定向调查客户端标识信息
     session = models.CharField('客户端会话标识', max_length=40, null=True, blank=True)
     user = models.ForeignKey(account.models.User, verbose_name="参与用户", null=True,
                              blank=True)  # 这里是否设置一个related_name
     ipAddress = models.CharField('受访IP', max_length=50)
-    #macAddress = models.CharField('受访MAC', max_length=50) web端实际无法获得该字段
+    # macAddress = models.CharField('受访MAC', max_length=50) web端实际无法获得该字段
     finished = models.BooleanField('是否完成', default=True)
     # lastQuestion用于单步答题，保存最后一次回答的题目，以便之后继续回答
     # lastQuestion = models.ForeignKey('Question', verbose_name='下一题', null=True, blank=True, on_delete=models.SET_NULL)
@@ -573,5 +572,3 @@ class DefineInfo(TimeModel):
     class Meta:
         verbose_name = "自定义信息"
         verbose_name_plural = "[16].自定义信息"
-
-
