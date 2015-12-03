@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from django.contrib import admin
-from models import *
+# from models import *
+from models import Paper, PaperCatalog, Question, PaperCatalogPaper
+from models import QuestionCatalog, QuestionCatalogQuestion, Resource
+from models import Branch, Survey, TargetCust, Sample, SampleItem
+from models import CustList, CustListItem, DefineInfo
 
 
 class PaperAdmin(admin.ModelAdmin):

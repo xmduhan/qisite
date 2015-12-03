@@ -1,22 +1,23 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from survey.models import Survey, TargetCust, Sample, Question, Branch, SampleItem
 from account.models import User
 from datetime import datetime
 from django.contrib.auth.hashers import make_password, check_password
-from django.template import Context, loader, RequestContext
-from django.http import HttpResponse, Http404, HttpResponseRedirect, StreamingHttpResponse
+from django.template import loader, RequestContext
+from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from qisite.definitions import RESULT_MESSAGE
-from django.core.signing import Signer, BadSignature
+from django.core.signing import Signer
 from django.db import transaction
 
-#self.phone = request.REQUEST.get('phone')
-#self.submitedSurveyList = request.session.get('submitedSurveyList', [])
-#self.resubmit = request.REQUEST.get('resubmit', False)
-#self.password = request.REQUEST.get('password')
-#self.passwordEncoded = request.REQUEST.get('passwordEncoded', False)
-#self.questionIdList = request.REQUEST.getlist('questionIdList')
+# self.phone = request.REQUEST.get('phone')
+# self.submitedSurveyList = request.session.get('submitedSurveyList', [])
+# self.resubmit = request.REQUEST.get('resubmit', False)
+# self.password = request.REQUEST.get('password')
+# self.passwordEncoded = request.REQUEST.get('passwordEncoded', False)
+# self.questionIdList = request.REQUEST.getlist('questionIdList')
+
 
 def getAnonymousUser():
     return User.objects.get(code='anonymous')
@@ -39,7 +40,6 @@ class AuthController:
 
     def authErrorPage(self):
         pass
-
 
     def getAuthInfo(self):
         return {}
@@ -72,7 +72,7 @@ class SurveyAuthController(AuthController):
             self.resubmit = self.request.REQUEST.get('resubmit', False)
             self.passwordEncoded = self.request.REQUEST.get('passwordEncoded', '')
             if not self.resubmit:
-                #if True:
+                # if True:
                 # 重新提交的情况,其加密密码已经直接放在request中的passwordEncoded了
                 self.passwordEncoded = make_password(self.password)
 
@@ -80,7 +80,6 @@ class SurveyAuthController(AuthController):
         if type(self.controller) == SurveySubmitController:
             self.passwordEncoded = self.request.REQUEST.get('passwordEncoded', '')
             self.resubmit = self.request.REQUEST.get('resubmit', False)
-
 
     def authCheck(self):
         '''
@@ -124,7 +123,6 @@ class SurveyAuthController(AuthController):
 
             return True
 
-
     def getSample(self):
         '''
         获取上次用户回答的样本记录，用于样本信息的关联、再次读取和清空
@@ -164,7 +162,7 @@ class SurveyAuthController(AuthController):
         '''
         if type(self.controller) == SurveyRenderController:
             if self.password != self.survey.password:
-                #return self.controller.errorPage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
+                # return self.controller.errorPage(RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
                 return self.controller.errorPage(self.getAuthErrorMessage())
 
         if type(self.controller) == SurveySubmitController:
@@ -202,7 +200,8 @@ class TargetlessSurveyAuthController(SurveyAuthController):
 
     def __loadAuthInfo(self):
         # 对于显示和提交操作相同
-        self.submitedSurveyList = submitedSurveyList = self.request.session.get('submitedSurveyList', [])
+        # self.submitedSurveyList = submitedSurveyList = self.request.session.get('submitedSurveyList', [])
+        self.submitedSurveyList = self.request.session.get('submitedSurveyList', [])
 
     def isAnswered(self):
         '''
@@ -294,7 +293,7 @@ class TargetSurveyAuthController(SurveyAuthController):
             self.targetCust = None
             targetCustIdSigned = self.request.REQUEST.get('targetCustId')
             if not targetCustIdSigned:
-                #raise Exception(RESULT_MESSAGE.TARGET_SURVEY_NEED_CUSTLIST)  #定向调查需要提供客户清单
+                # raise Exception(RESULT_MESSAGE.TARGET_SURVEY_NEED_CUSTLIST)  #定向调查需要提供客户清单
                 self.__authErrorMessage = RESULT_MESSAGE.TARGET_SURVEY_NEED_CUSTLIST
                 return
             # 验证目标清单的数字签名
@@ -302,7 +301,7 @@ class TargetSurveyAuthController(SurveyAuthController):
                 signer = Signer()
                 targetCustId = signer.unsign(targetCustIdSigned)
             except:
-                #raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 无效的数字签名
+                # raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 无效的数字签名
                 self.__authErrorMessage = RESULT_MESSAGE.BAD_SAGNATURE
                 return
 
@@ -310,13 +309,13 @@ class TargetSurveyAuthController(SurveyAuthController):
             try:
                 targetCust = TargetCust.objects.get(id=targetCustId)
             except:
-                #raise Exception(RESULT_MESSAGE.CUSTLIST_OBJECT_NOT_EXIST)  # 所指定的客户清单的对象不存在
+                # raise Exception(RESULT_MESSAGE.CUSTLIST_OBJECT_NOT_EXIST)  # 所指定的客户清单的对象不存在
                 self.__authErrorMessage = RESULT_MESSAGE.CUSTLIST_OBJECT_NOT_EXIST
                 return
 
             # 检查目标清单和当前调查是否有关联，防止篡改
             if targetCust.survey != self.survey:
-                #raise Exception(RESULT_MESSAGE.TARGETCUST_NOT_IN_SURVEY)
+                # raise Exception(RESULT_MESSAGE.TARGETCUST_NOT_IN_SURVEY)
                 self.__authErrorMessage = RESULT_MESSAGE.TARGETCUST_NOT_IN_SURVEY
                 return
 
@@ -360,7 +359,6 @@ class TargetSurveyAuthController(SurveyAuthController):
             # 执行父类的检查
             return SurveyAuthController.authCheck(self)
 
-
     def getAuthInfo(self):
         '''
         定向调查提交是需要提供的targetCust信息
@@ -388,7 +386,7 @@ class TargetSurveyAuthController(SurveyAuthController):
         '''
         获取鉴权信息对应的样本记录
         '''
-        #sampleList = self.targetCust.sample_set.filter(finished=True)
+        # sampleList = self.targetCust.sample_set.filter(finished=True)
         sampleList = self.targetCust.sample_set.filter()
         if len(sampleList) != 0:
             return sampleList[0]
@@ -406,7 +404,7 @@ class TargetSurveyAuthController(SurveyAuthController):
             return self.loginPage()
 
         # 检查号码是否在客户清单中
-        #if not self.isPhoneInList(self.phone):
+        # if not self.isPhoneInList(self.phone):
         #    return self.controller.errorPage(RESULT_MESSAGE.PHONE_NOT_IN_CUSTLIST)
 
         # 返回父类的错误登录页面
@@ -417,19 +415,16 @@ class TargetSurveyAuthController(SurveyAuthController):
         定向调查检查是否已经答过题
         提示：通过号码检查targetCust记录
         '''
-        #targetCustList = self.survey.targetCust_set.filter(phone=self.phone)
-        #if len(targetCustList) == 0:
+        # targetCustList = self.survey.targetCust_set.filter(phone=self.phone)
+        # if len(targetCustList) == 0:
         #    return False
-        #targetCust = targetCustList[0]
-        #if targetCust.sample_set.count() == 0:
+        # targetCust = targetCustList[0]
+        # if targetCust.sample_set.count() == 0:
         #    return False
-        #return True
+        # return True
         if not self.getSample():
             return False
         return True
-
-
-    pass
 
 
 class SurveyAnswerController:
@@ -537,7 +532,7 @@ class SurveyBulkAnswerController(SurveyAnswerController):
 
             # 检查问题是否和此问卷有关
             if question.paper != paper:
-                raise Exception(RESULT_MESSAGE.QUESTION_NOT_IN_PAPER)  #提交问题的问题此问卷无关
+                raise Exception(RESULT_MESSAGE.QUESTION_NOT_IN_PAPER)  # 提交问题的问题此问卷无关
 
             # 增加一个样本项来保存答题信息
             sampleItem = SampleItem(
@@ -568,7 +563,7 @@ class SurveyBulkAnswerController(SurveyAnswerController):
 
                 # 检查选项是否在问得的可选范围内
                 if branch not in branch_set_available:
-                    raise Exception(RESULT_MESSAGE.BRANCH_NOT_IN_QUESTION)  #提交答案不在选项范围内
+                    raise Exception(RESULT_MESSAGE.BRANCH_NOT_IN_QUESTION)  # 提交答案不在选项范围内
 
                 # 将选项保存到样本项信息中
                 sampleItem.branch_set.add(branch)
@@ -606,7 +601,7 @@ class SurveyBulkAnswerController(SurveyAnswerController):
                 branch_set_available = set(question.branch_set.all())
                 branch_set_selected = set(branchList)
                 if (branch_set_selected - branch_set_available):
-                    raise Exception(RESULT_MESSAGE.BRANCH_NOT_IN_QUESTION)  #提交答案不在选项范围内
+                    raise Exception(RESULT_MESSAGE.BRANCH_NOT_IN_QUESTION)  # 提交答案不在选项范围内
 
                 # 将选项保存到样本项信息中
                 for branch in branchList:
@@ -625,7 +620,7 @@ class SurveyBulkAnswerController(SurveyAnswerController):
 
                 # 检查评分是否在允许范围内
                 if (score < question.valueMin) or (score > question.valueMax):
-                    raise Exception(RESULT_MESSAGE.SCORE_OUT_OF_RANGE)  #评分超出范围
+                    raise Exception(RESULT_MESSAGE.SCORE_OUT_OF_RANGE)  # 评分超出范围
 
                 # 保存数据到样本
                 sampleItem.score = score
@@ -646,7 +641,7 @@ class SurveyBulkAnswerController(SurveyAnswerController):
 
         # 返回成功
         returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
-        #return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
+        # return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
         return self.controller.answerFinished(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
     pass
 
@@ -677,7 +672,6 @@ class SurveyStepAnswerController(SurveyAnswerController):
             # 如果没有上次答题断点信息，则从第1题开始答
             return self.survey.paper.getQuestionSetInOrder()[0]
 
-
     def render(self):
         '''
         生成答题页面返回
@@ -696,7 +690,6 @@ class SurveyStepAnswerController(SurveyAnswerController):
         data = dict(data.items() + submitAuthInfo.items())
         # 返回页面
         return self.answerPage(data)
-
 
     # @transaction.atomic()
     # def __processSubmit(self):
@@ -723,7 +716,7 @@ class SurveyStepAnswerController(SurveyAnswerController):
             sample.save()
             # 返回成功
             returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
-            #return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
+            # return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
             return self.controller.answerFinished(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
         else:
             nextQuestion = paper.getQuestionSetInOrder()[question.ord + 1]
@@ -749,7 +742,7 @@ class SurveyStepAnswerController(SurveyAnswerController):
         try:
             signer = Signer()
             questionId = signer.unsign(_questionId)
-        except Exception as e:
+        except Exception:
             return self.controller.errorPage(RESULT_MESSAGE.BAD_SAGNATURE)
 
         # 读取问题对象
@@ -760,14 +753,14 @@ class SurveyStepAnswerController(SurveyAnswerController):
 
         # 读取问题的数量
         paper = self.survey.paper
-        questionCount = paper.question_set.count()
+        # questionCount = paper.question_set.count()
 
         # 通知鉴权器保存session信息
         authController = self.controller.getAuthController()
         authController.onSubmitFinished()
         sample = authController.getSample()
         user = getAnonymousUser()
-        if sample == None:
+        if sample is None:
             ipAddress = self.controller.getClientIP()
             sample = Sample(user=user, ipAddress=ipAddress, paper=paper, createBy=user, modifyBy=user, finished=False)
             sample.save()
@@ -808,11 +801,11 @@ class SurveyStepAnswerController(SurveyAnswerController):
             sampleItem.save()
 
             # 选项对应的nextQuestion为空(表示进入下一题)
-            if branch.nextQuestion == None:
+            if branch.nextQuestion is None:
                 return self.__moveToNextQuestion(question, sample)
 
             # 处理特殊的问题类型（有效与无效结束）
-            if branch.nextQuestion.type in ( 'EndValid', 'EndInvalid'):
+            if branch.nextQuestion.type in ('EndValid', 'EndInvalid'):
                 # 设置样本为完成状态
                 sample.finished = True
                 # 判断是有效完成还是无效完成
@@ -826,7 +819,7 @@ class SurveyStepAnswerController(SurveyAnswerController):
                 sample.save()
                 # 返回成功
                 returnUrl = reverse('survey:view.survey.answer', args=[self.survey.id])
-                #return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
+                # return self.controller.messagePage(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
                 return self.controller.answerFinished(u'完成', RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY, returnUrl)
             else:
                 # 下一个问题设定为选项指定的下一题
@@ -867,7 +860,7 @@ class SurveyStepAnswerController(SurveyAnswerController):
             branch_set_available = set(question.branch_set.all())
             branch_set_selected = set(branchList)
             if (branch_set_selected - branch_set_available):
-                raise Exception(RESULT_MESSAGE.BRANCH_NOT_IN_QUESTION)  #提交答案不在选项范围内
+                raise Exception(RESULT_MESSAGE.BRANCH_NOT_IN_QUESTION)  # 提交答案不在选项范围内
 
             # 将选项保存到样本项信息中
             for branch in branchList:
@@ -887,7 +880,7 @@ class SurveyStepAnswerController(SurveyAnswerController):
             score = int(self.request.REQUEST.get(_questionId))
             # 检查评分是否在允许范围内
             if (score < question.valueMin) or (score > question.valueMax):
-                raise Exception(RESULT_MESSAGE.SCORE_OUT_OF_RANGE)  #评分超出范围
+                raise Exception(RESULT_MESSAGE.SCORE_OUT_OF_RANGE)  # 评分超出范围
             # 保存数据到样本
             sampleItem.score = score
             sampleItem.save()
@@ -932,7 +925,7 @@ class SurveyResponseController(ResponseController):
         '''
         self.answeredTemplate = 'survey/surveyAnswered.html'
         self.messageTemplate = 'www/message.html'
-        #self.answerFinishedTemplate = 'www/message.html'
+        # self.answerFinishedTemplate = 'www/message.html'
         self.answerFinishedTemplate = 'survey/answerFinished.html'
         self.url = reverse('survey:view.survey.answer.render', args=[self.survey.id])
 
@@ -962,7 +955,6 @@ class SurveyResponseController(ResponseController):
     def getAnswerController(self):
         return self.answerController
 
-
     def isExpired(self):
         '''
         检查是否调查是否过期了
@@ -984,10 +976,10 @@ class SurveyResponseController(ResponseController):
         for sampleItem in sample.sampleitem_set.all():
             self.allBranchIdSelected.extend([branch.id for branch in sampleItem.branch_set.all()])
         # 获取所有文字题的填写内容
-        for sampleItem in SampleItem.objects.filter(sample = sample,question__type = 'Text'):
+        for sampleItem in SampleItem.objects.filter(sample=sample, question__type='Text'):
             self.allQuestionText[sampleItem.question] = sampleItem.content
         # 获取所有评分题的评分结果
-        for sampleItem in SampleItem.objects.filter(sample = sample,question__type = 'Score'):
+        for sampleItem in SampleItem.objects.filter(sample=sample, question__type='Score'):
             self.allQuestionScore[sampleItem.question] = sampleItem.score
 
     def getAllBranchSelected(self):
@@ -999,17 +991,16 @@ class SurveyResponseController(ResponseController):
     def getAllQuestionScore(self):
         return self.allQuestionScore
 
-    def answerFinished(self,title, message, returnUrl):
+    def answerFinished(self, title, message, returnUrl):
         '''
         答题完成界面
         '''
         template = loader.get_template(self.answerFinishedTemplate)
-        data = {'title': title, 'message': message, 'returnUrl': returnUrl,'survey':self.survey}
+        data = {'title': title, 'message': message, 'returnUrl': returnUrl, 'survey': self.survey}
         submitAuthInfo = self.authController.getAuthInfo()
         data = dict(data.items() + submitAuthInfo.items())
-        context = RequestContext(self.request,data)
+        context = RequestContext(self.request, data)
         return HttpResponse(template.render(context))
-
 
     def messagePage(self, title, message, returnUrl):
         '''
@@ -1020,15 +1011,14 @@ class SurveyResponseController(ResponseController):
             self.request, {'title': title, 'message': message, 'returnUrl': returnUrl})
         return HttpResponse(template.render(context))
 
-
     def errorPage(self, errorMessage=u'未知错误'):
         '''
         显示出错信息
         '''
-        #template = loader.get_template(self.messageTemplate)
-        #context = RequestContext(
+        # template = loader.get_template(self.messageTemplate)
+        # context = RequestContext(
         #    self.request, {'title': '出错', 'message': resultMessage, 'returnUrl': self.url})
-        #return HttpResponse(template.render(context))
+        # return HttpResponse(template.render(context))
         return self.messagePage('出错', errorMessage, self.url)
 
     def answeredPage(self):
@@ -1056,7 +1046,6 @@ class SurveyRenderController(SurveyResponseController):
     def __init__(self, request, surveyId):
         SurveyResponseController.__init__(self, request, surveyId)
 
-
     def process(self):
         '''
         生成页面主程序
@@ -1081,7 +1070,6 @@ class SurveyRenderController(SurveyResponseController):
             else:
                 return self.answeredPage()
 
-
         # 返回答题界面
         answerController = self.answerController
         return answerController.render()
@@ -1094,7 +1082,6 @@ class SurveySubmitController(SurveyResponseController):
 
     def __init__(self, request, surveyId):
         SurveyResponseController.__init__(self, request, surveyId)
-
 
     def process(self):
         '''
