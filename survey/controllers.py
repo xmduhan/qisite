@@ -577,7 +577,7 @@ class SurveyBulkAnswerController(SurveyAnswerController):
             # 多选题
             if question.type == 'Multiple':
 
-                branchIdSingedList = dict(self.request.POST)[questionIdSigned]
+                branchIdSingedList = dict(self.request.POST).get(questionIdSigned)
                 # 没有提交数据
                 if not branchIdSingedList:
                     raise Exception(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
@@ -788,11 +788,13 @@ class SurveyStepAnswerController(SurveyAnswerController):
         # 单选题
         if question.type == 'Single':
             # TODO:这里处理分布答题的逻辑和批量处理的实际重复，需要进行抽象重构
-            _branchId = request.REQUEST[_questionId]
+            _branchId = request.REQUEST.get(_questionId)
+            if not _branchId:
+                return self.controller.errorPage(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
             # 检验选项的数字签名
             try:
                 branchId = signer.unsign(_branchId)
-            except Exception as e:
+            except Exception:
                 return self.controller.errorPage(RESULT_MESSAGE.BAD_SAGNATURE)
 
             # 读取选项对象
@@ -836,10 +838,10 @@ class SurveyStepAnswerController(SurveyAnswerController):
 
         # 多选题
         if question.type == 'Multiple':
-            branchIdSingedList = dict(self.request.POST)[_questionId]
+            branchIdSingedList = dict(self.request.POST).get(_questionId)
             # 没有提交数据
             if not branchIdSingedList:
-                raise Exception(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
+                return self.controller.errorPage(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
 
             branchIdList = []
             # 对所有选项检查数据签名
