@@ -23,5 +23,3 @@ class NumStyle:
             return self.styleData[ord]
         else:
             return "?"
-
-

@@ -1,10 +1,12 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # Create your views here.
 from __future__ import division
 from django.http import HttpResponse, Http404, HttpResponseRedirect, StreamingHttpResponse
-from django.template import Context, loader, RequestContext
+from django.template import loader, RequestContext
 from account.models import User
-from models import *
+# from models import *
+from models import Survey, Paper, CustList, Question, Branch
+from datetime import datetime
 from django.core.signing import Signer, BadSignature
 from qisite.definitions import USER_SESSION_NAME
 from django.core.paginator import Paginator
@@ -18,7 +20,7 @@ import qrcode
 from qrcode.image.pure import PymagingImage
 from qisite.settings import domain
 from django.db.models import Count
-from django.contrib.auth.hashers import make_password, check_password
+# from django.contrib.auth.hashers import make_password, check_password
 from controllers import SurveyRenderController, SurveySubmitController
 
 
@@ -36,14 +38,17 @@ def surveyList(request, page=1):
     '''
     perPage = 10
     # 确定page类型为整型
-    if type(page) != int: page = int(page)
+    if type(page) != int:
+        page = int(page)
     # 读取用户
     user = getCurrentUser(request)
     surveyCreateSet = user.surveyCreated_set.filter(state='A').order_by('-modifyTime')
     paginator = Paginator(surveyCreateSet, perPage)
     # 对page的异常值进行处理
-    if page < 1: page = 1
-    if page > paginator.num_pages: page = paginator.num_pages
+    if page < 1:
+        page = 1
+    if page > paginator.num_pages:
+        page = paginator.num_pages
     # 读取当前分页数据
     thisPageSurveyList = paginator.page(page)
     # 通过模板生成返回内容
@@ -74,15 +79,18 @@ def paperList(request, page=1):
     '''
     perPage = 10
     # 确定page类型为整型
-    if type(page) != int: page = int(page)
+    if type(page) != int:
+        page = int(page)
     # 读取用户
     user = getCurrentUser(request)
     # 读取用户所创建的问卷，并做分页处理
     paperCreateSet = user.paperCreated_set.filter(type='T').order_by('-modifyTime')
     paginator = Paginator(paperCreateSet, perPage)
     # 对page的异常值进行处理
-    if page < 1: page = 1
-    if page > paginator.num_pages: page = paginator.num_pages
+    if page < 1:
+        page = 1
+    if page > paginator.num_pages:
+        page = paginator.num_pages
     # 读取当前分页数据
     thisPagePaperList = paginator.page(page)
     # 通过模板生成返回内容
@@ -117,7 +125,7 @@ def paperPreview(request, paperId):
     '''
     # 检查用户的登录状态
     user = getCurrentUser(request)
-    if user == None:
+    if user is None:
         raise Exception(u'没有登录')
 
     # 读取问卷并创建实例
@@ -142,7 +150,7 @@ def paperPreview(request, paperId):
     survey.save()
 
     # 清理之前的预览对象, 关联当前预览对象
-    if paper.previewSurvey :
+    if paper.previewSurvey:
         paper.previewSurvey.delete()
     paper.previewSurvey = survey
     paper.save()
@@ -183,18 +191,18 @@ def surveyAdd(request, paperId):
 
 @transaction.atomic
 def surveyAddAction(request):
-    #print request.REQUEST
+    # print request.REQUEST
     # 读取问卷标识
     paperIdSigned = request.REQUEST['paperId']
 
     # 验证问卷的数字签名
     sign = Signer()
     paperId = sign.unsign(paperIdSigned)
-    #print  'paperId=', paperId
+    # print  'paperId=', paperId
 
     # 检查用户的登录状态
     user = getCurrentUser(request)
-    if user == None:
+    if user is None:
         raise Exception(u'没有登录')
 
     # 读取问卷并创建实例
@@ -228,15 +236,18 @@ def custListList(request, page=1):
     '''
     perPage = 10
     # 确定page类型为整型
-    if type(page) != int: page = int(page)
+    if type(page) != int:
+        page = int(page)
     # 读取用户
     user = getCurrentUser(request)
     # 读取用户所创建的问卷，并做分页处理
     custListCreateSet = user.custListCreated_set.all().order_by('-modifyTime')
     paginator = Paginator(custListCreateSet, perPage)
     # 对page的异常值进行处理
-    if page < 1: page = 1
-    if page > paginator.num_pages: page = paginator.num_pages
+    if page < 1:
+        page = 1
+    if page > paginator.num_pages:
+        page = paginator.num_pages
     # 读取当前分页数据
     thisPageCustListList = paginator.page(page)
     # 通过模板生成返回内容
@@ -268,18 +279,21 @@ def custListEdit(request, custListId, page=1):
     # 读取数据并分页
     perPage = 10
     # 确定page类型为整型
-    if type(page) != int: page = int(page)
+    if type(page) != int:
+        page = int(page)
     # 读取所有清单项并分页
     custListItemSet = custList.custListItem_set.order_by('-modifyTime')
     paginator = Paginator(custListItemSet, perPage)
     # 对page的异常值进行处理
-    if page < 1: page = 1
-    if page > paginator.num_pages: page = paginator.num_pages
+    if page < 1:
+        page = 1
+    if page > paginator.num_pages:
+        page = paginator.num_pages
     # 读取当前分页数据
     thisPageCustListItemList = paginator.page(page)
 
     baseUrl = reverse('survey:view.custList.edit', args=[custList.id]) + '/'
-    #print 'baseUrl=', baseUrl
+    # print 'baseUrl=', baseUrl
 
     # 读取模板生成页面
     template = loader.get_template('survey/custListEdit.html')
@@ -299,7 +313,7 @@ def questionEdit(request, questionId):
     try:
         sign = Signer()
         questionIdUnsigned = sign.unsign(questionId)
-    except BadSignature as bs:
+    except BadSignature:
         raise Http404
 
     # 根据id查询问题对象
@@ -367,7 +381,7 @@ def surveyAnswerSubmit(request):
     # 读取surveyId
     surveyIdSigned = request.REQUEST.get('surveyId')
     if not surveyIdSigned:
-        #raise Exception(RESULT_MESSAGE.NO_SURVEY_ID)  # 没有提供调查对象
+        # raise Exception(RESULT_MESSAGE.NO_SURVEY_ID)  # 没有提供调查对象
         template = loader.get_template('www/answerFinished.html')
         context = RequestContext(request, {'title': u'出错', 'message': RESULT_MESSAGE.NO_SURVEY_ID, 'returnUrl': '/'})
         return HttpResponse(template.render(context))
@@ -377,7 +391,7 @@ def surveyAnswerSubmit(request):
         signer = Signer()
         surveyId = signer.unsign(surveyIdSigned)
     except:
-        #raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 无效的数字签名
+        # raise Exception(RESULT_MESSAGE.BAD_SAGNATURE)  # 无效的数字签名
         template = loader.get_template('www/answerFinished.html')
         context = RequestContext(request, {'title': u'出错', 'message': RESULT_MESSAGE.BAD_SAGNATURE, 'returnUrl': '/'})
         return HttpResponse(template.render(context))
@@ -430,7 +444,7 @@ def surveyExport(request, surveyId):
             questionText = ''.join([question.getNum(), question.text])
             for branch in question.getBranchSetInOrder():
                 branchText = ''.join([branch.getNum(), branch.text])
-                fullBranchText = '%s:%s' % ( questionText, branchText)
+                fullBranchText = '%s:%s' % (questionText, branchText)
                 fullBranchTextEncoded = unicode(fullBranchText).encode(encoding)
                 header.append(fullBranchTextEncoded)
 
