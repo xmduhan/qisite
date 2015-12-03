@@ -1512,7 +1512,6 @@ class AddDefaultSingleQuestionTest(TestCase):
         self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)
         self.assertEquals(result['resultMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
 
-
     def test_no_privilege(self):
         '''
             测试没有权限的情况
@@ -1619,7 +1618,6 @@ class AddDefaultBranchTest(TestCase):
         self.assertEquals(result['resultCode'], RESULT_CODE.SUCCESS)
         self.assertEquals(result['resultMessage'], RESULT_MESSAGE.SUCCESS)
 
-
     def test_session(self):
         '''
 
@@ -1637,7 +1635,7 @@ class PaperCreateInstanceTest(TestCase):
     def setUp(self):
         setup_test_environment()
         self.user = User.objects.get(code='duhan')
-        self.paper = Paper.objects.get(code='paper-template-01', type='T')  #网购客户满意度调查(非定向)
+        self.paper = Paper.objects.get(code='paper-template-01', type='T')  # 网购客户满意度调查(非定向)
 
     def test_createPaperInstance(self):
         newPaper = self.paper.createPaperInstance(self.user)
@@ -1709,7 +1707,7 @@ class UpdateModelInstanceTest(TestCase):
     def setUp(self):
         admin = User.objects.get(code='admin')
         user = User.objects.get(code='duhan')
-        paper = Paper.objects.get(code='paper-template-01', type='T')  #网购客户满意度调查(非定向)
+        paper = Paper.objects.get(code='paper-template-01', type='T')  # 网购客户满意度调查(非定向)
         survey = Survey()
         survey.createBy = admin
         survey.modifyBy = admin
@@ -1872,7 +1870,6 @@ class CustListAddTest(TestCase):
     '''
     fixtures = ['initial_data.json']
 
-
     def setUp(self):
         setup_test_environment()
         # 创建用户并且用其登陆
@@ -1885,7 +1882,7 @@ class CustListAddTest(TestCase):
         # 准备要提交的数据
         self.data_valid = {'name': 'test'}
         self.date_no_title = {'test': '123'}
-        #self.data_tamper = {'id': 'createBy':}
+        # self.data_tamper = {'id': 'createBy':}
 
     def test_add_custList_no_login(self):
         '''
@@ -1897,7 +1894,6 @@ class CustListAddTest(TestCase):
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
         self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_LOGIN)  # 没有登录错误
-
 
     def test_add_custList_no_title(self):
         '''
@@ -1945,7 +1941,6 @@ class CustListDeleteTest(TestCase):
         self.data_no_privilege = {'id': self.custList_other.getIdSigned()}
         #
         self.serviceUrl = reverse('survey:service.custList.delete')
-
 
     def test_no_login(self):
         '''
@@ -2063,7 +2058,6 @@ class CustListItemAddTest(TestCase):
         self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
         self.assertEquals(result['resultMessage'], RESULT_MESSAGE.NO_ID)  # 没有提供id
 
-
     def test_add_custListItem_bad_signature(self):
         '''
         测试非法的数字签名的情况
@@ -2073,7 +2067,6 @@ class CustListItemAddTest(TestCase):
         result = json.loads(response.content)
         self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
         self.assertEquals(result['resultMessage'], RESULT_MESSAGE.BAD_SAGNATURE)
-
 
     def test_add_custListItem_no_name(self):
         '''
@@ -2086,7 +2079,6 @@ class CustListItemAddTest(TestCase):
         self.assertEquals(result['resultCode'], RESULT_CODE.ERROR)  # 出错
         self.assertEquals(result['resultMessage'], RESULT_MESSAGE.VALIDATION_ERROR)  # 数据校验错
         self.assertIn('name', result['validationMessage'])  # 校验错误信息中含name
-
 
     def test_add_custListItem_no_phone(self):
         '''
@@ -2236,7 +2228,7 @@ class TargetLessSurveyAnswerTest(TestCase):
     def setUp(self):
         setup_test_environment()
         self.client = Client()
-        self.survey = Survey.objects.get(code='survey-targetless-01')  #网购客户满意度调查(非定向)
+        self.survey = Survey.objects.get(code='survey-targetless-01')  # 网购客户满意度调查(非定向)
         self.paper = self.survey.paper
 
         # 确认该调查为非定向调查
@@ -2288,7 +2280,6 @@ class TargetLessSurveyAnswerTest(TestCase):
         paper = response.context['paper']
         self.assertEqual(self.survey.paper.id, paper.id)
 
-
     def test_answer_submit_success(self):
         '''
         测试提交问卷信息
@@ -2310,10 +2301,9 @@ class TargetLessSurveyAnswerTest(TestCase):
         self.assertEqual(self.survey.paper.sample_set.count(), sampleCount + 1)
 
         # 确认question数量和sample相同
-        ## 获取最新添加的一个sample
+        # # 获取最新添加的一个sample
         sample = self.survey.paper.sample_set.order_by('-createTime')[0]
         self.assertEqual(sample.sampleitem_set.count(), self.survey.paper.question_set.count())
-
 
     def test_answer_resubmit_without_flag(self):
         '''
@@ -2391,7 +2381,6 @@ class TargetLessSurveyAnswerTest(TestCase):
                 })
                 self.assertEqual(input.get('checked'), 'checked')
 
-
     def test_answer_resubmit_with_flag_without_survey_flag(self):
         '''
         使用重复填写标志，但是问卷本身不支持重复填写
@@ -2422,11 +2411,10 @@ class TargetLessSurveyAnswerTest(TestCase):
         self.assertEqual(template.name, self.answeredTemplate)
 
         # 确认页面没有生成重填按钮
-        #self.assertNotContains(response, u'重填')
+        # self.assertNotContains(response, u'重填')
         soup = BeautifulSoup(response.content)
         input = soup.find(attrs={"id": "resubmitButton"})
         self.assertIsNone(input)
-
 
     def test_enter_page_with_password(self):
         '''
@@ -2449,20 +2437,17 @@ class TargetLessSurveyAnswerTest(TestCase):
         self.assertEqual(response.templates[0].name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.SURVEY_PASSWORD_INVALID)
 
-
         # 提供密码可以正常进入页面
         response = self.client.get(self.answerUrl, {'password': self.survey.password})
         self.assertEqual(response.status_code, 200)
         template = response.templates[0]
         self.assertEqual(template.name, self.answerTemplate)
 
-
         # 检查页面是否有包含密码
         soup = BeautifulSoup(response.content)
         input = soup.find(attrs={"name": "passwordEncoded"})
         passwordEncoded = input.get('value')
         self.assertTrue(check_password(self.survey.password, passwordEncoded))
-
 
     def test_submit_with_password(self):
         '''
@@ -2525,10 +2510,10 @@ class TargetLessSurveyAnswerTest(TestCase):
         client = self.client
         # 为调查设置密码
         self.survey.password = '123456'
-        #self.survey.resubmit = False
+        # self.survey.resubmit = False
         self.survey.save()
 
-        ############################## 第1次提交 #############################
+        # ############################# 第1次提交 #############################
         # 进入调查页面
         response = self.client.get(self.answerUrl, {'password': self.survey.password})
         self.assertEqual(response.status_code, 200)
@@ -2549,7 +2534,7 @@ class TargetLessSurveyAnswerTest(TestCase):
         self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
-        ############################## 第2次提交 #############################
+        # ############################# 第2次提交 #############################
         # 进入调查页面(返回的是已经答过页面)
         response = self.client.get(self.answerUrl, {'password': self.survey.password})
         self.assertEqual(response.status_code, 200)
@@ -2580,7 +2565,6 @@ class TargetLessSurveyAnswerTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
-
 
     def test_submit_expired_survey(self):
         '''
@@ -2615,7 +2599,7 @@ class TargetSurveyAnswerTest(TestCase):
     def setUp(self):
         setup_test_environment()
         self.client = Client()
-        self.survey = Survey.objects.get(code='survey-target-01')  #网购客户满意度调查(定向)
+        self.survey = Survey.objects.get(code='survey-target-01')  # 网购客户满意度调查(定向)
         self.custList = self.survey.custList
         self.paper = self.survey.paper
 
@@ -2643,7 +2627,6 @@ class TargetSurveyAnswerTest(TestCase):
         self.viewRusultTemplate = 'survey/surveyViewResult.html'
         self.answerFinishedTemplate = 'survey/answerFinished.html'
 
-
         # 生成一个合法的答卷数据，供后面的过程提交使用
         data_valid = {}
         questionIdList = []
@@ -2663,7 +2646,6 @@ class TargetSurveyAnswerTest(TestCase):
         # 检查是否直接转向答题模板
         self.assertEqual(self.surveyLoginTemplate, response.templates[0].name)
 
-
     def test_enter_answer_page_with_phone_not_in_list(self):
         '''
         检查如果提供一个错误的号码无法进入答题页面
@@ -2678,7 +2660,6 @@ class TargetSurveyAnswerTest(TestCase):
         # 检查出错信息是否一致
         self.assertContains(response, RESULT_MESSAGE.PHONE_NOT_IN_CUSTLIST)
 
-
     def test_enter_answer_page_with_valid_phone(self):
         '''
         检查提供正确的号码可以进入答题页面
@@ -2687,7 +2668,7 @@ class TargetSurveyAnswerTest(TestCase):
         phone = self.custList.custListItem_set.all()[0].phone
         targetCustList = self.survey.targetCust_set.filter(phone=phone)
         self.assertEqual(len(targetCustList), 0)
-        #提交数据到服务器
+        # 提交数据到服务器
         response = self.client.get(self.answerUrl, {'phone': phone})
         self.assertEqual(response.status_code, 200)
         # 检查是否直接转向答题模板
@@ -2701,7 +2682,6 @@ class TargetSurveyAnswerTest(TestCase):
         # 检查targetCust记录是否生成
         targetCustList = self.survey.targetCust_set.filter(phone=phone)
         self.assertEqual(len(targetCustList), 1)
-
 
     def test_answer_submit_success(self):
         '''
@@ -2722,9 +2702,9 @@ class TargetSurveyAnswerTest(TestCase):
         data_valid['targetCustId'] = targetCustId
 
         # 找到刚插入的targetCust记录
-        #targetCust = self.survey.targetCust_set.filter(phone=phone)[0]
-        #data_valid = copy.copy(self.data_valid)
-        #data_valid['targetCustId'] = targetCust.getIdSigned()
+        # targetCust = self.survey.targetCust_set.filter(phone=phone)[0]
+        # data_valid = copy.copy(self.data_valid)
+        # data_valid['targetCustId'] = targetCust.getIdSigned()
 
         # 提交到服务器
         response = client.post(self.answerSubmitUrl, data_valid)
@@ -2740,10 +2720,9 @@ class TargetSurveyAnswerTest(TestCase):
         self.assertEqual(self.survey.paper.sample_set.count(), sampleCount + 1)
 
         # 确认question数量和sample相同
-        ## 获取最新添加的一个sample
+        # # 获取最新添加的一个sample
         sample = self.survey.paper.sample_set.order_by('-createTime')[0]
         self.assertEqual(sample.sampleitem_set.count(), self.survey.paper.question_set.count())
-
 
     def test_answer_resubmit_with_same_phone(self):
         '''
@@ -2780,7 +2759,6 @@ class TargetSurveyAnswerTest(TestCase):
         self.assertEqual(template.name, self.answeredTemplate)
         self.assertContains(response, RESULT_MESSAGE.ANSWERED_ALREADY)
 
-
     def test_answer_resubmit_with_different_phone(self):
         '''
         模拟两个不同的号码在同一个客户端进行提交
@@ -2814,7 +2792,6 @@ class TargetSurveyAnswerTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, self.answerFinishedTemplate)
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
-
 
     def test_answer_resubmit_same_phone_with_flag(self):
         '''
@@ -2927,7 +2904,7 @@ class TargetSurveyAnswerTest(TestCase):
         template = response.templates[0]
         self.assertEqual(template.name, self.answeredTemplate)
         # 确认页面没有生成重填按钮
-        #self.assertNotContains(response, u'重填')
+        # self.assertNotContains(response, u'重填')
         soup = BeautifulSoup(response.content)
         input = soup.find(attrs={"id": "resubmitButton"})
         self.assertIsNone(input)
@@ -3032,7 +3009,6 @@ class TargetSurveyAnswerTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, self.answerTemplate)
 
-
     def test_submit_expired_survey(self):
         '''
         测试过期后答题页面是进不去的
@@ -3068,7 +3044,6 @@ class TargetSurveyAnswerTest(TestCase):
         template = response.templates[0]
         self.assertEqual(template.name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.SURVEY_EXPIRED)
-
 
     def test_enter_view_result_page_protect(self):
         '''
@@ -3106,7 +3081,6 @@ class TargetSurveyAnswerTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.templates[0].name, self.messageTemplate)
         self.assertContains(response, RESULT_MESSAGE.VIEW_RESULT_IS_NOT_ALLOWED)
-
 
     def test_view_result_button_in_answered_page(self):
         '''
@@ -3171,7 +3145,7 @@ class StepSurveyTargetLessAnswerTest(TestCase):
         self.client = Client()
 
         # 导入待测试的调查
-        self.survey = Survey.objects.get(code='survey-targetless-step-01')  #网购客户满意度调查(非定向,分步)
+        self.survey = Survey.objects.get(code='survey-targetless-step-01')  # 网购客户满意度调查(非定向,分步)
         self.paper = self.survey.paper
 
         # 确认该调查为非定向调查
@@ -3188,7 +3162,6 @@ class StepSurveyTargetLessAnswerTest(TestCase):
         # 答题页面的url链接
         self.answerUrl = reverse('survey:view.survey.answer.render', args=[self.survey.id])
         self.answerSubmitUrl = reverse('survey:view.survey.answer.submit')
-
 
         # 导入问卷的4个问题
         self.question1 = self.paper.getQuestionSetInOrder()[0]
@@ -3230,13 +3203,12 @@ class StepSurveyTargetLessAnswerTest(TestCase):
         '''
         测试是否能正常进入页面
         '''
-        #提交数据到服务器
+        # 提交数据到服务器
         response = self.client.get(self.answerUrl)
         self.assertEqual(response.status_code, 200)
         # 检查显示的是否是第1题
         question = self.paper.getQuestionSetInOrder()[0]
         self.assertContains(response, question.text)
-
 
     def test_submit_question(self):
         '''
@@ -3268,7 +3240,6 @@ class StepSurveyTargetLessAnswerTest(TestCase):
         self.assertEquals(sampleItem.branch_set.count(), 1)
         self.assertEquals(sampleItem.branch_set.all()[0], self.question1.branch_set.all()[0])
 
-
     def test_survey_invalid_end(self):
         '''
         测试问卷无效结束情况
@@ -3278,7 +3249,7 @@ class StepSurveyTargetLessAnswerTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # 确认返回的是完成界面
-        #print response
+        # print response
         self.assertContains(response, RESULT_MESSAGE.THANKS_FOR_ANSWER_SURVEY)
 
         # 获取样本对象
@@ -3295,7 +3266,6 @@ class StepSurveyTargetLessAnswerTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, RESULT_MESSAGE.ANSWERED_ALREADY)
 
-
     def test_survey_valid_end(self):
         '''
         测试问卷有效结束情况
@@ -3303,7 +3273,6 @@ class StepSurveyTargetLessAnswerTest(TestCase):
         # 第1题的第1个选项，测试能够转向下一题
         response = self.client.post(self.answerSubmitUrl, self.dataNext)
         self.assertEqual(response.status_code, 200)
-
 
         # 检查是否进入下一题页面
         self.assertContains(response, self.question2.text)
@@ -3353,7 +3322,6 @@ class StepSurveyTargetLessAnswerTest(TestCase):
         # 确定问卷是非完成状态
         self.assertFalse(sample.finished)
 
-
     def test_survey_end(self):
         '''
         测试达到最后一题的情况
@@ -3373,7 +3341,6 @@ class StepSurveyTargetLessAnswerTest(TestCase):
         self.assertTrue(sample.isValid)
         # 确定问题回答完后会将nextQuestion置空
         self.assertIsNone(sample.nextQuestion)
-
 
     def test_survey_resubmit(self):
         '''
@@ -3435,7 +3402,7 @@ class StepSurveyTargetAnswerTest(TestCase):
         self.client = Client()
 
         # 导入待测试的调查
-        self.survey = Survey.objects.get(code='survey-target-step-01')  #网购客户满意度调查(非定向,分步)
+        self.survey = Survey.objects.get(code='survey-target-step-01')  # 网购客户满意度调查(非定向,分步)
         self.paper = self.survey.paper
 
         # 确认该调查为非定向调查
@@ -3496,7 +3463,7 @@ class StepSurveyTargetAnswerTest(TestCase):
         '''
         测试进入页面
         '''
-        #提交数据到服务器
+        # 提交数据到服务器
         response = self.client.get(self.answerUrl)
         self.assertEqual(response.status_code, 200)
 
@@ -3531,12 +3498,11 @@ class StepSurveyTargetAnswerTest(TestCase):
         self.assertEqual(len(targetCustList), 1)
         self.assertEquals(targetCustList2[0], targetCustList[0])
 
-
     def test_designation_jump(self):
         '''
         检查跳转页面是否能正常传递鉴权信息
         '''
-        #提交数据到服务器
+        # 提交数据到服务器
         response = self.client.get(self.answerUrl)
         self.assertEqual(response.status_code, 200)
 
@@ -3588,7 +3554,7 @@ class TargetLessSurveyExportTest(TestCase):
     def setUp(self):
         setup_test_environment()
         self.client = Client()
-        self.survey = Survey.objects.get(code='survey-targetless-01')  #网购客户满意度调查(非定向)
+        self.survey = Survey.objects.get(code='survey-targetless-01')  # 网购客户满意度调查(非定向)
         self.exportUrl = reverse('survey:view.survey.export', args=[self.survey.id])
         # 登录
         self.user = User.objects.get(code='duhan')
@@ -3611,7 +3577,7 @@ class TargetLessSurveyExportTest(TestCase):
 
         # 非匿名调查可以查看到用户的信息
         self.assertIn(ipColumn, content)
-        #self.assertIn
+        # self.assertIn
 
         # 将调查改为匿名调查
         self.survey.anonymous = True
@@ -3637,7 +3603,7 @@ class TargetSurveyExportTest(TestCase):
     def setUp(self):
         setup_test_environment()
         self.client = Client()
-        self.survey = Survey.objects.get(code='survey-target-01')  #网购客户满意度调查(定向)
+        self.survey = Survey.objects.get(code='survey-target-01')  # 网购客户满意度调查(定向)
         self.exportUrl = reverse('survey:view.survey.export', args=[self.survey.id])
         # 登录
         self.user = User.objects.get(code='duhan')
@@ -3664,7 +3630,7 @@ class TargetSurveyExportTest(TestCase):
         self.assertIn(nameColumn, content)
         self.assertIn(phoneColumn, content)
         self.assertIn(ipColumn, content)
-        #self.assertIn
+        # self.assertIn
 
         # 将调查改为匿名调查
         self.survey.anonymous = True
@@ -3784,7 +3750,7 @@ class SurveyPublishTest(TestCase):
         self.client = Client()
         loginForTest(self.client, self.user.phone, '123456')
         # 读取调查信息
-        self.survey = Survey.objects.get(code='survey-target-01')  #网购客户满意度调查(定向)
+        self.survey = Survey.objects.get(code='survey-target-01')  # 网购客户满意度调查(定向)
         # 生成访问url
         self.serviceUrl = reverse('survey:view.survey.publish', args=[self.survey.id])
         # 定义相关模板
@@ -3819,14 +3785,13 @@ class SurveyAddTest(TestCase):
     '''
     fixtures = ['initial_data.json']
 
-
     def setUp(self):
         # 为测试客户端登录
         self.user = User.objects.get(code='duhan')
         self.client = Client()
         loginForTest(self.client, self.user.phone, '123456')
         # 导入对应的
-        self.paper = Paper.objects.get(code='paper-template-01', type='T')  #网购客户满意度调查(非定向)
+        self.paper = Paper.objects.get(code='paper-template-01', type='T')  # 网购客户满意度调查(非定向)
         # 构造提交数据
         self.data_valid = {'paperId': self.paper.getIdSigned()}
         self.data_bad_signature = {'id': self.paper.id}
@@ -3959,7 +3924,7 @@ class MultipleQuestionTypeBulkTest(TestCase):
         self.assertEqual(self.survey.paper.sample_set.count(), sampleCount + 1)
 
         # 确认question数量和sample相同
-        ## 获取最新添加的一个sample
+        # # 获取最新添加的一个sample
         sample = self.survey.paper.sample_set.order_by('-createTime')[0]
         self.assertEqual(sample.sampleitem_set.count(), self.survey.paper.question_set.count())
 
@@ -4097,7 +4062,6 @@ class MultipleQuestionTypeStepTest(TestCase):
         data4[question4.getIdSigned()] = 7
         self.data4 = data4
 
-
     def test_answer_submit_success(self):
         '''
         测试提交问卷信息
@@ -4161,11 +4125,3 @@ class MultipleQuestionTypeStepTest(TestCase):
         sampleItem4 = sampleItemDict[self.question4.id]
         self.assertEquals(sampleItem4.branch_set.count(), 0)
         self.assertEqual(sampleItem4.score, 7)
-
-
-
-
-
-
-
-
