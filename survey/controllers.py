@@ -10,6 +10,7 @@ from django.core.urlresolvers import reverse
 from qisite.definitions import RESULT_MESSAGE
 from django.core.signing import Signer
 from django.db import transaction
+from qisite.definitions import MAX_TEXT_CONTENT_LENGTH
 
 # self.phone = request.REQUEST.get('phone')
 # self.submitedSurveyList = request.session.get('submitedSurveyList', [])
@@ -613,6 +614,8 @@ class SurveyBulkAnswerController(SurveyAnswerController):
                 content = self.request.REQUEST.get(questionIdSigned)
                 if len(content) == 0:
                     raise Exception(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
+                if len(content) > MAX_TEXT_CONTENT_LENGTH:
+                    raise Exception(RESULT_MESSAGE.TEXT_CONTENT_IS_TOO_LONG)
                 sampleItem.content = content
                 sampleItem.save()
 
@@ -875,6 +878,8 @@ class SurveyStepAnswerController(SurveyAnswerController):
             content = self.request.REQUEST.get(_questionId)
             if len(content) == 0:
                 return self.controller.errorPage(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
+            if len(content) > MAX_TEXT_CONTENT_LENGTH:
+                return self.controller.errorPage(RESULT_MESSAGE.TEXT_CONTENT_IS_TOO_LONG)
             sampleItem.content = content
             sampleItem.save()
             return self.__moveToNextQuestion(question, sample)

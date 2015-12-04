@@ -1,9 +1,11 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 USER_SESSION_NAME = 'user'
 USER_CREATE_BY_FIELD_NAME = 'createBy'
 USER_MODIFY_BY_FIELD_NAME = 'modifyBy'
 CREATE_TIME_FIELD_NAME = 'createTime'
 MODIFY_TIME_FIELD_NAME = 'modifyTime'
+
+MAX_TEXT_CONTENT_LENGTH = 500
 
 
 class RESULT_CODE:
@@ -27,6 +29,7 @@ class RESULT_MESSAGE:
     ANSWER_COUNT_DIFF_WITH_QUESTION = u'提交问题的数量和问卷不一致'
     ANSWER_WHEN_STEP_MORE_THAN_ONE = u'分步答题时一次提交了多于1个的问题'
     ANSWER_IS_MISSED_WHEN_REQUIRED = u'问题答案没有完整填写'
+    TEXT_CONTENT_IS_TOO_LONG = u'文字内容的长度过长'
     QUESTION_NOT_IN_PAPER = u'提交问题的问题此问卷无关'
     BRANCH_NOT_IN_QUESTION = u'提交答案不在选项范围内'
     SCORE_OUT_OF_RANGE = u'评分超出允许的范围'
