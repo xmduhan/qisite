@@ -611,6 +611,8 @@ class SurveyBulkAnswerController(SurveyAnswerController):
             # 问答题
             if question.type == 'Text':
                 content = self.request.REQUEST.get(questionIdSigned)
+                if len(content) == 0:
+                    raise Exception(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
                 sampleItem.content = content
                 sampleItem.save()
 
@@ -871,6 +873,8 @@ class SurveyStepAnswerController(SurveyAnswerController):
         # 问答题
         if question.type == 'Text':
             content = self.request.REQUEST.get(_questionId)
+            if len(content) == 0:
+                return self.controller.errorPage(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
             sampleItem.content = content
             sampleItem.save()
             return self.__moveToNextQuestion(question, sample)
