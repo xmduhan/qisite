@@ -181,7 +181,7 @@ class Question(TimeModel):
     text = models.CharField('文字', max_length=300)
     type = models.CharField('题型', max_length=100, choices=QUESTION_TYPE)
     ord = models.IntegerField("排序号")
-    contentLength = models.IntegerField('内容长度', default=0)  # 仅填空题有效,是否可以作为多选题的选项数量限制
+    contentLength = models.IntegerField('内容长度', default=MAX_TEXT_CONTENT_LENGTH)  # 仅填空题有效,是否可以作为多选题的选项数量限制
     valueMin = models.FloatField('最小值', null=True, blank=True, default=0)  # 仅评分题有效
     valueMax = models.FloatField('最大值', null=True, blank=True, default=10)  # 仅评分题有效
     # 题支 branch_set 对象集 (ok) (已在branche中设置反向外键)
