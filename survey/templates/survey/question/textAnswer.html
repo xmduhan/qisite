@@ -1,15 +1,15 @@
 {% load survey %}
 <input type="hidden" name="questionIdList" value="{{ question.getIdSigned }}"/>
-<div class="col-md-12">
+<div class="col-md-12 question-text" >
     <div class="panel panel-info ">
         <div class="panel-heading">
             {{ question.getNum }} {{ question.text }} <br>
+            <div class='question-text-counter'>(1/{{ question.contentLength }})</div>
         </div>
         <div class="panel-body">
             <textarea rows="5" type="text" class="form-control question-textarea" maxlength="{{ question.contentLength }}"
                 name="{{ question.getIdSigned }}" style="resize: none;"
                 >{% if allQuestionText|get_item:question %}{{ allQuestionText|get_item:question }}{% endif %}</textarea>
-            <div>(1/{{ question.contentLength }})</div>
             <br>
         </div>
     </div>

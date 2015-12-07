@@ -44,7 +44,9 @@ function initTextAreaRemainCount(scope) {
         maxLength = scope.attr('maxlength');
         length = scope.val().length;
         text = '(' + length + '/' + maxLength + ')';
-        scope.next().text(text);
+        //scope.next().text(text);
+        //scope.prev().text(text);
+        scope.parents('.question-text').find('.question-text-counter').text(text);
     }
     scope.find('.question-textarea').bind('input propertychange', function() {
         setTextAreaLengthInfo($(this));
