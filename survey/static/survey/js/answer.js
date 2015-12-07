@@ -35,6 +35,19 @@ function initSlider(scope) {
     });
 }
 
+/***************************************
+ *     初始化文字控件的计数提示        *
+ ***************************************/
+function initTextAreaRemainCount(scope) {
+    logger.debug('initTextAreaRemainCount is called!');
+    scope.find('.question-textarea').bind('input propertychange', function() {
+        maxLength = $(this).attr('maxlength');
+        length = $(this).val().length;
+        text = '(' + length + '/' + maxLength + ')';
+        $(this).next().text(text);
+    });
+}
+
 /*
 
  $( "#slider-range-min" ).slider({
@@ -53,6 +66,7 @@ function initSlider(scope) {
 function initial(scope) {
     initSlider(scope);
     initFormSubmitButton(scope);
+    initTextAreaRemainCount(scope);
 }
 
 /***************************************
