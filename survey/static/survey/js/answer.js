@@ -39,13 +39,19 @@ function initSlider(scope) {
  *     初始化文字控件的计数提示        *
  ***************************************/
 function initTextAreaRemainCount(scope) {
-    logger.debug('initTextAreaRemainCount is called!');
-    scope.find('.question-textarea').bind('input propertychange', function() {
-        maxLength = $(this).attr('maxlength');
-        length = $(this).val().length;
+    //logger.debug('initTextAreaRemainCount is called!');
+    function setTextAreaLengthInfo(scope){
+        maxLength = scope.attr('maxlength');
+        length = scope.val().length;
         text = '(' + length + '/' + maxLength + ')';
-        $(this).next().text(text);
+        scope.next().text(text);
+    }
+    scope.find('.question-textarea').bind('input propertychange', function() {
+        setTextAreaLengthInfo($(this));
     });
+    scope.find('.question-textarea').each(function() {
+        setTextAreaLengthInfo($(this));
+    })
 }
 
 /*
