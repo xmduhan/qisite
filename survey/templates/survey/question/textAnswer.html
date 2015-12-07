@@ -7,7 +7,7 @@
         </div>
         <div class="panel-body">
             <textarea rows="5" type="text" class="form-control question-textarea" maxlength="{{ question.contentLength }}"
-                name="{{ question.getIdSigned }}" style="resize: none;" data-content-length={{ question.contentLength }}
+                name="{{ question.getIdSigned }}" style="resize: none;"
                 >{% if allQuestionText|get_item:question %}{{ allQuestionText|get_item:question }}{% endif %}</textarea>
             <div>(1/{{ question.contentLength }})</div>
             <br>
