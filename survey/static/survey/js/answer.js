@@ -42,7 +42,11 @@ function initTextAreaRemainCount(scope) {
     //logger.debug('initTextAreaRemainCount is called!');
     function setTextAreaLengthInfo(scope){
         maxLength = scope.attr('maxlength');
-        length = scope.val().length;
+        //length = scope.val().length;
+        length = scope.val().replace(/\n/g, '\r\n').length;
+        if(length > maxLength){
+            length = maxLength;
+        }
         text = '(' + length + '/' + maxLength + ')';
         //scope.next().text(text);
         //scope.prev().text(text);
