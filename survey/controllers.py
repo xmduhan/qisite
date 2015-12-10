@@ -612,6 +612,7 @@ class SurveyBulkAnswerController(SurveyAnswerController):
             # 问答题
             if question.type == 'Text':
                 content = self.request.REQUEST.get(questionIdSigned)
+                # content = content.replace('\r\n', '\n')
                 if len(content) == 0:
                     raise Exception(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
                 if len(content) > MAX_TEXT_CONTENT_LENGTH:
@@ -876,6 +877,7 @@ class SurveyStepAnswerController(SurveyAnswerController):
         # 问答题
         if question.type == 'Text':
             content = self.request.REQUEST.get(_questionId)
+            # content = content.replace('\r\n', '\n')
             if len(content) == 0:
                 return self.controller.errorPage(RESULT_MESSAGE.ANSWER_IS_MISSED_WHEN_REQUIRED)  # 问题答案没有完整填写
             if len(content) > MAX_TEXT_CONTENT_LENGTH:
