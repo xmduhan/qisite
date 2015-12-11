@@ -28,7 +28,7 @@ from django.db.models.fields.related import ForeignKey
 from www.utils import packageResult, dictToJsonResponse, packageResponse
 from qisite.settings import smsSend
 from qisite.settings import domain
-
+from qisite.definitions import MAX_TEXT_CONTENT_LENGTH
 from qisite.definitions import RESULT_CODE, RESULT_MESSAGE
 
 
@@ -977,6 +977,7 @@ def addDefaultTextQuestion(request):
 
     # 调用问题新增处理过程
     requestData = {'paper': paperId, 'text': u'新增问答题', 'type': 'Text'}
+    # requestData = {'paper': paperId, 'text': u'新增问答题', 'type': 'Text', 'contentLength': MAX_TEXT_CONTENT_LENGTH}
     result = _questionAdd(requestData, user)
     if result['resultCode'] != 0:
         return dictToJsonResponse(result)
