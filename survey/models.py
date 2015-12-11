@@ -200,7 +200,8 @@ class Question(TimeModel):
         if self.type not in Question.QUESTION_TYPE_AVAILABLE:
             raise ValidationError(u'无效的问题类型')
         if self.type in ('Single', 'Multiple') and self.contentLength != 0:
-            raise ValidationError(u'选择题不能有填写值长度')
+            # raise ValidationError(u'选择题不能有填写值长度')
+            self.contentLength = 0
         if self.type not in ('Single', 'Multiple') and self.confused:
             raise ValidationError(u'非选择题不能指定乱序选项')
 
