@@ -976,8 +976,8 @@ def addDefaultTextQuestion(request):
     paperId = request.REQUEST['paper']
 
     # 调用问题新增处理过程
-    requestData = {'paper': paperId, 'text': u'新增问答题', 'type': 'Text'}
-    # requestData = {'paper': paperId, 'text': u'新增问答题', 'type': 'Text', 'contentLength': MAX_TEXT_CONTENT_LENGTH}
+    # requestData = {'paper': paperId, 'text': u'新增问答题', 'type': 'Text'}
+    requestData = {'paper': paperId, 'text': u'新增问答题', 'type': 'Text', 'contentLength': MAX_TEXT_CONTENT_LENGTH}
     result = _questionAdd(requestData, user)
     if result['resultCode'] != 0:
         return dictToJsonResponse(result)
