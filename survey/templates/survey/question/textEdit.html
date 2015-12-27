@@ -46,7 +46,7 @@
                 <div class="input-group input-group-sm">
                     <span class="input-group-addon">{{ question.getNum }}</span>
                     <input type="text" class="form-control data-binding-field question-text-editor"
-                           placeholder="请填写"
+                           placeholder="请填写(最长150字)" maxlength=150
                            value="{{ question.text }}"
                             {# 数据绑定信息 #}
                            data-binding-action="{% url 'survey:service.question.modify' %}"

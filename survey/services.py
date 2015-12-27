@@ -904,7 +904,7 @@ def addDefaultSingleQuestion(request):
     paperId = request.REQUEST['paper']
 
     # 调用问题新增处理过程
-    requestData = {'paper': paperId, 'text': u'新增单选题', 'type': 'Single'}
+    requestData = {'paper': paperId, 'text': u'新增单选题,请填写(最长150字)', 'type': 'Single'}
     result = _questionAdd(requestData, user)
     if result['resultCode'] != 0:
         return dictToJsonResponse(result)
@@ -916,7 +916,7 @@ def addDefaultSingleQuestion(request):
 
     # 增加两个默认选项
     for i in [1, 2]:
-        requestData = {'question': questionId, 'text': u'选项%d' % i}
+        requestData = {'question': questionId, 'text': u'选项%d,请填写(最长100字)' % i}
         result = _branchAdd(requestData, user)
         if result['resultCode'] != 0:
             return dictToJsonResponse(result)
@@ -940,7 +940,7 @@ def addDefaultMultipleQuestion(request):
     paperId = request.REQUEST['paper']
 
     # 调用问题新增处理过程
-    requestData = {'paper': paperId, 'text': u'新增多选题', 'type': 'Multiple'}
+    requestData = {'paper': paperId, 'text': u'新增多选题,请填写(最长150字)', 'type': 'Multiple'}
     result = _questionAdd(requestData, user)
     if result['resultCode'] != 0:
         return dictToJsonResponse(result)
@@ -952,7 +952,7 @@ def addDefaultMultipleQuestion(request):
 
     # 增加两个默认选项
     for i in [1, 2, 3, 4]:
-        requestData = {'question': questionId, 'text': u'选项%d' % i}
+        requestData = {'question': questionId, 'text': u'选项%d,请填写(最长100字)' % i}
         result = _branchAdd(requestData, user)
         if result['resultCode'] != 0:
             return dictToJsonResponse(result)
@@ -977,7 +977,7 @@ def addDefaultTextQuestion(request):
 
     # 调用问题新增处理过程
     # requestData = {'paper': paperId, 'text': u'新增问答题', 'type': 'Text'}
-    requestData = {'paper': paperId, 'text': u'新增问答题', 'type': 'Text', 'contentLength': MAX_TEXT_CONTENT_LENGTH}
+    requestData = {'paper': paperId, 'text': u'新增问答题,请填写(最长150字)', 'type': 'Text', 'contentLength': MAX_TEXT_CONTENT_LENGTH}
     result = _questionAdd(requestData, user)
     if result['resultCode'] != 0:
         return dictToJsonResponse(result)
@@ -1006,7 +1006,7 @@ def addDefaultScoreQuestion(request):
     paperId = request.REQUEST['paper']
 
     # 调用问题新增处理过程
-    requestData = {'paper': paperId, 'text': u'新增评分题', 'type': 'Score'}
+    requestData = {'paper': paperId, 'text': u'新增评分题,请填写(最长150字)', 'type': 'Score'}
     result = _questionAdd(requestData, user)
     if result['resultCode'] != 0:
         return dictToJsonResponse(result)
@@ -1035,7 +1035,7 @@ def addDefaultBranch(request):
     questionId = request.REQUEST['question']
 
     # 调用新增选项的处理过程
-    requestData = {'question': questionId, 'text': u'新增选项'}
+    requestData = {'question': questionId, 'text': u'新增选项,请填写(最长100字)'}
     result = _branchAdd(requestData, user)
     return dictToJsonResponse(result)
 
