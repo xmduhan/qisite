@@ -15,8 +15,9 @@
                 <div class="col-md-12">
                     <div class="input-group input-group-sm">
                         <span class="input-group-addon">问卷名称</span>
-                        <input id=type="text" class="form-control data-binding-field" placeholder="请填写问卷名称"
+                        <input id=type="text" class="form-control data-binding-field" 
                                value="{{ paper.title }}"
+                               placeholder="请填写问卷名称(最长150字)" maxlength=150
                                data-binding-action="{% url 'survey:service.paper.modify' %}"
                                data-binding-id="{{ paper.getIdSigned }}"
                                data-binding-field-name="title">
@@ -30,11 +31,16 @@
                 <div class="col-md-12">
                     <div class="input-group input-group-sm">
                         <span class="input-group-addon">问卷描述</span>
-                        <input type="text" class="form-control data-binding-field" placeholder="请填写问卷描述"
-                               value="{{ paper.description }}"
-                               data-binding-action="{% url 'survey:service.paper.modify' %}"
-                               data-binding-id="{{ paper.getIdSigned }}"
-                               data-binding-field-name="description">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <textarea class="form-control data-binding-field"
+                                    placeholder="请填写问卷描述(最长250字)" maxlength=250 rows="3"
+                                    value="{{ paper.description }}"
+                                    data-binding-action="{% url 'survey:service.paper.modify' %}"
+                                    data-binding-id="{{ paper.getIdSigned }}"
+                                    data-binding-field-name="description"></textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

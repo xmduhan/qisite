@@ -11,7 +11,7 @@ function getPaperRecord(paperId) {
 function initPaperAddButton() {
     $('.btn-paper-add').on('click', function () {
         action = '/survey/service/paper/add';
-        data = {'title': '新增问卷'};
+        data = {'title': '请填写问卷名称(最多150字)'};
         ajaxSuccess = false;
         paperId = undefined;
         // 向服务器提交数据
