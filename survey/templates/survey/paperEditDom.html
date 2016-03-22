@@ -38,7 +38,7 @@
                                     value="{{ paper.description }}"
                                     data-binding-action="{% url 'survey:service.paper.modify' %}"
                                     data-binding-id="{{ paper.getIdSigned }}"
-                                    data-binding-field-name="description"></textarea>
+                                    data-binding-field-name="description">{{ paper.description }}</textarea>
                             </div>
                         </div>
                     </div>
