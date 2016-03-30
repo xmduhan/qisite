@@ -445,6 +445,18 @@ class Survey(TimeModel):
     createBy = models.ForeignKey(account.models.User, verbose_name="创建者", related_name='surveyCreated_set')
     modifyBy = models.ForeignKey(account.models.User, verbose_name="修改者", related_name='surveyModified_set')
 
+    def getResubmitText(self):
+        return u'是' if self.resubmit else u'否'
+
+    def getVeiwResultText(self):
+        return u'是' if self.viewResult else u'否'
+
+    def getAnonymousText(self):
+        return u'是' if self.anonymous else u'否'
+
+    def getSharedText(self):
+        return u'是' if self.shared else u'否'
+
     class Meta:
         verbose_name = "调查"
         verbose_name_plural = "[10].调查"

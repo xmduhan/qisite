@@ -38,7 +38,7 @@
                 <div class="row">
                     <div>
                         <textarea id="message" rows="9" style="resize: none;width: 100%;"
-                                >手机号码{{ session.user.phone }}的用户为您准备一份问卷邀请您参加，调查的题目为"{{ survey.paper.title }}"，调查访问地址为:{{ domain }}{% url 'survey:view.survey.answer' survey.id %}
+                            >手机号码{{ session.user.phone }}的用户为您准备一份问卷邀请您参加，调查的题目为"{{ survey.paper.title }}",问卷属性:(允许重填={{ survey.getResubmitText }},允许查看结果={{ survey.getVeiwResultText }},匿名={{ survey.getAnonymousText }},允许分享={{ survey.getSharedText }})，调查访问地址为:{{ domain }}{% url 'survey:view.survey.answer' survey.id %}
                         </textarea>
                     </div>
                 </div>
