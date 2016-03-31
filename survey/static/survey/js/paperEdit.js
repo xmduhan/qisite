@@ -709,7 +709,24 @@ function initSlider(scope) {
  ***************************************/
 
 function initDatetimepicker(scope) {
-    scope.find('.datetimepicker').datepicker({ dateFormat: 'yy-mm-dd' });
+    // scope.find('.datetimepicker').datepicker({ dateFormat: 'yy-mm-dd' });
+    //*
+    scope.find('.datetimepicker').datetimepicker({
+        monthNames: ["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"],
+        dayNamesMin: ["日","一","二","三","四","五","六"],
+        timeOnlyTitle: 'timeOnlyTitle',
+        timeText: "时间",
+        hourText: "时",
+        minuteText: "分",
+        secondText: "秒",
+        currentText: "当前时间",
+        closeText: "完成",
+        dateFormat: 'yy-mm-dd',
+        timeFormat: "HH:mm"
+    });
+    //*/
+    // scope.find('.datetimepicker').datetimepicker();
+    // scope.find('..datetimepicker').datetimepicker({ showOn: "button", showSecond: true, dateFormat: "dd-mm-yy", timeFormat: "HH:mm:ss" });
 }
 
 /***************************************
