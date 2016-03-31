@@ -107,7 +107,7 @@
                     <div class="input-group input-group-sm ">
                         <span class="input-group-addon width40">结束时间</span>
                         <input type="text" class="form-control datetimepicker data-binding-field"
-                               value="{{ survey.endTime | date:'Y-m-d' }}"
+                               value="{{ survey.endTime | date:'Y-m-d H:i' }}"
                                data-binding-action="{% url 'survey:service.survey.modify' %}"
                                data-binding-id="{{ survey.getIdSigned }}"
                                data-binding-field-name="endTime"/>
