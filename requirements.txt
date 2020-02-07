@@ -1,0 +1,11 @@
+dicttoxml==1.7.4
+Django==1.6.9
+django-extensions==1.6.7
+jieba==0.42.1
+pymaging==0.1
+pymaging-png==0.1
+python-dateutil==2.8.1
+qrcode==6.1
+six==1.14.0
+South==1.0.2
+typing==3.7.4.1
